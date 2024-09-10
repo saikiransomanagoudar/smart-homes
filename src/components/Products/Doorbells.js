@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Img } from "react-image";
 import { Link, useNavigate } from "react-router-dom";
 import { useUser, SignedIn, SignedOut, UserButton } from "@clerk/clerk-react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faShoppingCart } from "@fortawesome/free-solid-svg-icons";
 
 // Example list of doorbell products with accessories
 const doorbellProducts = [
@@ -221,6 +223,7 @@ export default function Doorbells() {
               All Products
             </Link>
             <div className="ml-4 text-sm sm:text-base">
+              <FontAwesomeIcon icon={faShoppingCart} className="mr-2" />
               Cart Items: {cart.reduce((sum, item) => sum + item.quantity, 0)}
             </div>
             <SignedIn>
