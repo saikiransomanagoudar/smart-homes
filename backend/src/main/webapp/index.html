@@ -1,0 +1,173 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Business Solutions</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+    
+    <!-- Embedded CSS -->
+    <style>
+        body {
+            background-color: #550403;
+            background-position: center center;
+            margin: auto;
+        }
+        * {
+            border: 0;
+            margin: 0;
+        }
+        #logo {
+            height: 303px;
+            width: 249px;
+        }
+        #header {
+            height: 185px;
+            width: 751px;
+        }
+        .style1 {
+            font-family: "Microsoft Sans Serif";
+            font-size: 50px;
+        }
+        .top_menu ul {
+            margin: 0;
+            list-style: none;
+            padding-left: 0px;
+        }
+        .top_menu li {
+            display: inline;
+        }
+        .top_menu a {
+            font-family: Calibri;
+            font-size: 25px;
+            color: #FFFFFF;
+            text-decoration: none;
+            float: left;
+            height: 37px;
+            width: 154px;
+            text-align: center;
+        }
+        .top_menu a:hover {
+            background-color: #333;
+        }
+        #content {
+            height: 727px;
+            width: 724px;
+            background-color: #fff;
+            padding: 20px;
+        }
+        .title {
+            font-size: 22px;
+            color: #000000;
+            font-family: "Microsoft Sans Serif";
+            padding-top: 50px;
+        }
+        .content {
+            font-size: 14px;
+            color: #000000;
+            font-family: "Microsoft Sans Serif";
+        }
+        .product-item, .cart-item {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #fff;
+        }
+        .product-item h3, .cart-item h3 {
+            font-size: 18px;
+            color: #550403;
+        }
+        .product-item form, .cart-item form {
+            margin-top: 10px;
+        }
+        #footer {
+            height: 46px;
+            width: 903px;
+            text-align: center;
+            font-size: 14px;
+            line-height: 1.9;
+            font-family: "Microsoft Sans Serif";
+        }
+    </style>
+</head>
+
+<body>
+    <div id="body">
+        <table style="width=1001px; height=1001px;" border="0" align="center" cellpadding="0" cellspacing="0" id="Table_01">
+            <tr>
+                <td colspan="2" rowspan="3">
+                    <div id="logo">
+                        <div class="logo">
+                            <a href="index.html"><span class="style5">COMPANY<br />NAME</span></a>
+                        </div>
+                    </div>
+                </td>
+                <td colspan="3">
+                    <div class="style1" id="header">
+                        <br />BUSINESS <span class="style3">SOLUTIONS</span>
+                        <span class="style4"><br />OUR SOLUTIONS MAKE YOUR BUSINESS BETTER!</span>
+                    </div>
+                </td>
+                <td>
+                    <img src="images/spacer.gif" width="1" height="185" alt="" />
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="top_menu">
+                        <ul>
+                            <li><a href="index.html">HOME</a></li>
+                            <li><a href="index.html">ABOUT</a></li>
+                            <li><a href="index.html">F.A.Q.</a></li>
+                            <li><a href="index.html">CONTACT</a></li>
+                        </ul>
+                    </div>
+                </td>
+                <td colspan="2">
+                    <img src="images/index_04.jpg" width="128" height="42" alt="" />
+                </td>
+                <td>
+                    <img src="images/spacer.gif" width="1" height="42" alt="" />
+                </td>
+            </tr>
+
+            <!-- Product List Display -->
+            <tr>
+                <td colspan="2" rowspan="2">
+                    <div id="content">
+                        <div class="title">Products Available</div>
+                        <div class="content">
+                            <%
+                                // Fetch the list of products from the servlet
+                                List<Product> productList = (List<Product>) request.getAttribute("productList");
+                                if (productList != null) {
+                                    for (Product product : productList) {
+                            %>
+                            <div class="product-item">
+                                <h3><%= product.getName() %></h3>
+                                <p>Price: $<%= product.getPrice() %></p>
+                                <p>Description: <%= product.getDescription() %></p>
+                                <form action="CartServlet" method="post">
+                                    <input type="hidden" name="productId" value="<%= product.getId() %>" />
+                                    <input type="submit" value="Add to Cart" />
+                                </form>
+                            </div>
+                            <%
+                                    }
+                                } else {
+                            %>
+                            <p>No products available.</p>
+                            <%
+                                }
+                            %>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+        <!-- Footer -->
+        <div id="footer">
+            COPYRIGHT (C) 2024 Smart Homes. DESIGN BY Saikiran.
+        </div>
+    </div>
+</body>
+</html>

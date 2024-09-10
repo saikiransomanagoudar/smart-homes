@@ -1,0 +1,4 @@
+com\smarthomes\Product.class
+com\smarthomes\ProductServlet.class
+com\smarthomes\CartServlet.class
+com\smarthomes\CheckoutServlet.class
