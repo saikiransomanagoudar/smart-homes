@@ -160,22 +160,26 @@ export default function Doorbells() {
   };
 
   const handleAddAccessoryToCart = (accessory) => {
+    // Ensure that accessories have a unique ID to prevent collision with product IDs
     const accessoryInCart = cart.find(
-      (cartItem) => cartItem.id === accessory.id
+      (cartItem) => cartItem.id === `accessory-${accessory.id}`
     );
 
     if (accessoryInCart) {
       // If accessory is already in the cart, increase its quantity
       setCart(
         cart.map((cartItem) =>
-          cartItem.id === accessory.id
+          cartItem.id === `accessory-${accessory.id}`
             ? { ...cartItem, quantity: cartItem.quantity + 1 }
             : cartItem
         )
       );
     } else {
-      // If accessory is not in the cart, add it with quantity 1
-      setCart([...cart, { ...accessory, quantity: 1 }]);
+      // If accessory is not in the cart, add it with a unique ID
+      setCart([
+        ...cart,
+        { ...accessory, id: `accessory-${accessory.id}`, quantity: 1 }
+      ]);
     }
   };
 
@@ -201,30 +205,42 @@ export default function Doorbells() {
         )
       );
     }
-  };
+  };  
 
   return (
     <div className="bg-[#f5f5f5] min-h-screen overflow-x-hidden">
       {/* Header */}
       <header className="bg-[#550403] text-white p-4">
         <div className="container mx-auto flex justify-between items-center flex-wrap">
-          <h1 className="text-3xl sm:text-4xl font-bold">Smart Homes</h1>
+          <h1 className="text-3xl sm:text-4xl font-bold">
+            <nav>
+              <Link to="/">Smart Homes</Link>
+            </nav>
+          </h1>
           <nav className="flex space-x-2 sm:space-x-4 items-center">
-            <Link to="/" className="text-sm sm:text-base">
-              Home
-            </Link>
-            <Link to="/about" className="text-sm sm:text-base">
+            <Link
+              to="https://github.com/saikiransomanagoudar/smart-homes"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm sm:text-base"
+            >
               About
             </Link>
-            <Link to="/contact" className="text-sm sm:text-base">
+            <Link
+              to="https://www.linkedin.com/in/saikiransomanagoudar/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm sm:text-base"
+            >
               Contact
             </Link>
-            <Link to="/products" className="text-sm sm:text-base">
-              All Products
-            </Link>
             <div className="ml-4 text-sm sm:text-base">
-              <FontAwesomeIcon icon={faShoppingCart} className="mr-2" />
-              Cart Items: {cart.reduce((sum, item) => sum + item.quantity, 0)}
+              <nav>
+                <Link to="/cart" className="text-white">
+                  <FontAwesomeIcon icon={faShoppingCart} className="mr-2" />
+                  Cart Items: {cart.reduce((sum, item) => sum + item.quantity, 0)}
+                </Link>
+              </nav>
             </div>
             <SignedIn>
               <UserButton afterSignOutUrl="/" />
@@ -269,9 +285,7 @@ export default function Doorbells() {
                 unloader={<div>Image not found</div>}
                 className="h-40 w-auto object-contain mx-auto mt-2"
               />
-              <p className="mt-2 text-sm sm:text-base">
-                {product.description}
-              </p>
+              <p className="mt-2 text-sm sm:text-base">{product.description}</p>
               <p className="text-lg font-bold mt-2">{product.price}</p>
 
               <button
@@ -363,7 +377,7 @@ export default function Doorbells() {
                         className="text-center"
                         onClick={(e) => {
                           e.stopPropagation(); // Prevent modal opening
-                          handleAddAccessoryToCart(accessory);
+                          handleAddAccessoryToCart(accessory); // Call the modified function
                         }}
                       >
                         <Img
@@ -374,14 +388,19 @@ export default function Doorbells() {
                         <p className="text-sm mt-2">{accessory.name}</p>
                         <p className="text-sm font-bold">{accessory.price}</p>
 
-                        {cart.find((cartItem) => cartItem.id === accessory.id)
-                          ?.quantity > 0 && (
+                        {cart.find(
+                          (cartItem) =>
+                            cartItem.id === `accessory-${accessory.id}`
+                        )?.quantity > 0 && (
                           <div className="flex items-center justify-between mt-2">
                             <button
                               className="text-gray-500 text-xl"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleDecreaseQuantity(accessory);
+                                handleDecreaseQuantity({
+                                  ...accessory,
+                                  id: `accessory-${accessory.id}`
+                                });
                               }}
                             >
                               -
@@ -389,7 +408,8 @@ export default function Doorbells() {
                             <span>
                               {
                                 cart.find(
-                                  (cartItem) => cartItem.id === accessory.id
+                                  (cartItem) =>
+                                    cartItem.id === `accessory-${accessory.id}`
                                 )?.quantity
                               }
                             </span>
@@ -397,10 +417,13 @@ export default function Doorbells() {
                               className="text-gray-500 text-xl"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleIncreaseQuantity(accessory);
+                                handleIncreaseQuantity({
+                                  ...accessory,
+                                  id: `accessory-${accessory.id}`
+                                });
                               }}
                             >
-                                +
+                              +
                             </button>
                           </div>
                         )}
@@ -435,10 +458,6 @@ export default function Doorbells() {
       <footer className="bg-[#550403] text-white p-4 mt-8">
         <div className="container mx-auto text-center">
           <p>&copy; 2024 Smart Homes. All rights reserved.</p>
-          <div className="mt-4">
-            <Link to="/terms">Terms of Service</Link> |{" "}
-            <Link to="/privacy">Privacy Policy</Link>
-          </div>
         </div>
       </footer>
     </div>

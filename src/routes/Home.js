@@ -4,7 +4,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { useUser, SignedIn, SignedOut, UserButton } from "@clerk/clerk-react";
 
 export default function Home() {
-
   const { isSignedIn } = useUser();
   const navigate = useNavigate();
 
@@ -62,15 +61,26 @@ export default function Home() {
       {/* Header */}
       <header className="bg-[#550403] text-white p-4">
         <div className="container mx-auto flex justify-between items-center flex-wrap">
-          <h1 className="text-3xl sm:text-4xl font-bold">Smart Homes</h1>
-          <nav className="flex space-x-2 sm:space-x-4 items-center">
-            <Link to="/" className="text-sm sm:text-base">
-              Home
+          <h1
+            className="text-3xl sm:text-4xl font-bold"
+          >
+            <nav>
+            <Link to="/">
+            Smart Homes
             </Link>
-            <Link to="/about" className="text-sm sm:text-base">
+            </nav>
+          </h1>
+          <nav className="flex space-x-2 sm:space-x-4 items-center">
+            <Link to="https://github.com/saikiransomanagoudar/smart-homes" 
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm sm:text-base">
               About
             </Link>
-            <Link to="/contact" className="text-sm sm:text-base">
+            <Link to="https://www.linkedin.com/in/saikiransomanagoudar/" 
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm sm:text-base">
               Contact
             </Link>
             <SignedOut>
@@ -211,10 +221,6 @@ export default function Home() {
       <footer className="bg-[#550403] text-white p-4 mt-8">
         <div className="container mx-auto text-center">
           <p>&copy; 2024 Smart Homes. All rights reserved.</p>
-          <div className="mt-4">
-            <Link to="/terms">Terms of Service</Link> |{" "}
-            <Link to="/privacy">Privacy Policy</Link>
-          </div>
         </div>
       </footer>
     </div>
