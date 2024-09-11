@@ -45,6 +45,8 @@ public class CartServlet extends HttpServlet {
 
         Product newProduct = new Product(productId, productName, productPrice, productImage);
         cart.add(newProduct);
+        System.out.println("Received POST request for product ID: " + productId);
+
 
         session.setAttribute("cart", cart);
         response.setContentType("application/json");

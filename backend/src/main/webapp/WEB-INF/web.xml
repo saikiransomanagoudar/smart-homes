@@ -3,8 +3,8 @@
  "http://java.sun.com/dtd/web-app_2_3.dtd" >
 
 <web-app>
-  <!-- Product Servlet -->
-  <servlet>
+
+  <!-- <servlet>
     <servlet-name>ProductServlet</servlet-name>
     <servlet-class>com.smarthomes.ProductServlet</servlet-class>
   </servlet>
@@ -13,7 +13,6 @@
     <url-pattern>/products</url-pattern>
   </servlet-mapping>
 
-  <!-- Cart Servlet -->
   <servlet>
     <servlet-name>CartServlet</servlet-name>
     <servlet-class>com.smarthomes.CartServlet</servlet-class>
@@ -21,10 +20,9 @@
   <servlet-mapping>
     <servlet-name>CartServlet</servlet-name>
     <url-pattern>/cart</url-pattern>
-  </servlet-mapping>
+  </servlet-mapping> -->
 
-  <!-- Checkout Servlet -->
-  <servlet>
+  <!-- <servlet>
     <servlet-name>CheckoutServlet</servlet-name>
     <servlet-class>com.smarthomes.CheckoutServlet</servlet-class>
     <load-on-startup>1</load-on-startup>
@@ -32,7 +30,7 @@
   <servlet-mapping>
     <servlet-name>CheckoutServlet</servlet-name>
     <url-pattern>/checkout</url-pattern>
-  </servlet-mapping>
+  </servlet-mapping> -->
 
   <!-- CORS Filter -->
   <filter>
