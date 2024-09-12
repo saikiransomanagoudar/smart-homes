@@ -137,6 +137,18 @@ export default function ProductsPage({ cart, setCart }) {
                 <FontAwesomeIcon icon={faShoppingCart} className="mr-2" />
                 Cart Items: {cart.reduce((sum, item) => sum + item.quantity, 0)}
               </Link>
+              <Link
+                to="/signup"
+                className="bg-green-500 text-white px-4 py-2 rounded ml-2 text-sm sm:text-base"
+              >
+                Sign Up
+              </Link>
+              <Link
+                to="/signin"
+                className="bg-blue-500 text-white px-4 py-2 rounded ml-2 text-sm sm:text-base"
+              >
+                Sign In
+              </Link>
             </div>
           </nav>
         </div>
