@@ -1,7 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Img } from "react-image";
 import { Link, useNavigate } from "react-router-dom";
-import { useUser, SignedIn, SignedOut, UserButton } from "@clerk/clerk-react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faShoppingCart } from "@fortawesome/free-solid-svg-icons";
 
@@ -121,8 +120,27 @@ const doorbellProducts = [
 export default function Doorbells() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [cart, setCart] = useState([]); // To track cart items
-  const { isSignedIn } = useUser(); // Clerk's hook to check sign-in status
   const navigate = useNavigate(); // Hook to navigate programmatically
+  const [isSignedIn, setIsSignedIn] = useState(false); // Track if user is signed in
+
+  // Check if user is signed in (you can replace this with your actual authentication logic)
+  useEffect(() => {
+    const user = localStorage.getItem("user");
+    if (user) {
+      setIsSignedIn(true);
+    } else {
+      setIsSignedIn(false);
+    }
+  }, []);
+
+  // Redirect to SignIn if not signed in
+  const checkSignIn = (action) => {
+    if (!isSignedIn) {
+      navigate("/signin");
+    } else {
+      action();
+    }
+  };
 
   const handleProductClick = (product) => {
     setSelectedProduct(product); // Set selected product to show in modal
@@ -133,79 +151,110 @@ export default function Doorbells() {
   };
 
   const handleBuyNow = () => {
-    if (!isSignedIn) {
-      navigate("/signin"); // Navigate to SignIn if not signed in
-    } else {
-      window.location.href = "/payment"; // Redirect to payment page if signed in
-    }
+    window.location.href = "/payment"; // Redirect to payment page if signed in
   };
 
   const handleAddProductToCart = (product) => {
-    if (!isSignedIn) {
-      navigate("/signin"); // Navigate to SignIn if not signed in
-    } else {
-      const productInCart = cart.find((cartItem) => cartItem.id === product.id);
-      if (productInCart) {
-        setCart(
-          cart.map((cartItem) =>
-            cartItem.id === product.id
-              ? { ...cartItem, quantity: cartItem.quantity + 1 }
-              : cartItem
-          )
-        );
-      } else {
-        setCart([...cart, { ...product, quantity: 1 }]);
-      }
-    }
+    fetch("http://localhost:8080/smarthomes/cart", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.image,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Product added to cart:", data);
+        const productInCart = cart.find((cartItem) => cartItem.id === product.id);
+        if (productInCart) {
+          setCart(
+            cart.map((cartItem) =>
+              cartItem.id === product.id
+                ? { ...cartItem, quantity: cartItem.quantity + 1 }
+                : cartItem
+            )
+          );
+        } else {
+          setCart([...cart, { ...product, quantity: 1 }]);
+        }
+      })
+      .catch((error) => console.error("Error adding product to cart:", error));
   };
 
   const handleAddAccessoryToCart = (accessory) => {
-    // Ensure that accessories have a unique ID to prevent collision with product IDs
-    const accessoryInCart = cart.find(
-      (cartItem) => cartItem.id === `accessory-${accessory.id}`
-    );
-
-    if (accessoryInCart) {
-      // If accessory is already in the cart, increase its quantity
-      setCart(
-        cart.map((cartItem) =>
-          cartItem.id === `accessory-${accessory.id}`
-            ? { ...cartItem, quantity: cartItem.quantity + 1 }
-            : cartItem
-        )
-      );
-    } else {
-      // If accessory is not in the cart, add it with a unique ID
-      setCart([
-        ...cart,
-        { ...accessory, id: `accessory-${accessory.id}`, quantity: 1 }
-      ]);
-    }
+    const accessoryCartId = `accessory-${accessory.id}`; // Use a unique identifier for accessories
+    fetch("http://localhost:8080/smarthomes/cart", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: accessoryCartId,
+        name: accessory.name,
+        price: accessory.price,
+        image: accessory.image,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Accessory added to cart:", data);
+        const accessoryInCart = cart.find(
+          (cartItem) => cartItem.id === accessoryCartId
+        );
+        if (accessoryInCart) {
+          setCart(
+            cart.map((cartItem) =>
+              cartItem.id === accessoryCartId
+                ? { ...cartItem, quantity: cartItem.quantity + 1 }
+                : cartItem
+            )
+          );
+        } else {
+          setCart([...cart, { ...accessory, id: accessoryCartId, quantity: 1 }]);
+        }
+      })
+      .catch((error) => console.error("Error adding accessory to cart:", error));
   };
 
-  const handleIncreaseQuantity = (item) => {
-    setCart(
-      cart.map((cartItem) =>
-        cartItem.id === item.id
-          ? { ...cartItem, quantity: cartItem.quantity + 1 }
-          : cartItem
-      )
-    );
+  const handleDeleteAccessoryFromCart = (accessory) => {
+    const accessoryCartId = `accessory-${accessory.id}`; // Use the same unique identifier
+    fetch("http://localhost:8080/smarthomes/cart", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: accessoryCartId,
+        name: accessory.name,
+        price: accessory.price,
+        image: accessory.image,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Accessory deleted from cart:", data);
+        const accessoryInCart = cart.find(
+          (cartItem) => cartItem.id === accessoryCartId
+        );
+        if (accessoryInCart && accessoryInCart.quantity > 1) {
+          setCart(
+            cart.map((cartItem) =>
+              cartItem.id === accessoryCartId
+                ? { ...cartItem, quantity: cartItem.quantity - 1 }
+                : cartItem
+            )
+          );
+        } else {
+          setCart(cart.filter((cartItem) => cartItem.id !== accessoryCartId));
+        }
+      })
+      .catch((error) => console.error("Error deleting accessory:", error));
   };
-
-  const handleDecreaseQuantity = (item) => {
-    if (item.quantity === 1) {
-      setCart(cart.filter((cartItem) => cartItem.id !== item.id));
-    } else {
-      setCart(
-        cart.map((cartItem) =>
-          cartItem.id === item.id
-            ? { ...cartItem, quantity: cartItem.quantity - 1 }
-            : cartItem
-        )
-      );
-    }
-  };  
 
   return (
     <div className="bg-[#f5f5f5] min-h-screen overflow-x-hidden">
@@ -238,21 +287,11 @@ export default function Doorbells() {
               <nav>
                 <Link to="/cart" className="text-white">
                   <FontAwesomeIcon icon={faShoppingCart} className="mr-2" />
-                  Cart Items: {cart.reduce((sum, item) => sum + item.quantity, 0)}
+                  Cart Items:{" "}
+                  {cart.reduce((sum, item) => sum + item.quantity, 0)}
                 </Link>
               </nav>
             </div>
-            <SignedIn>
-              <UserButton afterSignOutUrl="/" />
-            </SignedIn>
-            <SignedOut>
-              <Link
-                to="/signin"
-                className="bg-green-500 text-white px-3 py-2 rounded ml-2 text-sm sm:text-base"
-              >
-                Sign In
-              </Link>
-            </SignedOut>
           </nav>
         </div>
       </header>
@@ -292,7 +331,7 @@ export default function Doorbells() {
                 className="bg-blue-500 text-white px-4 py-2 mt-4 rounded"
                 onClick={(e) => {
                   e.stopPropagation(); // Prevent modal opening
-                  handleBuyNow();
+                  checkSignIn(() => handleBuyNow());
                 }}
               >
                 Buy Now
@@ -302,12 +341,13 @@ export default function Doorbells() {
                 className="bg-green-500 text-white px-4 py-2 mt-4 rounded"
                 onClick={(e) => {
                   e.stopPropagation(); // Prevent modal opening
-                  handleAddProductToCart(product);
+                  checkSignIn(() => handleAddProductToCart(product));
                 }}
               >
                 Add to Cart
               </button>
 
+              {/* Display quantity adjustment if the product is already in the cart */}
               {cart.find((cartItem) => cartItem.id === product.id)?.quantity >
                 0 && (
                 <div className="flex items-center justify-between mt-2">
@@ -315,10 +355,10 @@ export default function Doorbells() {
                     className="text-gray-500 text-xl"
                     onClick={(e) => {
                       e.stopPropagation(); // Prevent modal opening
-                      handleDecreaseQuantity(product);
+                      handleAddProductToCart(product);
                     }}
                   >
-                    -
+                    +
                   </button>
                   <span>
                     {
@@ -330,10 +370,10 @@ export default function Doorbells() {
                     className="text-gray-500 text-xl"
                     onClick={(e) => {
                       e.stopPropagation(); // Prevent modal opening
-                      handleIncreaseQuantity(product);
+                      handleDeleteAccessoryFromCart(product);
                     }}
                   >
-                    +
+                    -
                   </button>
                 </div>
               )}
@@ -366,76 +406,71 @@ export default function Doorbells() {
               <p className="text-sm mb-4">{selectedProduct.description}</p>
               <p className="text-lg font-bold mb-4">{selectedProduct.price}</p>
 
-              {/* Display accessories horizontally */}
+              {/* Displaying accessories horizontally */}
               {selectedProduct.accessories && (
                 <div className="mb-4">
                   <h4 className="text-base font-semibold mb-2">Accessories:</h4>
                   <div className="flex space-x-4">
-                    {selectedProduct.accessories.map((accessory) => (
-                      <div
-                        key={accessory.id}
-                        className="text-center"
-                        onClick={(e) => {
-                          e.stopPropagation(); // Prevent modal opening
-                          handleAddAccessoryToCart(accessory); // Call the modified function
-                        }}
-                      >
-                        <Img
-                          src={accessory.image}
-                          alt={accessory.name}
-                          className="w-20 h-20 object-cover"
-                        />
-                        <p className="text-sm mt-2">{accessory.name}</p>
-                        <p className="text-sm font-bold">{accessory.price}</p>
+                    {selectedProduct.accessories.map((accessory) => {
+                      const accessoryCartId = `accessory-${accessory.id}`;
+                      const accessoryInCart = cart.find(
+                        (cartItem) => cartItem.id === accessoryCartId
+                      );
 
-                        {cart.find(
-                          (cartItem) =>
-                            cartItem.id === `accessory-${accessory.id}`
-                        )?.quantity > 0 && (
-                          <div className="flex items-center justify-between mt-2">
+                      return (
+                        <div key={accessory.id} className="text-center">
+                          <Img
+                            src={accessory.image}
+                            alt={accessory.name}
+                            className="w-20 h-20 object-cover"
+                          />
+                          <p className="text-sm mt-2">{accessory.name}</p>
+                          <p className="text-sm font-bold">{accessory.price}</p>
+
+                          {accessoryInCart?.quantity > 0 && (
+                            <div className="flex items-center justify-between mt-2">
+                              <button
+                                className="text-gray-500 text-xl"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  checkSignIn(() => handleDeleteAccessoryFromCart(accessory));
+                                }}
+                              >
+                                -
+                              </button>
+                              <span>{accessoryInCart.quantity}</span>
+                              <button
+                                className="text-gray-500 text-xl"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  checkSignIn(() => handleAddAccessoryToCart(accessory));
+                                }}
+                              >
+                                +
+                              </button>
+                            </div>
+                          )}
+
+                          {!accessoryInCart && (
                             <button
-                              className="text-gray-500 text-xl"
+                              className="bg-green-500 text-white px-4 py-2 mt-4 rounded"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleDecreaseQuantity({
-                                  ...accessory,
-                                  id: `accessory-${accessory.id}`
-                                });
+                                checkSignIn(() => handleAddAccessoryToCart(accessory));
                               }}
                             >
-                              -
+                              Add to Cart
                             </button>
-                            <span>
-                              {
-                                cart.find(
-                                  (cartItem) =>
-                                    cartItem.id === `accessory-${accessory.id}`
-                                )?.quantity
-                              }
-                            </span>
-                            <button
-                              className="text-gray-500 text-xl"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleIncreaseQuantity({
-                                  ...accessory,
-                                  id: `accessory-${accessory.id}`
-                                });
-                              }}
-                            >
-                              +
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
-
               <button
                 className="bg-blue-500 text-white px-4 py-2 mt-4 rounded w-full"
-                onClick={handleBuyNow}
+                onClick={() => checkSignIn(() => handleBuyNow())}
               >
                 Buy Now
               </button>
@@ -443,7 +478,7 @@ export default function Doorbells() {
               <button
                 className="bg-green-500 text-white px-4 py-2 mt-4 rounded w-full"
                 onClick={() => {
-                  handleAddProductToCart(selectedProduct);
+                  checkSignIn(() => handleAddProductToCart(selectedProduct));
                   handleCloseModal(); // Close modal after adding to cart
                 }}
               >

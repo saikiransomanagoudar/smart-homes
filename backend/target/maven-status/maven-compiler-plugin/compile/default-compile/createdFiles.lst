@@ -1,4 +1,7 @@
+com\smarthomes\User.class
 com\smarthomes\Product.class
-com\smarthomes\ProductServlet.class
 com\smarthomes\CartServlet.class
+com\smarthomes\RegistrationServlet.class
+com\smarthomes\LoginServlet.class
+com\smarthomes\ProductServlet.class
 com\smarthomes\CheckoutServlet.class

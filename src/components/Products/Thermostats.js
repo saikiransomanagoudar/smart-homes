@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Img } from "react-image";
-import { Link, useNavigate } from "react-router-dom";
-import { useUser, SignedIn, SignedOut, UserButton } from "@clerk/clerk-react";
+import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faShoppingCart } from "@fortawesome/free-solid-svg-icons";
 
@@ -144,8 +143,6 @@ const thermostatProducts = [
 export default function Thermostats() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [cart, setCart] = useState([]);
-  const { isSignedIn } = useUser();
-  const navigate = useNavigate();
 
   const handleProductClick = (product) => {
     setSelectedProduct(product);
@@ -156,77 +153,147 @@ export default function Thermostats() {
   };
 
   const handleBuyNow = () => {
-    if (!isSignedIn) {
-      navigate("/signin");
-    } else {
-      window.location.href = "/payment";
-    }
+    window.location.href = "/payment";
   };
 
   const handleAddProductToCart = (product) => {
-    if (!isSignedIn) {
-      navigate("/signin");
-    } else {
-      const productInCart = cart.find((cartItem) => cartItem.id === product.id);
-      if (productInCart) {
-        setCart(
-          cart.map((cartItem) =>
-            cartItem.id === product.id
-              ? { ...cartItem, quantity: cartItem.quantity + 1 }
-              : cartItem
-          )
+    fetch("http://localhost:8080/smarthomes/cart", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.image,
+      }),
+    })
+      .then((response) => response.json())
+      .then(() => {
+        const productInCart = cart.find(
+          (cartItem) => cartItem.id === product.id
         );
-      } else {
-        setCart([...cart, { ...product, quantity: 1 }]);
-      }
-    }
+        if (productInCart) {
+          setCart(
+            cart.map((cartItem) =>
+              cartItem.id === product.id
+                ? { ...cartItem, quantity: cartItem.quantity + 1 }
+                : cartItem
+            )
+          );
+        } else {
+          setCart([...cart, { ...product, quantity: 1 }]);
+        }
+      })
+      .catch((error) => console.error("Error adding product to cart:", error));
   };
 
   const handleAddAccessoryToCart = (accessory) => {
-    const accessoryInCart = cart.find(
-      (cartItem) => cartItem.id === `accessory-${accessory.id}`
-    );
-
-    if (accessoryInCart) {
-      // If accessory is already in the cart, increase its quantity
-      setCart(
-        cart.map((cartItem) =>
-          cartItem.id === `accessory-${accessory.id}`
-            ? { ...cartItem, quantity: cartItem.quantity + 1 }
-            : cartItem
-        )
+    const accessoryCartId = `accessory-${accessory.id}`;
+    fetch("http://localhost:8080/smarthomes/cart", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: accessoryCartId,
+        name: accessory.name,
+        price: accessory.price,
+        image: accessory.image,
+      }),
+    })
+      .then((response) => response.json())
+      .then(() => {
+        const accessoryInCart = cart.find(
+          (cartItem) => cartItem.id === accessoryCartId
+        );
+        if (accessoryInCart) {
+          setCart(
+            cart.map((cartItem) =>
+              cartItem.id === accessoryCartId
+                ? { ...cartItem, quantity: cartItem.quantity + 1 }
+                : cartItem
+            )
+          );
+        } else {
+          setCart([...cart, { ...accessory, id: accessoryCartId, quantity: 1 }]);
+        }
+      })
+      .catch((error) =>
+        console.error("Error adding accessory to cart:", error)
       );
-    } else {
-      // If accessory is not in the cart, add it with a unique ID
-      setCart([
-        ...cart,
-        { ...accessory, id: `accessory-${accessory.id}`, quantity: 1 }
-      ]);
-    }
   };
 
-  const handleIncreaseQuantity = (item) => {
-    setCart(
-      cart.map((cartItem) =>
-        cartItem.id === item.id
-          ? { ...cartItem, quantity: cartItem.quantity + 1 }
-          : cartItem
-      )
-    );
+  const handleDeleteAccessoryFromCart = (accessory) => {
+    const accessoryCartId = `accessory-${accessory.id}`;
+    fetch("http://localhost:8080/smarthomes/cart", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: accessoryCartId,
+        name: accessory.name,
+        price: accessory.price,
+        image: accessory.image,
+      }),
+    })
+      .then((response) => response.json())
+      .then(() => {
+        const accessoryInCart = cart.find(
+          (cartItem) => cartItem.id === accessoryCartId
+        );
+        if (accessoryInCart && accessoryInCart.quantity > 1) {
+          setCart(
+            cart.map((cartItem) =>
+              cartItem.id === accessoryCartId
+                ? { ...cartItem, quantity: cartItem.quantity - 1 }
+                : cartItem
+            )
+          );
+        } else {
+          setCart(cart.filter((cartItem) => cartItem.id !== accessoryCartId));
+        }
+      })
+      .catch((error) =>
+        console.error("Error deleting accessory from cart:", error)
+      );
   };
 
-  const handleDecreaseQuantity = (item) => {
-    if (item.quantity === 1) {
-      setCart(cart.filter((cartItem) => cartItem.id !== item.id));
-    } else {
-      setCart(
-        cart.map((cartItem) =>
-          cartItem.id === item.id
-            ? { ...cartItem, quantity: cartItem.quantity - 1 }
-            : cartItem
-        )
+  const handleDeleteProductFromCart = (product) => {
+    fetch("http://localhost:8080/smarthomes/cart", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.image,
+      }),
+    })
+      .then((response) => response.json())
+      .then(() => {
+        const productInCart = cart.find(
+          (cartItem) => cartItem.id === product.id
+        );
+        if (productInCart) {
+          setCart(
+            cart.map((cartItem) =>
+              cartItem.id === product.id
+                ? { ...cartItem, quantity: cartItem.quantity - 1 }
+                : cartItem
+            )
+          );
+        } else {
+          setCart([...cart, { ...product, quantity: 1 }]);
+        }
+      })
+      .catch((error) =>
+        console.error("Error deleting product from cart:", error)
       );
-    }
   };
 
   return (
@@ -262,17 +329,6 @@ export default function Thermostats() {
                 Cart Items: {cart.reduce((sum, item) => sum + item.quantity, 0)}
               </Link>
             </div>
-            <SignedIn>
-              <UserButton afterSignOutUrl="/" />
-            </SignedIn>
-            <SignedOut>
-              <Link
-                to="/signin"
-                className="bg-green-500 text-white px-3 py-2 rounded ml-2 text-sm sm:text-base"
-              >
-                Sign In
-              </Link>
-            </SignedOut>
           </nav>
         </div>
       </header>
@@ -335,7 +391,7 @@ export default function Thermostats() {
                     className="text-gray-500 text-xl"
                     onClick={(e) => {
                       e.stopPropagation(); // Prevent modal opening
-                      handleDecreaseQuantity(product);
+                      handleDeleteProductFromCart(product);
                     }}
                   >
                     -
@@ -350,7 +406,7 @@ export default function Thermostats() {
                     className="text-gray-500 text-xl"
                     onClick={(e) => {
                       e.stopPropagation(); // Prevent modal opening
-                      handleIncreaseQuantity(product);
+                      handleAddProductToCart(product);
                     }}
                   >
                     +
@@ -391,64 +447,60 @@ export default function Thermostats() {
                 <div className="mb-4">
                   <h4 className="text-base font-semibold mb-2">Accessories:</h4>
                   <div className="flex space-x-4">
-                    {selectedProduct.accessories.map((accessory) => (
-                      <div
-                        key={accessory.id}
-                        className="text-center"
-                        onClick={(e) => {
-                          e.stopPropagation(); // Prevent modal opening
-                          handleAddAccessoryToCart(accessory); // Call the modified function
-                        }}
-                      >
-                        <Img
-                          src={accessory.image}
-                          alt={accessory.name}
-                          className="w-20 h-20 object-cover"
-                        />
-                        <p className="text-sm mt-2">{accessory.name}</p>
-                        <p className="text-sm font-bold">{accessory.price}</p>
+                    {selectedProduct.accessories.map((accessory) => {
+                      const accessoryCartId = `accessory-${accessory.id}`;
+                      const accessoryInCart = cart.find(
+                        (cartItem) => cartItem.id === accessoryCartId
+                      );
 
-                        {cart.find(
-                          (cartItem) =>
-                            cartItem.id === `accessory-${accessory.id}`
-                        )?.quantity > 0 && (
-                          <div className="flex items-center justify-between mt-2">
+                      return (
+                        <div key={accessory.id} className="text-center">
+                          <Img
+                            src={accessory.image}
+                            alt={accessory.name}
+                            className="w-20 h-20 object-cover"
+                          />
+                          <p className="text-sm mt-2">{accessory.name}</p>
+                          <p className="text-sm font-bold">{accessory.price}</p>
+
+                          {accessoryInCart?.quantity > 0 && (
+                            <div className="flex items-center justify-between mt-2">
+                              <button
+                                className="text-gray-500 text-xl"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteAccessoryFromCart(accessory);
+                                }}
+                              >
+                                -
+                              </button>
+                              <span>{accessoryInCart.quantity}</span>
+                              <button
+                                className="text-gray-500 text-xl"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAddAccessoryToCart(accessory);
+                                }}
+                              >
+                                +
+                              </button>
+                            </div>
+                          )}
+
+                          {!accessoryInCart && (
                             <button
-                              className="text-gray-500 text-xl"
+                              className="bg-green-500 text-white px-4 py-2 mt-4 rounded"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleDecreaseQuantity({
-                                  ...accessory,
-                                  id: `accessory-${accessory.id}`
-                                });
+                                handleAddAccessoryToCart(accessory);
                               }}
                             >
-                              -
+                              Add to Cart
                             </button>
-                            <span>
-                              {
-                                cart.find(
-                                  (cartItem) =>
-                                    cartItem.id === `accessory-${accessory.id}`
-                                )?.quantity
-                              }
-                            </span>
-                            <button
-                              className="text-gray-500 text-xl"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleIncreaseQuantity({
-                                  ...accessory,
-                                  id: `accessory-${accessory.id}`
-                                });
-                              }}
-                            >
-                              +
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}

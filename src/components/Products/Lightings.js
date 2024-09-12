@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Img } from "react-image";
-import { Link, useNavigate } from "react-router-dom";
-import { useUser, SignedIn, SignedOut, UserButton } from "@clerk/clerk-react";
+import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faShoppingCart } from "@fortawesome/free-solid-svg-icons";
 
@@ -121,8 +120,6 @@ const lightingProducts = [
 export default function Lightings() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [cart, setCart] = useState([]);
-  const { isSignedIn } = useUser();
-  const navigate = useNavigate();
 
   const handleProductClick = (product) => {
     setSelectedProduct(product);
@@ -133,82 +130,151 @@ export default function Lightings() {
   };
 
   const handleBuyNow = () => {
-    if (!isSignedIn) {
-      navigate("/signin");
-    } else {
-      window.location.href = "/payment";
-    }
+    window.location.href = "/payment";
   };
 
   const handleAddProductToCart = (product) => {
-    if (!isSignedIn) {
-      navigate("/signin");
-    } else {
-      const productInCart = cart.find((cartItem) => cartItem.id === product.id);
-      if (productInCart) {
-        setCart(
-          cart.map((cartItem) =>
-            cartItem.id === product.id
-              ? { ...cartItem, quantity: cartItem.quantity + 1 }
-              : cartItem
-          )
+    fetch("http://localhost:8080/smarthomes/cart", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.image,
+      }),
+    })
+      .then((response) => response.json())
+      .then(() => {
+        const productInCart = cart.find(
+          (cartItem) => cartItem.id === product.id
         );
-      } else {
-        setCart([...cart, { ...product, quantity: 1 }]);
-      }
-    }
+        if (productInCart) {
+          setCart(
+            cart.map((cartItem) =>
+              cartItem.id === product.id
+                ? { ...cartItem, quantity: cartItem.quantity + 1 }
+                : cartItem
+            )
+          );
+        } else {
+          setCart([...cart, { ...product, quantity: 1 }]);
+        }
+      })
+      .catch((error) => console.error("Error adding product to cart:", error));
   };
 
   const handleAddAccessoryToCart = (accessory) => {
-    const accessoryInCart = cart.find(
-      (cartItem) => cartItem.id === `accessory-${accessory.id}`
-    );
-
-    if (accessoryInCart) {
-      // If accessory is already in the cart, increase its quantity
-      setCart(
-        cart.map((cartItem) =>
-          cartItem.id === `accessory-${accessory.id}`
-            ? { ...cartItem, quantity: cartItem.quantity + 1 }
-            : cartItem
-        )
+    const accessoryCartId = `accessory-${accessory.id}`;
+    fetch("http://localhost:8080/smarthomes/cart", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: accessoryCartId,
+        name: accessory.name,
+        price: accessory.price,
+        image: accessory.image,
+      }),
+    })
+      .then((response) => response.json())
+      .then(() => {
+        const accessoryInCart = cart.find(
+          (cartItem) => cartItem.id === accessoryCartId
+        );
+        if (accessoryInCart) {
+          setCart(
+            cart.map((cartItem) =>
+              cartItem.id === accessoryCartId
+                ? { ...cartItem, quantity: cartItem.quantity + 1 }
+                : cartItem
+            )
+          );
+        } else {
+          setCart([...cart, { ...accessory, id: accessoryCartId, quantity: 1 }]);
+        }
+      })
+      .catch((error) =>
+        console.error("Error adding accessory to cart:", error)
       );
-    } else {
-      // If accessory is not in the cart, add it with a unique ID
-      setCart([
-        ...cart,
-        { ...accessory, id: `accessory-${accessory.id}`, quantity: 1 }
-      ]);
-    }
   };
 
-  const handleIncreaseQuantity = (item) => {
-    setCart(
-      cart.map((cartItem) =>
-        cartItem.id === item.id
-          ? { ...cartItem, quantity: cartItem.quantity + 1 }
-          : cartItem
-      )
-    );
+  const handleDeleteAccessoryFromCart = (accessory) => {
+    const accessoryCartId = `accessory-${accessory.id}`;
+    fetch("http://localhost:8080/smarthomes/cart", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: accessoryCartId,
+        name: accessory.name,
+        price: accessory.price,
+        image: accessory.image,
+      }),
+    })
+      .then((response) => response.json())
+      .then(() => {
+        const accessoryInCart = cart.find(
+          (cartItem) => cartItem.id === accessoryCartId
+        );
+        if (accessoryInCart && accessoryInCart.quantity > 1) {
+          setCart(
+            cart.map((cartItem) =>
+              cartItem.id === accessoryCartId
+                ? { ...cartItem, quantity: cartItem.quantity - 1 }
+                : cartItem
+            )
+          );
+        } else {
+          setCart(cart.filter((cartItem) => cartItem.id !== accessoryCartId));
+        }
+      })
+      .catch((error) =>
+        console.error("Error deleting accessory from cart:", error)
+      );
   };
 
-  const handleDecreaseQuantity = (item) => {
-    if (item.quantity === 1) {
-      setCart(cart.filter((cartItem) => cartItem.id !== item.id));
-    } else {
-      setCart(
-        cart.map((cartItem) =>
-          cartItem.id === item.id
-            ? { ...cartItem, quantity: cartItem.quantity - 1 }
-            : cartItem
-        )
+  const handleDeleteProductFromCart = (product) => {
+    fetch("http://localhost:8080/smarthomes/cart", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.image,
+      }),
+    })
+      .then((response) => response.json())
+      .then(() => {
+        const productInCart = cart.find(
+          (cartItem) => cartItem.id === product.id
+        );
+        if (productInCart) {
+          setCart(
+            cart.map((cartItem) =>
+              cartItem.id === product.id
+                ? { ...cartItem, quantity: cartItem.quantity - 1 }
+                : cartItem
+            )
+          );
+        } else {
+          setCart([...cart, { ...product, quantity: 1 }]);
+        }
+      })
+      .catch((error) =>
+        console.error("Error deleting product from cart:", error)
       );
-    }
   };
 
   return (
     <div className="bg-[#f5f5f5] min-h-screen overflow-x-hidden">
-      {/* Header */}
       <header className="bg-[#550403] text-white p-4">
         <div className="container mx-auto flex justify-between items-center flex-wrap">
           <h1 className="text-3xl sm:text-4xl font-bold">
@@ -239,22 +305,10 @@ export default function Lightings() {
                 Cart Items: {cart.reduce((sum, item) => sum + item.quantity, 0)}
               </Link>
             </div>
-            <SignedIn>
-              <UserButton afterSignOutUrl="/" />
-            </SignedIn>
-            <SignedOut>
-              <Link
-                to="/signin"
-                className="bg-green-500 text-white px-3 py-2 rounded ml-2 text-sm sm:text-base"
-              >
-                Sign In
-              </Link>
-            </SignedOut>
           </nav>
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="container mx-auto py-4 sm:py-8">
         <div className="text-center">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4">
@@ -266,13 +320,12 @@ export default function Lightings() {
           </p>
         </div>
 
-        {/* Lighting Products */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {lightingProducts.map((product) => (
             <div
               key={product.id}
               className="p-4 bg-white shadow rounded flex flex-col justify-between"
-              onClick={() => handleProductClick(product)} // Click to show modal
+              onClick={() => handleProductClick(product)}
             >
               <h3 className="text-lg sm:text-xl font-bold">{product.name}</h3>
               <Img
@@ -288,7 +341,7 @@ export default function Lightings() {
               <button
                 className="bg-blue-500 text-white px-4 py-2 mt-4 rounded"
                 onClick={(e) => {
-                  e.stopPropagation(); // Prevent modal opening
+                  e.stopPropagation();
                   handleBuyNow();
                 }}
               >
@@ -298,7 +351,7 @@ export default function Lightings() {
               <button
                 className="bg-green-500 text-white px-4 py-2 mt-4 rounded"
                 onClick={(e) => {
-                  e.stopPropagation(); // Prevent modal opening
+                  e.stopPropagation();
                   handleAddProductToCart(product);
                 }}
               >
@@ -311,8 +364,8 @@ export default function Lightings() {
                   <button
                     className="text-gray-500 text-xl"
                     onClick={(e) => {
-                      e.stopPropagation(); // Prevent modal opening
-                      handleDecreaseQuantity(product);
+                      e.stopPropagation();
+                      handleDeleteProductFromCart(product);
                     }}
                   >
                     -
@@ -326,8 +379,8 @@ export default function Lightings() {
                   <button
                     className="text-gray-500 text-xl"
                     onClick={(e) => {
-                      e.stopPropagation(); // Prevent modal opening
-                      handleIncreaseQuantity(product);
+                      e.stopPropagation();
+                      handleAddProductToCart(product);
                     }}
                   >
                     +
@@ -338,7 +391,6 @@ export default function Lightings() {
           ))}
         </div>
 
-        {/* Modal for selected product */}
         {selectedProduct && (
           <div
             className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
@@ -363,69 +415,64 @@ export default function Lightings() {
               <p className="text-sm mb-4">{selectedProduct.description}</p>
               <p className="text-lg font-bold mb-4">{selectedProduct.price}</p>
 
-              {/* Display accessories horizontally */}
               {selectedProduct.accessories && (
                 <div className="mb-4">
                   <h4 className="text-base font-semibold mb-2">Accessories:</h4>
                   <div className="flex space-x-4">
-                    {selectedProduct.accessories.map((accessory) => (
-                      <div
-                        key={accessory.id}
-                        className="text-center"
-                        onClick={(e) => {
-                          e.stopPropagation(); // Prevent modal opening
-                          handleAddAccessoryToCart(accessory); // Call the modified function
-                        }}
-                      >
-                        <Img
-                          src={accessory.image}
-                          alt={accessory.name}
-                          className="w-20 h-20 object-cover"
-                        />
-                        <p className="text-sm mt-2">{accessory.name}</p>
-                        <p className="text-sm font-bold">{accessory.price}</p>
+                    {selectedProduct.accessories.map((accessory) => {
+                      const accessoryCartId = `accessory-${accessory.id}`;
+                      const accessoryInCart = cart.find(
+                        (cartItem) => cartItem.id === accessoryCartId
+                      );
 
-                        {cart.find(
-                          (cartItem) =>
-                            cartItem.id === `accessory-${accessory.id}`
-                        )?.quantity > 0 && (
-                          <div className="flex items-center justify-between mt-2">
+                      return (
+                        <div key={accessory.id} className="text-center">
+                          <Img
+                            src={accessory.image}
+                            alt={accessory.name}
+                            className="w-20 h-20 object-cover"
+                          />
+                          <p className="text-sm mt-2">{accessory.name}</p>
+                          <p className="text-sm font-bold">{accessory.price}</p>
+
+                          {accessoryInCart?.quantity > 0 && (
+                            <div className="flex items-center justify-between mt-2">
+                              <button
+                                className="text-gray-500 text-xl"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteAccessoryFromCart(accessory);
+                                }}
+                              >
+                                -
+                              </button>
+                              <span>{accessoryInCart.quantity}</span>
+                              <button
+                                className="text-gray-500 text-xl"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAddAccessoryToCart(accessory);
+                                }}
+                              >
+                                +
+                              </button>
+                            </div>
+                          )}
+
+                          {!accessoryInCart && (
                             <button
-                              className="text-gray-500 text-xl"
+                              className="bg-green-500 text-white px-4 py-2 mt-4 rounded"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleDecreaseQuantity({
-                                  ...accessory,
-                                  id: `accessory-${accessory.id}`
-                                });
+                                handleAddAccessoryToCart(accessory);
                               }}
                             >
-                              -
+                              Add to Cart
                             </button>
-                            <span>
-                              {
-                                cart.find(
-                                  (cartItem) =>
-                                    cartItem.id === `accessory-${accessory.id}`
-                                )?.quantity
-                              }
-                            </span>
-                            <button
-                              className="text-gray-500 text-xl"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleIncreaseQuantity({
-                                  ...accessory,
-                                  id: `accessory-${accessory.id}`
-                                });
-                              }}
-                            >
-                              +
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -441,7 +488,7 @@ export default function Lightings() {
                 className="bg-green-500 text-white px-4 py-2 mt-4 rounded w-full"
                 onClick={() => {
                   handleAddProductToCart(selectedProduct);
-                  handleCloseModal(); // Close modal after adding to cart
+                  handleCloseModal();
                 }}
               >
                 Add to Cart
@@ -451,7 +498,6 @@ export default function Lightings() {
         )}
       </main>
 
-      {/* Footer */}
       <footer className="bg-[#550403] text-white p-4 mt-8">
         <div className="container mx-auto text-center">
           <p>&copy; 2024 Smart Homes. All rights reserved.</p>

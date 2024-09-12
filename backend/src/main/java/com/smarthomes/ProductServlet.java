@@ -1,73 +1,64 @@
 package com.smarthomes;
 
-import jakarta.servlet.ServletException;
+import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-
+import jakarta.servlet.http.*;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import java.io.InputStream;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.PrintWriter;
+import java.util.List;
+import java.util.stream.Collectors;
 
-@WebServlet("/products")
+@WebServlet("/getProducts")
 public class ProductServlet extends HttpServlet {
-    private Map<String, Product> productCatalog;
-
-    @Override
-    public void init() throws ServletException {
-        // Initialize the product catalog with some products
-        productCatalog = new HashMap<>();
-        productCatalog.put("1", new Product("1", "Smart Doorbell", "199.99", "/images/smart-doorbell.jpg"));
-        productCatalog.put("2", new Product("2", "Smart Speaker", "99.99", "/images/smart-speaker.jpg"));
-        productCatalog.put("3", new Product("3", "Smart Doorlock", "149.99", "/images/smart-doorlock.jpg"));
-        productCatalog.put("4", new Product("4", "Smart Lightings", "79.99", "/images/smart-lightings.jpg"));
-        productCatalog.put("5", new Product("5", "Smart Thermostat", "249.99", "/images/smart-thermostat.jpg"));
-    }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        // Display all products in the catalog in HTML format
-        response.setContentType("text/html");
-        response.getWriter().println("<h1>Product List</h1>");
-        
-        for (Product product : productCatalog.values()) {
-            response.getWriter().println("<p><strong>" + product.name() + "</strong>: $" 
-                + product.price() + " <img src='" + product.image() + "' alt='" 
-                + product.name() + "' width='100'/></p>");
+        response.setContentType("application/json");
+        PrintWriter out = response.getWriter();
+
+        try {
+            // Create SAXParser factory and instance
+            SAXParserFactory factory = SAXParserFactory.newInstance();
+            SAXParser saxParser = factory.newSAXParser();
+            ProductSAXHandler handler = new ProductSAXHandler();
+
+            // Load the XML file from the resources folder
+            InputStream inputFile = getClass().getClassLoader().getResourceAsStream("productcategory.xml");
+            if (inputFile == null) {
+                throw new IOException("Resource file not found");
+            }
+
+            // Parse the XML file using the handler
+            saxParser.parse(inputFile, handler);
+
+            // Get the list of products from the handler
+            List<Product> products = handler.getProducts();
+
+            // Filter products by category if the category parameter is provided
+            String requestedCategory = request.getParameter("category");
+            if (requestedCategory != null && !requestedCategory.isEmpty()) {
+                products = products.stream()
+                        .filter(p -> p.category().equalsIgnoreCase(requestedCategory))
+                        .collect(Collectors.toList());
+            }
+
+            // Convert the filtered products list to JSON
+            String jsonResponse = convertToJson(products);
+            out.print(jsonResponse);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            out.print("{\"status\": \"error\", \"message\": \"Failed to load products.\"}");
+        } finally {
+            out.flush();
         }
     }
 
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        // Handle product creation, deletion, and updates based on form action
-        String action = request.getParameter("action");
-        String id = request.getParameter("id");
-        String name = request.getParameter("name");
-        String price = request.getParameter("price");
-        String image = request.getParameter("image");
-
-        if (action != null && id != null && name != null && price != null && image != null) {
-            switch (action.toLowerCase()) {
-                case "add":
-                    productCatalog.put(id, new Product(id, name, price, image));
-                    break;
-                case "update":
-                    if (productCatalog.containsKey(id)) {
-                        productCatalog.put(id, new Product(id, name, price, image));
-                    }
-                    break;
-                case "delete":
-                    productCatalog.remove(id);
-                    break;
-                default:
-                    response.getWriter().println("Invalid action: " + action);
-                    break;
-            }
-        } else {
-            response.getWriter().println("Missing parameters!");
-        }
-
-        response.sendRedirect("/products");  // Redirect to the product list after operation
+    // Method to convert the list of products to JSON format
+    private String convertToJson(List<Product> products) {
+        return new com.google.gson.Gson().toJson(products);
     }
 }

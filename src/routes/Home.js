@@ -1,18 +1,33 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Img } from "react-image";
 import { Link, useNavigate } from "react-router-dom";
-import { useUser, SignedIn, SignedOut, UserButton } from "@clerk/clerk-react";
 
 export default function Home() {
-  const { isSignedIn } = useUser();
+  const [isSignedIn, setIsSignedIn] = useState(false);
   const navigate = useNavigate();
+
+  // Check if the user is signed in (using localStorage for demonstration purposes)
+  useEffect(() => {
+    const user = localStorage.getItem("user");
+    if (user) {
+      setIsSignedIn(true);
+    }
+  }, []);
+
+  // Handle sign-out
+  const handleSignOut = () => {
+    // Remove user from localStorage or handle sign-out logic
+    localStorage.removeItem("user");
+    setIsSignedIn(false);
+    navigate("/"); // Navigate to home after sign-out
+  };
 
   const handleShopNowDoorbells = (e) => {
     e.preventDefault();
     if (!isSignedIn) {
       navigate("/signin"); // Navigate to SignIn if not signed in
     } else {
-      window.location.href = "/products/doorbells"; // Redirect to payment page if signed in
+      window.location.href = "/products/doorbells"; // Redirect to product page if signed in
     }
   };
 
@@ -21,7 +36,7 @@ export default function Home() {
     if (!isSignedIn) {
       navigate("/signin"); // Navigate to SignIn if not signed in
     } else {
-      window.location.href = "/products/doorlocks"; // Redirect to payment page if signed in
+      window.location.href = "/products/doorlocks"; // Redirect to product page if signed in
     }
   };
 
@@ -30,7 +45,7 @@ export default function Home() {
     if (!isSignedIn) {
       navigate("/signin"); // Navigate to SignIn if not signed in
     } else {
-      window.location.href = "/products/speakers"; // Redirect to payment page if signed in
+      window.location.href = "/products/speakers"; // Redirect to product page if signed in
     }
   };
 
@@ -39,7 +54,7 @@ export default function Home() {
     if (!isSignedIn) {
       navigate("/signin"); // Navigate to SignIn if not signed in
     } else {
-      window.location.href = "/products/lightings"; // Redirect to payment page if signed in
+      window.location.href = "/products/lightings"; // Redirect to product page if signed in
     }
   };
 
@@ -48,12 +63,8 @@ export default function Home() {
     if (!isSignedIn) {
       navigate("/signin"); // Navigate to SignIn if not signed in
     } else {
-      window.location.href = "/products/thermostats"; // Redirect to payment page if signed in
+      window.location.href = "/products/thermostats"; // Redirect to product page if signed in
     }
-  };
-
-  const handleSignOut = () => {
-    navigate("/"); // Navigate to home after sign-out
   };
 
   return (
@@ -61,47 +72,50 @@ export default function Home() {
       {/* Header */}
       <header className="bg-[#550403] text-white p-4">
         <div className="container mx-auto flex justify-between items-center flex-wrap">
-          <h1
-            className="text-3xl sm:text-4xl font-bold"
-          >
-            <nav>
-            <Link to="/">
-            Smart Homes
-            </Link>
-            </nav>
+          <h1 className="text-3xl sm:text-4xl font-bold">
+            <Link to="/">Smart Homes</Link>
           </h1>
           <nav className="flex space-x-2 sm:space-x-4 items-center">
-            <Link to="https://github.com/saikiransomanagoudar/smart-homes" 
+            <Link
+              to="https://github.com/saikiransomanagoudar/smart-homes"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm sm:text-base">
+              className="text-sm sm:text-base"
+            >
               About
             </Link>
-            <Link to="https://www.linkedin.com/in/saikiransomanagoudar/" 
+            <Link
+              to="https://www.linkedin.com/in/saikiransomanagoudar/"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm sm:text-base">
+              className="text-sm sm:text-base"
+            >
               Contact
             </Link>
-            <SignedOut>
-              <Link
-                to="/signup"
-                className="bg-green-500 text-white px-3 py-2 rounded ml-2 text-sm sm:text-base"
-              >
-                Sign Up
-              </Link>
-              <Link
-                to="/signin"
-                className="bg-blue-500 text-white px-3 py-2 rounded text-sm sm:text-base"
-              >
-                Sign In
-              </Link>
-            </SignedOut>
 
-            {/* Show user profile button when signed in */}
-            <SignedIn>
-              <UserButton onSignOut={handleSignOut} />
-            </SignedIn>
+            {!isSignedIn ? (
+              <>
+                <Link
+                  to="/signup"
+                  className="bg-green-500 text-white px-3 py-2 rounded ml-2 text-sm sm:text-base"
+                >
+                  Sign Up
+                </Link>
+                <Link
+                  to="/signin"
+                  className="bg-blue-500 text-white px-3 py-2 rounded text-sm sm:text-base"
+                >
+                  Sign In
+                </Link>
+              </>
+            ) : (
+              <button
+                onClick={handleSignOut}
+                className="bg-red-500 text-white px-3 py-2 rounded text-sm sm:text-base"
+              >
+                Sign Out
+              </button>
+            )}
           </nav>
         </div>
       </header>
@@ -139,6 +153,7 @@ export default function Home() {
             </Link>
           </div>
 
+          {/* Other products */}
           {/* Smart Doorlocks */}
           <div className="p-4 bg-white shadow rounded flex flex-col justify-between">
             <h3 className="text-lg sm:text-xl font-bold">Smart Doorlocks</h3>

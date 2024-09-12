@@ -1,0 +1,517 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ProductCatalog>
+    <doorbells>
+        <doorbell id="1" retailer="SmartHomes">
+            <name>Blink Video Doorbell</name>
+            <price>59.99</price>
+            <description>Blink Video Doorbell | Two-way audio, HD video, motion and chime app alerts and Alexa enabled — wired or wire-free (Black)</description>
+            <image>/images/doorbells/doorbell1.jpg</image>
+            <accessories>
+                <accessory>
+                    <name>Wall Mount Kit</name>
+                    <price>15.99</price>
+                    <image>/images/doorbells/accessories/wall_mount.jpg</image>
+                </accessory>
+                <accessory>
+                    <name>Cover Ring</name>
+                    <price>14.99</price>
+                    <image>/images/doorbells/accessories/cover_ring.jpg</image>
+                </accessory>
+            </accessories>
+        </doorbell>
+        <doorbell id="2" retailer="SmartHomes">
+            <name>Tapo TP-Link Smart Doorbell</name>
+            <price>89.99</price>
+            <description>Tapo TP-Link Smart Video Doorbell Camera, Battery Powered, Chime Included, 2K 5MP, Color Night Vision, 2-Way Audio</description>
+            <image>/images/doorbells/doorbell2.jpg</image>
+            <accessories>
+                <accessory>
+                    <name>Wall Mount Kit</name>
+                    <price>15.99</price>
+                    <image>/images/doorbells/accessories/wall_mount.jpg</image>
+                </accessory>
+                <accessory>
+                    <name>Cover Ring</name>
+                    <price>14.99</price>
+                    <image>/images/doorbells/accessories/cover_ring.jpg</image>
+                </accessory>
+            </accessories>
+        </doorbell>
+        <doorbell id="3" retailer="SmartHomes">
+            <name>Ring Video Doorbell</name>
+            <price>59.99</price>
+            <description>Ring Video Doorbell - 1080p HD video, improved motion detection, easy installation (2020 release) – Satin Nickel</description>
+            <image>/images/doorbells/doorbell3.jpg</image>
+            <accessories>
+                <accessory>
+                    <name>Wall Mount Kit</name>
+                    <price>15.99</price>
+                    <image>/images/doorbells/accessories/wall_mount.jpg</image>
+                </accessory>
+                <accessory>
+                    <name>Cover Ring</name>
+                    <price>14.99</price>
+                    <image>/images/doorbells/accessories/cover_ring.jpg</image>
+                </accessory>
+            </accessories>
+        </doorbell>
+        <doorbell id="4" retailer="SmartHomes">
+            <name>Google Nest Doorbell</name>
+            <price>137.31</price>
+            <description>Google Nest Doorbell (Battery) - Ash</description>
+            <image>/images/doorbells/doorbell4.jpg</image>
+            <accessories>
+                <accessory>
+                    <name>Wall Mount Kit</name>
+                    <price>15.99</price>
+                    <image>/images/doorbells/accessories/wall_mount.jpg</image>
+                </accessory>
+                <accessory>
+                    <name>Cover Ring</name>
+                    <price>14.99</price>
+                    <image>/images/doorbells/accessories/cover_ring.jpg</image>
+                </accessory>
+            </accessories>
+        </doorbell>
+        <doorbell id="5" retailer="SmartHomes">
+            <name>Smart Video Doorbell Camera Wireless</name>
+            <price>13.99</price>
+            <description>Smart Video Doorbell Camera Wireless, AI Human Detection and Instant Alerts, Night Vision, 2-Way Audio, Battery Powered, Cloud Storage, 2.4G WiFi</description>
+            <image>/images/doorbells/doorbell5.jpg</image>
+            <accessories>
+                <accessory>
+                    <name>Wall Mount Kit</name>
+                    <price>15.99</price>
+                    <image>/images/doorbells/accessories/wall_mount.jpg</image>
+                </accessory>
+                <accessory>
+                    <name>Cover Ring</name>
+                    <price>14.99</price>
+                    <image>/images/doorbells/accessories/cover_ring.jpg</image>
+                </accessory>
+            </accessories>
+        </doorbell>
+    </doorbells>
+    <doorlocks>
+        <doorlock id="1" retailer="SmartHomes">
+            <name>TMEZON Smart Door Lock</name>
+            <price>59.99</price>
+            <description>TMEZON Smart Door Lock Fingerprint, Keyless Entry Door Lock with Handle, APP/IC Cards/Codes/Keys/Fingerprints Biometric Electronic Keyless Entry</description>
+            <image>/images/doorlocks/doorlock1.jpg</image>
+            <accessories>
+                <accessory>
+                    <name>Changshan Door Lock</name>
+                    <price>47.99</price>
+                    <image>/images/doorlocks/accessories/accessory1.jpg</image>
+                </accessory>
+                <accessory>
+                    <name>Xenocam</name>
+                    <price>39.99</price>
+                    <image>/images/doorlocks/accessories/accessory2.jpg</image>
+                </accessory>
+            </accessories>
+        </doorlock>
+        <doorlock id="2" retailer="SmartHomes">
+            <name>Philips Wi-Fi Smart Door Lock</name>
+            <price>139.99</price>
+            <description>Philips Wi-Fi Smart Door Lock, Keyless Entry Door Lock with App Control, Fingerprint ID, Auto Unlock, Keypad Deadbolt with Wi-Fi Bridge Adaptor</description>
+            <image>/images/doorlocks/doorlock2.jpg</image>
+            <accessories>
+                <accessory>
+                    <name>Fiudmsi Door Lock</name>
+                    <price>31.99</price>
+                    <image>/images/doorlocks/accessories/accessory3.jpg</image>
+                </accessory>
+                <accessory>
+                    <name>Veise Door Lock</name>
+                    <price>30.99</price>
+                    <image>/images/doorlocks/accessories/accessory4.jpg</image>
+                </accessory>
+            </accessories>
+        </doorlock>
+        <doorlock id="3" retailer="SmartHomes">
+            <name>Keypad Smart Door Lock</name>
+            <price>79.99</price>
+            <description>Keypad Smart Door Lock with Handle: Kucacci Keyless Entry Door Lock - Digital Door Lock with Keypad Code - Fingerprint Door Lever Lock Deadbolt</description>
+            <image>/images/doorlocks/doorlock3.jpg</image>
+            <accessories>
+                <accessory>
+                    <name>Changshan Door Lock</name>
+                    <price>47.99</price>
+                    <image>/images/doorlocks/accessories/accessory1.jpg</image>
+                </accessory>
+                <accessory>
+                    <name>Xenocam</name>
+                    <price>39.99</price>
+                    <image>/images/doorlocks/accessories/accessory2.jpg</image>
+                </accessory>
+            </accessories>
+        </doorlock>
+        <doorlock id="4" retailer="SmartHomes">
+            <name>eufy Smart Lock C30</name>
+            <price>59.99</price>
+            <description>eufy Smart Lock C30, Keyless Entry Door Lock, Built-in WiFi Deadbolt, Smart Lock for Front Door, No Bridge Required, Easy Installation</description>
+            <image>/images/doorlocks/doorlock4.jpg</image>
+            <accessories>
+                <accessory>
+                    <name>Changshan Door Lock</name>
+                    <price>47.99</price>
+                    <image>/images/doorlocks/accessories/accessory1.jpg</image>
+                </accessory>
+                <accessory>
+                    <name>Xenocam</name>
+                    <price>39.99</price>
+                    <image>/images/doorlocks/accessories/accessory2.jpg</image>
+                </accessory>
+            </accessories>
+        </doorlock>
+        <doorlock id="5" retailer="SmartHomes">
+            <name>Yale Assure Lock 2 with Wi-Fi</name>
+            <price>239.99</price>
+            <description>Yale Assure Lock 2 with Wi-Fi, Black Connected Keypad Smart Lock for Front Door or Back, Door Lock with Code and Back-Up Key</description>
+            <image>/images/doorlocks/doorlock5.jpg</image>
+            <accessories>
+                <accessory>
+                    <name>Changshan Door Lock</name>
+                    <price>47.99</price>
+                    <image>/images/doorlocks/accessories/accessory1.jpg</image>
+                </accessory>
+                <accessory>
+                    <name>Xenocam</name>
+                    <price>39.99</price>
+                    <image>/images/doorlocks/accessories/accessory2.jpg</image>
+                </accessory>
+            </accessories>
+        </doorlock>
+        <doorlock id="6" retailer="SmartHomes">
+            <name>Keyless Entry Door Lock with Handle</name>
+            <price>66.49</price>
+            <description>Keyless Entry Door Lock with Handle, Hornbill Smart Front Door Lock Set, Electronic Keypad Deadbolt Lock, Alexa Front Door Handle Set</description>
+            <image>/images/doorlocks/doorlock6.jpg</image>
+            <accessories>
+                <accessory>
+                    <name>Veise Smart Door Lock 2</name>
+                    <price>17.99</price>
+                    <image>/images/doorlocks/accessories/accessory5.jpg</image>
+                </accessory>
+                <accessory>
+                    <name>Veise Smart Door Lock 3</name>
+                    <price>19.99</price>
+                    <image>/images/doorlocks/accessories/accessory6.jpg</image>
+                </accessory>
+            </accessories>
+        </doorlock>
+    </doorlocks>
+    <lightings>
+        <lighting id="1" retailer="SmartHomes">
+            <name>Govee Smart Light Bulbs</name>
+            <price>34.99</price>
+            <description>Govee Smart Light Bulbs, Color Changing Light Bulb, Work with Alexa and Google Assistant, 16 Million Colors RGBWW, WiFi & Bluetooth LED Light Bulbs, Music Sync, A19, 800 Lumens, 4 Pack</description>
+            <image>/images/lightings/lighting1.jpg</image>
+            <accessories>
+                <accessory>
+                    <name>LED Strip Connector Kit</name>
+                    <price>12.98</price>
+                    <image>/images/lightings/accessories/accessory1.jpg</image>
+                </accessory>
+                <accessory>
+                    <name>Under Cabinet Lighting</name>
+                    <price>15.98</price>
+                    <image>/images/lightings/accessories/accessory2.jpg</image>
+                </accessory>
+            </accessories>
+        </lighting>
+        <lighting id="2" retailer="SmartHomes">
+            <name>GE CYNC A19 Smart LED Light Bulbs</name>
+            <price>14.95</price>
+            <description>GE CYNC A19 Smart LED Light Bulbs, Color Changing Room Décor, Bluetooth and WiFi Light Bulbs, 60W Equivalent, Work with Amazon Alexa and Google Home (2 Pack)</description>
+            <image>/images/lightings/lighting2.jpg</image>
+            <accessories>
+                <accessory>
+                    <name>LED Strip Connector Kit</name>
+                    <price>12.98</price>
+                    <image>/images/lightings/accessories/accessory1.jpg</image>
+                </accessory>
+                <accessory>
+                    <name>Under Cabinet Lighting</name>
+                    <price>15.98</price>
+                    <image>/images/lightings/accessories/accessory2.jpg</image>
+                </accessory>
+            </accessories>
+        </lighting>
+        <lighting id="3" retailer="SmartHomes">
+            <name>Touch Bedside Table Lamp</name>
+            <price>23.99</price>
+            <description>Touch Bedside Table Lamp, [Sleek Design & RGB Mode] 3 Way Dimmable Small Lamp for Bedroom, LED Lamp with Warm White Lights, Multi-Color Smart Nightstand Lamp</description>
+            <image>/images/lightings/lighting3.jpg</image>
+            <accessories>
+                <accessory>
+                    <name>LED Strip Connector Kit</name>
+                    <price>12.98</price>
+                    <image>/images/lightings/accessories/accessory1.jpg</image>
+                </accessory>
+                <accessory>
+                    <name>Under Cabinet Lighting</name>
+                    <price>15.98</price>
+                    <image>/images/lightings/accessories/accessory2.jpg</image>
+                </accessory>
+            </accessories>
+        </lighting>
+        <lighting id="4" retailer="SmartHomes">
+            <name>Echo Glow</name>
+            <price>29.99</price>
+            <description>Echo Glow - Multicolor smart lamp, Works with Alexa</description>
+            <image>/images/lightings/lighting4.jpg</image>
+            <accessories>
+                <accessory>
+                    <name>LED Strip Connector Kit</name>
+                    <price>12.98</price>
+                    <image>/images/lightings/accessories/accessory1.jpg</image>
+                </accessory>
+                <accessory>
+                    <name>Under Cabinet Lighting</name>
+                    <price>15.98</price>
+                    <image>/images/lightings/accessories/accessory2.jpg</image>
+                </accessory>
+            </accessories>
+        </lighting>
+        <lighting id="5" retailer="SmartHomes">
+            <name>Govee RGBIC Floor Lamp</name>
+            <price>99.99</price>
+            <description>Govee RGBIC Floor Lamp, LED Corner Lamp Works with Alexa, Smart Modern Floor Lamp with Music Sync and 16 Million DIY Colors</description>
+            <image>/images/lightings/lighting5.jpg</image>
+            <accessories>
+                <accessory>
+                    <name>LED Strip Connector Kit</name>
+                    <price>12.98</price>
+                    <image>/images/lightings/accessories/accessory1.jpg</image>
+                </accessory>
+                <accessory>
+                    <name>Under Cabinet Lighting</name>
+                    <price>15.98</price>
+                    <image>/images/lightings/accessories/accessory2.jpg</image>
+                </accessory>
+            </accessories>
+        </lighting>
+    </lightings>
+    <speakers>
+        <speaker id="1" retailer="SmartHomes">
+            <name>Amazon Echo Studio</name>
+            <price>199.99</price>
+            <description>Amazon Echo Studio | Our best-sounding smart speaker ever - With Dolby Atmos, spatial audio processing technology, and Alexa | Charcoal</description>
+            <image>/images/speakers/speaker1.jpg</image>
+            <accessories>
+                <accessory>
+                    <name>Gravity SACC 35</name>
+                    <price>3.99</price>
+                    <image>/images/speakers/accessories/accessory1.jpg</image>
+                </accessory>
+                <accessory>
+                    <name>4 Pack Speaker Harness</name>
+                    <price>7.99</price>
+                    <image>/images/speakers/accessories/accessory2.jpg</image>
+                </accessory>
+            </accessories>
+        </speaker>
+        <speaker id="2" retailer="SmartHomes">
+            <name>NOTABRICK Bluetooth Speakers</name>
+            <price>49.99</price>
+            <description>NOTABRICK Bluetooth Speakers, 15W Portable Speakers Bluetooth Wireless V5.0 with Stereo Sound, Active Extra Bass, IPX6 Waterproof Shower Speaker</description>
+            <image>/images/speakers/speaker2.jpg</image>
+            <accessories>
+                <accessory>
+                    <name>Gravity SACC 35</name>
+                    <price>3.99</price>
+                    <image>/images/speakers/accessories/accessory1.jpg</image>
+                </accessory>
+                <accessory>
+                    <name>4 Pack Speaker Harness</name>
+                    <price>7.99</price>
+                    <image>/images/speakers/accessories/accessory2.jpg</image>
+                </accessory>
+            </accessories>
+        </speaker>
+        <speaker id="3" retailer="SmartHomes">
+            <name>Google Nest Mini</name>
+            <price>47.00</price>
+            <description>Google Nest Mini 2nd Generation Smart Speaker with Google Assistant - Charcoal</description>
+            <image>/images/speakers/speaker3.jpg</image>
+            <accessories>
+                <accessory>
+                    <name>Gravity SACC 35</name>
+                    <price>3.99</price>
+                    <image>/images/speakers/accessories/accessory1.jpg</image>
+                </accessory>
+                <accessory>
+                    <name>4 Pack Speaker Harness</name>
+                    <price>7.99</price>
+                    <image>/images/speakers/accessories/accessory2.jpg</image>
+                </accessory>
+            </accessories>
+        </speaker>
+        <speaker id="4" retailer="SmartHomes">
+            <name>Sonos Era 100</name>
+            <price>244.85</price>
+            <description>Sonos Era 100 - White - Wireless, Alexa Enabled Smart Speaker</description>
+            <image>/images/speakers/speaker4.jpg</image>
+            <accessories>
+                <accessory>
+                    <name>Gravity SACC 35</name>
+                    <price>3.99</price>
+                    <image>/images/speakers/accessories/accessory1.jpg</image>
+                </accessory>
+                <accessory>
+                    <name>4 Pack Speaker Harness</name>
+                    <price>7.99</price>
+                    <image>/images/speakers/accessories/accessory2.jpg</image>
+                </accessory>
+            </accessories>
+        </speaker>
+        <speaker id="5" retailer="SmartHomes">
+            <name>Anker Soundcore 2 Portable Bluetooth Speaker</name>
+            <price>27.99</price>
+            <description>Anker Soundcore 2 Portable Bluetooth Speaker with 12W Stereo Sound, Bluetooth 5, Bassup, IPX7 Waterproof, 24-Hour Playtime, Wireless Stereo Pairing</description>
+            <image>/images/speakers/speaker5.jpg</image>
+            <accessories>
+                <accessory>
+                    <name>Gravity SACC 35</name>
+                    <price>3.99</price>
+                    <image>/images/speakers/accessories/accessory1.jpg</image>
+                </accessory>
+                <accessory>
+                    <name>4 Pack Speaker Harness</name>
+                    <price>7.99</price>
+                    <image>/images/speakers/accessories/accessory2.jpg</image>
+                </accessory>
+            </accessories>
+        </speaker>
+        <speaker id="6" retailer="SmartHomes">
+            <name>Edifier WiFi Smart Speaker</name>
+            <price>113.99</price>
+            <description>Edifier WiFi Smart Speaker Without Microphone, Works with Alexa, Supports AirPlay 2, Spotify Connect, Tidal Connect, 40W RMS One-Piece Wi-Fi and Bluetooth Sound System</description>
+            <image>/images/speakers/speaker6.jpg</image>
+            <accessories>
+                <accessory>
+                    <name>Gravity SACC 35</name>
+                    <price>3.99</price>
+                    <image>/images/speakers/accessories/accessory1.jpg</image>
+                </accessory>
+                <accessory>
+                    <name>4 Pack Speaker Harness</name>
+                    <price>7.99</price>
+                    <image>/images/speakers/accessories/accessory2.jpg</image>
+                </accessory>
+            </accessories>
+        </speaker>
+    </speakers>
+    <thermostats>
+        <thermostat id="1" retailer="SmartHomes">
+            <name>Amazon Smart Thermostat</name>
+            <price>79.99</price>
+            <description>Amazon Smart Thermostat – Save money and energy - Works with Alexa and Ring - C-wire required</description>
+            <image>/images/thermostats/thermostat1.jpg</image>
+            <accessories>
+                <accessory>
+                    <name>Honeywell Home C-Wire Adapter</name>
+                    <price>21.88</price>
+                    <image>/images/thermostats/accessories/accessory1.jpg</image>
+                </accessory>
+                <accessory>
+                    <name>Google Nest Thermostat Trim Kit</name>
+                    <price>13.40</price>
+                    <image>/images/thermostats/accessories/accessory2.jpg</image>
+                </accessory>
+            </accessories>
+        </thermostat>
+        <thermostat id="2" retailer="SmartHomes">
+            <name>GE CYNC Smart Thermostat</name>
+            <price>58.77</price>
+            <description>GE CYNC Smart Thermostat for Home, Energy Star Certified, Smart Home Programmable Wi-Fi Thermostat</description>
+            <image>/images/thermostats/thermostat2.jpg</image>
+            <accessories>
+                <accessory>
+                    <name>Honeywell Home C-Wire Adapter</name>
+                    <price>21.88</price>
+                    <image>/images/thermostats/accessories/accessory1.jpg</image>
+                </accessory>
+                <accessory>
+                    <name>Google Nest Thermostat Trim Kit</name>
+                    <price>13.40</price>
+                    <image>/images/thermostats/accessories/accessory2.jpg</image>
+                </accessory>
+            </accessories>
+        </thermostat>
+        <thermostat id="3" retailer="SmartHomes">
+            <name>Sensi Lite Smart Thermostat</name>
+            <price>75.00</price>
+            <description>Sensi Lite Smart Thermostat, Data Privacy, Programmable, Wi-Fi, Easy DIY, Works With Alexa, Energy Star Certified</description>
+            <image>/images/thermostats/thermostat3.jpg</image>
+            <accessories>
+                <accessory>
+                    <name>Honeywell Home C-Wire Adapter</name>
+                    <price>21.88</price>
+                    <image>/images/thermostats/accessories/accessory1.jpg</image>
+                </accessory>
+                <accessory>
+                    <name>Google Nest Thermostat Trim Kit</name>
+                    <price>13.40</price>
+                    <image>/images/thermostats/accessories/accessory2.jpg</image>
+                </accessory>
+            </accessories>
+        </thermostat>
+        <thermostat id="4" retailer="SmartHomes">
+            <name>Google Nest Thermostat</name>
+            <price>144.99</price>
+            <description>Google Nest Thermostat - Smart Thermostat for Home - Programmable Wifi Thermostat - Charcoal</description>
+            <image>/images/thermostats/thermostat4.jpg</image>
+            <accessories>
+                <accessory>
+                    <name>Honeywell Home C-Wire Adapter</name>
+                    <price>21.88</price>
+                    <image>/images/thermostats/accessories/accessory1.jpg</image>
+                </accessory>
+                <accessory>
+                    <name>Google Nest Thermostat Trim Kit</name>
+                    <price>13.40</price>
+                    <image>/images/thermostats/accessories/accessory2.jpg</image>
+                </accessory>
+            </accessories>
+        </thermostat>
+        <thermostat id="5" retailer="SmartHomes">
+            <name>Honeywell Home RTH8800WF2022</name>
+            <price>85.00</price>
+            <description>Honeywell Home RTH8800WF2022, T5 WiFi Smart Thermostat, 7 Day-Programmable Touchscreen</description>
+            <image>/images/thermostats/thermostat5.jpg</image>
+            <accessories>
+                <accessory>
+                    <name>Honeywell Home C-Wire Adapter</name>
+                    <price>21.88</price>
+                    <image>/images/thermostats/accessories/accessory1.jpg</image>
+                </accessory>
+                <accessory>
+                    <name>Google Nest Thermostat Trim Kit</name>
+                    <price>13.40</price>
+                    <image>/images/thermostats/accessories/accessory2.jpg</image>
+                </accessory>
+            </accessories>
+        </thermostat>
+        <thermostat id="6" retailer="SmartHomes">
+            <name>Vine Thermostat</name>
+            <price>69.99</price>
+            <description>Vine Thermostat for Home with Touchscreen Color Display, WiFi Smart Thermostat Compatible with Alexa and Google Assistant</description>
+            <image>/images/thermostats/thermostat6.jpg</image>
+            <accessories>
+                <accessory>
+                    <name>Honeywell Home C-Wire Adapter</name>
+                    <price>21.88</price>
+                    <image>/images/thermostats/accessories/accessory1.jpg</image>
+                </accessory>
+                <accessory>
+                    <name>Google Nest Thermostat Trim Kit</name>
+                    <price>13.40</price>
+                    <image>/images/thermostats/accessories/accessory2.jpg</image>
+                </accessory>
+            </accessories>
+        </thermostat>
+    </thermostats>
+</ProductCatalog>
