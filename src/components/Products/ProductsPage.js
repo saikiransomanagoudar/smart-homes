@@ -5,20 +5,19 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faShoppingCart } from "@fortawesome/free-solid-svg-icons";
 
 export default function ProductsPage({ cart, setCart }) {
-  const { category } = useParams(); // Dynamically get the category from the URL
+  const { category } = useParams();
   const [products, setProducts] = useState([]);
-  const [selectedProduct, setSelectedProduct] = useState(null); // For modal display
+  const [quantities, setQuantities] = useState({});
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
-  // Fetch the products based on the category from the backend
+  // Fetch products based on category
   useEffect(() => {
     fetch(`http://localhost:8080/smarthomes/getProducts?category=${category}`)
       .then((response) => response.json())
       .then((data) => {
         if (Array.isArray(data)) {
-          console.log(data); // Check the data structure
           setProducts(data);
         } else {
-          console.error("Data is not an array:", data);
           setProducts([]);
         }
       })
@@ -28,7 +27,7 @@ export default function ProductsPage({ cart, setCart }) {
   }, [category]);
 
   const handleProductClick = (product) => {
-    setSelectedProduct(product); // Set the selected product for modal display
+    setSelectedProduct(product); // Set selected product for modal display
   };
 
   const handleCloseModal = () => {
@@ -40,80 +39,75 @@ export default function ProductsPage({ cart, setCart }) {
   };
 
   const handleAddProductToCart = (product) => {
-    fetch("http://localhost:8080/smarthomes/cart", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        id: product.id,
-        name: product.nameP, // Updated to use nameP
-        price: product.priceP, // Updated to use priceP
-        image: product.imageP // Updated to use imageP
-      })
-    })
-      .then((response) => response.json())
-      .then(() => {
-        const productInCart = cart.find(
-          (cartItem) => cartItem.id === product.id
-        );
-        if (productInCart) {
-          setCart(
-            cart.map((cartItem) =>
-              cartItem.id === product.id
-                ? { ...cartItem, quantity: cartItem.quantity + 1 }
-                : cartItem
-            )
-          );
-        } else {
-          setCart([...cart, { ...product, quantity: 1 }]);
-        }
-      })
-      .catch((error) => console.error("Error adding product to cart:", error));
+    const updatedQuantities = { ...quantities, [product.id]: 1 };
+    setQuantities(updatedQuantities);
+    setCart([...cart, { ...product, quantity: 1 }]);
   };
 
   const handleAddAccessoryToCart = (accessory) => {
-    const accessoryCartId = `accessory-${accessory.id}`;
-    fetch("http://localhost:8080/smarthomes/cart", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        id: accessoryCartId,
-        name: accessory.name, // Updated to use nameA
-        price: accessory.price, // Updated to use priceA
-        image: accessory.imageA // Updated to use imageA
-      })
-    })
-      .then((response) => response.json())
-      .then(() => {
-        const accessoryInCart = cart.find(
-          (cartItem) => cartItem.id === accessoryCartId
-        );
-        if (accessoryInCart) {
-          setCart(
-            cart.map((cartItem) =>
-              cartItem.id === accessoryCartId
-                ? { ...cartItem, quantity: cartItem.quantity + 1 }
-                : cartItem
-            )
-          );
-        } else {
-          setCart([
-            ...cart,
-            { ...accessory, id: accessoryCartId, quantity: 1 }
-          ]);
-        }
-      })
-      .catch((error) =>
-        console.error("Error adding accessory to cart:", error)
+    const accessoryCartId = `accessory-${accessory.nameA}`;
+    const accessoryInCart = cart.find((item) => item.id === accessoryCartId);
+
+    if (accessoryInCart) {
+      setCart(
+        cart.map((item) =>
+          item.id === accessoryCartId
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        )
       );
+    } else {
+      setCart([
+        ...cart,
+        {
+          id: accessoryCartId,
+          name: accessory.nameA,
+          price: accessory.priceA,
+          image: accessory.imageA,
+          quantity: 1
+        }
+      ]);
+    }
+  };
+
+  const handleIncreaseQuantity = (id) => {
+    const updatedQuantities = {
+      ...quantities,
+      [id]: (quantities[id] || 0) + 1
+    };
+    setQuantities(updatedQuantities);
+
+    setCart(
+      cart.map((item) =>
+        item.id === id ? { ...item, quantity: item.quantity + 1 } : item
+      )
+    );
+  };
+
+  const handleDecreaseQuantity = (id) => {
+    if (quantities[id] > 1) {
+      const updatedQuantities = {
+        ...quantities,
+        [id]: quantities[id] - 1
+      };
+      setQuantities(updatedQuantities);
+
+      setCart(
+        cart.map((item) =>
+          item.id === id ? { ...item, quantity: item.quantity - 1 } : item
+        )
+      );
+    } else {
+      const updatedQuantities = { ...quantities };
+      delete updatedQuantities[id];
+      setQuantities(updatedQuantities);
+
+      setCart(cart.filter((item) => item.id !== id));
+    }
   };
 
   return (
     <div className="bg-[#f5f5f5] min-h-screen overflow-x-hidden">
-      {/* Header */}
       <header className="bg-[#550403] text-white p-4">
         <div className="container mx-auto flex justify-between items-center flex-wrap">
           <h1 className="text-3xl sm:text-4xl font-bold">
@@ -148,7 +142,6 @@ export default function ProductsPage({ cart, setCart }) {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="container mx-auto py-4 sm:py-8">
         <div className="text-center">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4">
@@ -159,10 +152,10 @@ export default function ProductsPage({ cart, setCart }) {
           </p>
         </div>
 
-        {/* Products */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {products.length > 0 ? (
             products.map((product) => {
+              const productQuantity = quantities[product.id] || 0;
               return (
                 <div
                   key={product.id}
@@ -170,12 +163,11 @@ export default function ProductsPage({ cart, setCart }) {
                   onClick={() => handleProductClick(product)} // Trigger modal on click
                 >
                   <h3 className="text-lg sm:text-xl font-bold">
-                    {product.nameP} {/* Updated to use nameP */}
+                    {product.nameP}
                   </h3>
-                  {/* Image component with loader and unloader */}
                   <Img
-                    src={product.imageP} // Updated to use imageP
-                    alt={product.nameP} // Updated to use nameP
+                    src={product.imageP}
+                    alt={product.nameP}
                     loader={<div>Loading...</div>}
                     unloader={<div>Image not found</div>}
                     className="h-40 w-auto object-contain mx-auto mt-2"
@@ -183,26 +175,52 @@ export default function ProductsPage({ cart, setCart }) {
                   <p className="mt-2 text-sm sm:text-base">
                     {product.description}
                   </p>
-                  <p className="text-lg font-bold mt-2">{product.priceP}</p>{" "}
-                  {/* Updated to use priceP */}
-                  <button
-                    className="bg-blue-500 text-white px-4 py-2 mt-4 rounded"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleBuyNow();
-                    }}
-                  >
-                    Buy Now
-                  </button>
-                  <button
-                    className="bg-green-500 text-white px-4 py-2 mt-4 rounded"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleAddProductToCart(product);
-                    }}
-                  >
-                    Add to Cart
-                  </button>
+                  <p className="text-lg font-bold mt-2">{product.priceP}</p>
+
+                  {productQuantity > 0 ? (
+                    <div className="flex items-center justify-between mt-4">
+                      <button
+                        className="bg-red-500 text-white px-2 py-1 rounded"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDecreaseQuantity(product.id);
+                        }}
+                      >
+                        -
+                      </button>
+                      <span>{productQuantity}</span>
+                      <button
+                        className="bg-green-500 text-white px-2 py-1 rounded"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleIncreaseQuantity(product.id);
+                        }}
+                      >
+                        +
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <button
+                        className="bg-green-500 text-white px-4 py-2 mt-4 rounded"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAddProductToCart(product);
+                        }}
+                      >
+                        Add to Cart
+                      </button>
+                      <button
+                        className="bg-blue-500 text-white px-4 py-2 mt-4 rounded"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleBuyNow();
+                        }}
+                      >
+                        Buy Now
+                      </button>
+                    </>
+                  )}
                 </div>
               );
             })
@@ -215,11 +233,11 @@ export default function ProductsPage({ cart, setCart }) {
         {selectedProduct && (
           <div
             className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-            onClick={handleCloseModal} // Close modal when clicking outside
+            onClick={handleCloseModal}
           >
             <div
               className="bg-white p-6 rounded-lg shadow-lg w-96 relative"
-              onClick={(e) => e.stopPropagation()} // Prevent closing modal when clicking inside
+              onClick={(e) => e.stopPropagation()}
             >
               <button
                 className="absolute top-2 right-2 text-gray-700 text-xl"
@@ -229,18 +247,15 @@ export default function ProductsPage({ cart, setCart }) {
               </button>
               <h3 className="text-xl font-bold mb-4">
                 {selectedProduct.nameP}
-              </h3>{" "}
-              {/* Updated to use nameP */}
+              </h3>
               <Img
-                src={selectedProduct.imageP} // Updated to use imageP
-                alt={selectedProduct.nameP} // Updated to use nameP
+                src={selectedProduct.imageP}
+                alt={selectedProduct.nameP}
                 className="w-full h-40 object-contain mb-4"
               />
               <p className="text-sm mb-4">{selectedProduct.description}</p>
-              <p className="text-lg font-bold mb-4">
-                {selectedProduct.priceP}
-              </p>{" "}
-              {/* Updated to use priceP */}
+              <p className="text-lg font-bold mb-4">{selectedProduct.priceP}</p>
+
               {/* Display Accessories */}
               {selectedProduct.accessories &&
                 selectedProduct.accessories.length > 0 && (
@@ -249,38 +264,66 @@ export default function ProductsPage({ cart, setCart }) {
                       Accessories:
                     </h4>
                     <ul className="flex flex-wrap gap-4">
-                      {" "}
-                      {/* Changed layout to flex with some gap */}
-                      {selectedProduct.accessories.map((accessory, index) => (
-                        <li key={index} className="flex flex-col items-center">
-                          {" "}
-                          {/* Each accessory will appear in a column */}
-                          <h5 className="text-sm font-semibold">
-                            {accessory.nameA}
-                          </h5>{" "}
-                          {/* Updated to use nameA */}
-                          <p className="text-sm font-bold">
-                            Price: {accessory.priceA}
-                          </p>{" "}
-                          {/* Updated to use priceA */}
-                          <Img
-                            src={accessory.imageA} // Updated to use imageA
-                            alt={accessory.nameA} // Updated to use nameA
-                            className="w-20 h-20 object-contain"
-                            loader={<div>Loading...</div>}
-                            unloader={<div>Image not found</div>}
-                          />
-                          <button
-                            className="bg-green-500 text-white px-2 py-2 mt-2 rounded"
-                            onClick={() => handleAddAccessoryToCart(accessory)}
+                      {selectedProduct.accessories.map((accessory, index) => {
+                        const accessoryCartId = `accessory-${accessory.nameA}`;
+                        const accessoryQuantity =
+                          quantities[accessoryCartId] || 0;
+
+                        return (
+                          <li
+                            key={index}
+                            className="flex flex-col items-center"
                           >
-                            Add to Cart
-                          </button>
-                        </li>
-                      ))}
+                            <h5 className="text-sm font-semibold">
+                              {accessory.nameA}
+                            </h5>
+                            <p className="text-sm font-bold">
+                              Price: {accessory.priceA}
+                            </p>
+                            <Img
+                              src={accessory.imageA}
+                              alt={accessory.nameA}
+                              className="w-20 h-20 object-contain"
+                              loader={<div>Loading...</div>}
+                              unloader={<div>Image not found</div>}
+                            />
+                            {accessoryQuantity > 0 ? (
+                              <div className="flex items-center justify-between mt-2">
+                                <button
+                                  className="bg-red-500 text-white px-2 py-1 rounded"
+                                  onClick={() =>
+                                    handleDecreaseQuantity(accessoryCartId)
+                                  }
+                                >
+                                  -
+                                </button>
+                                <span>{accessoryQuantity}</span>
+                                <button
+                                  className="bg-green-500 text-white px-2 py-1 rounded"
+                                  onClick={() =>
+                                    handleIncreaseQuantity(accessoryCartId)
+                                  }
+                                >
+                                  +
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                className="bg-green-500 text-white px-2 py-2 mt-2 rounded"
+                                onClick={() =>
+                                  handleAddAccessoryToCart(accessory)
+                                }
+                              >
+                                Add to Cart
+                              </button>
+                            )}
+                          </li>
+                        );
+                      })}
                     </ul>
                   </div>
                 )}
+
               <button
                 className="bg-blue-500 text-white px-4 py-2 mt-4 rounded w-full"
                 onClick={handleBuyNow}
@@ -291,7 +334,7 @@ export default function ProductsPage({ cart, setCart }) {
                 className="bg-green-500 text-white px-4 py-2 mt-4 rounded w-full"
                 onClick={() => {
                   handleAddProductToCart(selectedProduct);
-                  handleCloseModal(); // Close modal after adding to cart
+                  handleCloseModal();
                 }}
               >
                 Add to Cart
@@ -301,7 +344,6 @@ export default function ProductsPage({ cart, setCart }) {
         )}
       </main>
 
-      {/* Footer */}
       <footer className="bg-[#550403] text-white p-4 mt-8">
         <div className="container mx-auto text-center">
           <p>&copy; 2024 Smart Homes. All rights reserved.</p>
