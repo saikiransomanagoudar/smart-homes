@@ -43,14 +43,14 @@ export default function ProductsPage({ cart, setCart }) {
     fetch("http://localhost:8080/smarthomes/cart", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
         id: product.id,
         name: product.nameP, // Updated to use nameP
         price: product.priceP, // Updated to use priceP
-        image: product.imageP, // Updated to use imageP
-      }),
+        image: product.imageP // Updated to use imageP
+      })
     })
       .then((response) => response.json())
       .then(() => {
@@ -77,14 +77,14 @@ export default function ProductsPage({ cart, setCart }) {
     fetch("http://localhost:8080/smarthomes/cart", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
         id: accessoryCartId,
-        name: accessory.nameA, // Updated to use nameA
-        price: accessory.priceA, // Updated to use priceA
-        image: accessory.imageA, // Updated to use imageA
-      }),
+        name: accessory.name, // Updated to use nameA
+        price: accessory.price, // Updated to use priceA
+        image: accessory.imageA // Updated to use imageA
+      })
     })
       .then((response) => response.json())
       .then(() => {
@@ -102,7 +102,7 @@ export default function ProductsPage({ cart, setCart }) {
         } else {
           setCart([
             ...cart,
-            { ...accessory, id: accessoryCartId, quantity: 1 },
+            { ...accessory, id: accessoryCartId, quantity: 1 }
           ]);
         }
       })
@@ -172,7 +172,6 @@ export default function ProductsPage({ cart, setCart }) {
                   <h3 className="text-lg sm:text-xl font-bold">
                     {product.nameP} {/* Updated to use nameP */}
                   </h3>
-
                   {/* Image component with loader and unloader */}
                   <Img
                     src={product.imageP} // Updated to use imageP
@@ -181,12 +180,11 @@ export default function ProductsPage({ cart, setCart }) {
                     unloader={<div>Image not found</div>}
                     className="h-40 w-auto object-contain mx-auto mt-2"
                   />
-
                   <p className="mt-2 text-sm sm:text-base">
                     {product.description}
                   </p>
-                  <p className="text-lg font-bold mt-2">{product.priceP}</p> {/* Updated to use priceP */}
-
+                  <p className="text-lg font-bold mt-2">{product.priceP}</p>{" "}
+                  {/* Updated to use priceP */}
                   <button
                     className="bg-blue-500 text-white px-4 py-2 mt-4 rounded"
                     onClick={(e) => {
@@ -196,7 +194,6 @@ export default function ProductsPage({ cart, setCart }) {
                   >
                     Buy Now
                   </button>
-
                   <button
                     className="bg-green-500 text-white px-4 py-2 mt-4 rounded"
                     onClick={(e) => {
@@ -230,15 +227,20 @@ export default function ProductsPage({ cart, setCart }) {
               >
                 &times;
               </button>
-              <h3 className="text-xl font-bold mb-4">{selectedProduct.nameP}</h3> {/* Updated to use nameP */}
+              <h3 className="text-xl font-bold mb-4">
+                {selectedProduct.nameP}
+              </h3>{" "}
+              {/* Updated to use nameP */}
               <Img
                 src={selectedProduct.imageP} // Updated to use imageP
                 alt={selectedProduct.nameP} // Updated to use nameP
                 className="w-full h-40 object-contain mb-4"
               />
               <p className="text-sm mb-4">{selectedProduct.description}</p>
-              <p className="text-lg font-bold mb-4">{selectedProduct.priceP}</p> {/* Updated to use priceP */}
-
+              <p className="text-lg font-bold mb-4">
+                {selectedProduct.priceP}
+              </p>{" "}
+              {/* Updated to use priceP */}
               {/* Display Accessories */}
               {selectedProduct.accessories &&
                 selectedProduct.accessories.length > 0 && (
@@ -246,11 +248,21 @@ export default function ProductsPage({ cart, setCart }) {
                     <h4 className="text-base font-semibold mb-2">
                       Accessories:
                     </h4>
-                    <ul>
+                    <ul className="flex flex-wrap gap-4">
+                      {" "}
+                      {/* Changed layout to flex with some gap */}
                       {selectedProduct.accessories.map((accessory, index) => (
-                        <li key={index}>
-                          <h5>{accessory.nameA}</h5> {/* Updated to use nameA */}
-                          <p className="font-bold">Price: {accessory.priceA}</p> {/* Updated to use priceA */}
+                        <li key={index} className="flex flex-col items-center">
+                          {" "}
+                          {/* Each accessory will appear in a column */}
+                          <h5 className="text-sm font-semibold">
+                            {accessory.nameA}
+                          </h5>{" "}
+                          {/* Updated to use nameA */}
+                          <p className="text-sm font-bold">
+                            Price: {accessory.priceA}
+                          </p>{" "}
+                          {/* Updated to use priceA */}
                           <Img
                             src={accessory.imageA} // Updated to use imageA
                             alt={accessory.nameA} // Updated to use nameA
@@ -269,14 +281,12 @@ export default function ProductsPage({ cart, setCart }) {
                     </ul>
                   </div>
                 )}
-
               <button
                 className="bg-blue-500 text-white px-4 py-2 mt-4 rounded w-full"
                 onClick={handleBuyNow}
               >
                 Buy Now
               </button>
-
               <button
                 className="bg-green-500 text-white px-4 py-2 mt-4 rounded w-full"
                 onClick={() => {
