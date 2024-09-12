@@ -1,70 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Img } from "react-image";
 import { Link, useNavigate } from "react-router-dom";
 
 export default function Home() {
-  const [isSignedIn, setIsSignedIn] = useState(false);
   const navigate = useNavigate();
 
-  // Check if the user is signed in (using localStorage for demonstration purposes)
-  useEffect(() => {
-    const user = localStorage.getItem("user");
-    if (user) {
-      setIsSignedIn(true);
-    }
-  }, []);
-
-  // Handle sign-out
-  const handleSignOut = () => {
-    // Remove user from localStorage or handle sign-out logic
-    localStorage.removeItem("user");
-    setIsSignedIn(false);
-    navigate("/"); // Navigate to home after sign-out
-  };
-
-  const handleShopNowDoorbells = (e) => {
-    e.preventDefault();
-    if (!isSignedIn) {
-      navigate("/signin"); // Navigate to SignIn if not signed in
-    } else {
-      window.location.href = "/products/doorbells"; // Redirect to product page if signed in
-    }
-  };
-
-  const handleShopNowDoorlocks = (e) => {
-    e.preventDefault();
-    if (!isSignedIn) {
-      navigate("/signin"); // Navigate to SignIn if not signed in
-    } else {
-      window.location.href = "/products/doorlocks"; // Redirect to product page if signed in
-    }
-  };
-
-  const handleShopNowSpeakers = (e) => {
-    e.preventDefault();
-    if (!isSignedIn) {
-      navigate("/signin"); // Navigate to SignIn if not signed in
-    } else {
-      window.location.href = "/products/speakers"; // Redirect to product page if signed in
-    }
-  };
-
-  const handleShopNowLightings = (e) => {
-    e.preventDefault();
-    if (!isSignedIn) {
-      navigate("/signin"); // Navigate to SignIn if not signed in
-    } else {
-      window.location.href = "/products/lightings"; // Redirect to product page if signed in
-    }
-  };
-
-  const handleShopNowThermostats = (e) => {
-    e.preventDefault();
-    if (!isSignedIn) {
-      navigate("/signin"); // Navigate to SignIn if not signed in
-    } else {
-      window.location.href = "/products/thermostats"; // Redirect to product page if signed in
-    }
+  // Handle Shop Now navigation without the sign-in check
+  const handleShopNow = (category) => {
+    navigate(`/products/${category}`);
   };
 
   return (
@@ -92,30 +35,18 @@ export default function Home() {
             >
               Contact
             </Link>
-
-            {!isSignedIn ? (
-              <>
-                <Link
-                  to="/signup"
-                  className="bg-green-500 text-white px-3 py-2 rounded ml-2 text-sm sm:text-base"
-                >
-                  Sign Up
-                </Link>
-                <Link
-                  to="/signin"
-                  className="bg-blue-500 text-white px-3 py-2 rounded text-sm sm:text-base"
-                >
-                  Sign In
-                </Link>
-              </>
-            ) : (
-              <button
-                onClick={handleSignOut}
-                className="bg-red-500 text-white px-3 py-2 rounded text-sm sm:text-base"
-              >
-                Sign Out
-              </button>
-            )}
+            <Link
+              to="/signup"
+              className="bg-green-500 text-white px-4 py-2 rounded ml-2 text-sm sm:text-base"
+            >
+              Sign Up
+            </Link>
+            <Link
+              to="/signin"
+              className="bg-blue-500 text-white px-4 py-2 rounded text-sm sm:text-base"
+            >
+              Sign In
+            </Link>
           </nav>
         </div>
       </header>
@@ -144,16 +75,14 @@ export default function Home() {
               unloader={<div>Image not found</div>} // Fallback in case of error
               className="w-full h-auto object-cover mt-2"
             />
-            <Link
-              to="/products/doorbells"
+            <button
               className="text-blue-500 mt-2 block text-center"
-              onClick={handleShopNowDoorbells}
+              onClick={() => handleShopNow("doorbells")}
             >
               Shop Now
-            </Link>
+            </button>
           </div>
 
-          {/* Other products */}
           {/* Smart Doorlocks */}
           <div className="p-4 bg-white shadow rounded flex flex-col justify-between">
             <h3 className="text-lg sm:text-xl font-bold">Smart Doorlocks</h3>
@@ -164,13 +93,12 @@ export default function Home() {
               unloader={<div>Image not found</div>}
               className="w-full h-auto object-cover mt-2"
             />
-            <Link
-              to="/products/doorlocks"
+            <button
               className="text-blue-500 mt-2 block text-center"
-              onClick={handleShopNowDoorlocks}
+              onClick={() => handleShopNow("doorlocks")}
             >
               Shop Now
-            </Link>
+            </button>
           </div>
 
           {/* Smart Speakers */}
@@ -183,13 +111,12 @@ export default function Home() {
               unloader={<div>Image not found</div>}
               className="w-full h-auto object-cover mt-2"
             />
-            <Link
-              to="/products/speakers"
+            <button
               className="text-blue-500 mt-2 block text-center"
-              onClick={handleShopNowSpeakers}
+              onClick={() => handleShopNow("speakers")}
             >
               Shop Now
-            </Link>
+            </button>
           </div>
 
           {/* Smart Lightings */}
@@ -202,13 +129,12 @@ export default function Home() {
               unloader={<div>Image not found</div>}
               className="w-full h-auto object-cover mt-2"
             />
-            <Link
-              to="/products/lightings"
+            <button
               className="text-blue-500 mt-2 block text-center"
-              onClick={handleShopNowLightings}
+              onClick={() => handleShopNow("lightings")}
             >
               Shop Now
-            </Link>
+            </button>
           </div>
 
           {/* Smart Thermostats */}
@@ -221,13 +147,12 @@ export default function Home() {
               unloader={<div>Image not found</div>}
               className="w-full h-auto object-cover mt-2"
             />
-            <Link
-              to="/products/thermostats"
+            <button
               className="text-blue-500 mt-2 block text-center"
-              onClick={handleShopNowThermostats}
+              onClick={() => handleShopNow("thermostats")}
             >
               Shop Now
-            </Link>
+            </button>
           </div>
         </div>
       </main>

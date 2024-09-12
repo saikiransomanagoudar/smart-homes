@@ -26,13 +26,18 @@ public class ProductServlet extends HttpServlet {
             ProductSAXHandler handler = new ProductSAXHandler();
 
             // Load the XML file from the resources folder
-            InputStream inputFile = getClass().getClassLoader().getResourceAsStream("productcategory.xml");
+            InputStream inputFile = getClass().getClassLoader().getResourceAsStream("ProductCatalog.xml");
             if (inputFile == null) {
+                System.out.println("ProductCatalog.xml not found in the resources folder.");
                 throw new IOException("Resource file not found");
+            } else {
+                System.out.println("ProductCatalog.xml successfully loaded.");
             }
 
-            // Parse the XML file using the handler
+            System.out.println("Starting to parse ProductCatalog.xml...");
             saxParser.parse(inputFile, handler);
+            System.out.println("XML parsing completed successfully.");
+
 
             // Get the list of products from the handler
             List<Product> products = handler.getProducts();
@@ -40,9 +45,12 @@ public class ProductServlet extends HttpServlet {
             // Filter products by category if the category parameter is provided
             String requestedCategory = request.getParameter("category");
             if (requestedCategory != null && !requestedCategory.isEmpty()) {
+                System.out.println("Requested Category: " + requestedCategory);  // Debug statement
+                System.out.println("Total Products Before Filtering: " + products.size());  // Debug statement
                 products = products.stream()
                         .filter(p -> p.category().equalsIgnoreCase(requestedCategory))
                         .collect(Collectors.toList());
+                System.out.println("Total Products After Filtering: " + products.size());  // Debug statement
             }
 
             // Convert the filtered products list to JSON

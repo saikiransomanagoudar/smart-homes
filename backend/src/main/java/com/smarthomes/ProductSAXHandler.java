@@ -18,12 +18,12 @@ public class ProductSAXHandler extends DefaultHandler {
     private String description;
     private String image;
     private List<Accessory> accessories = new ArrayList<>();
-    
+
     private Accessory currentAccessory;
     private StringBuilder content;
-    
+
     private List<Product> products = new ArrayList<>();
-    
+
     public List<Product> getProducts() {
         return products;
     }
@@ -34,14 +34,14 @@ public class ProductSAXHandler extends DefaultHandler {
 
         // Check for the product tag
         if (qName.equals("doorbell") || qName.equals("doorlock") || qName.equals("lighting") || qName.equals("speaker") || qName.equals("thermostat")) {
-            // Initialize product attributes
+            // Initialize product attributes from XML attributes
             id = Integer.parseInt(attributes.getValue("id"));
             retailer = attributes.getValue("retailer");
-            category = qName;  // Category is the tag name
+            category = attributes.getValue("category");  // Using category attribute from XML
             accessories = new ArrayList<>();  // Reset accessories list for the new product
         } else if (qName.equals("accessory")) {
             // Initialize a new accessory object
-            currentAccessory = new Accessory(null, null, null);  // No-arg temporary values
+            currentAccessory = new Accessory(null, null, null);
         }
     }
 
@@ -54,15 +54,18 @@ public class ProductSAXHandler extends DefaultHandler {
         } else if (qName.equals("image") && currentAccessory != null) {
             currentAccessory = new Accessory(currentAccessory.name(), currentAccessory.price(), content.toString());
         } else if (qName.equals("accessory")) {
-            accessories.add(currentAccessory);  // Add accessory to the list when complete
+            accessories.add(currentAccessory);
         }
 
-        // Product data
+        // Handle product fields
         switch (qName) {
             case "name" -> name = content.toString();
             case "price" -> price = content.toString();
             case "description" -> description = content.toString();
-            case "image" -> image = content.toString();
+            case "image" -> {
+                image = content.toString();
+                System.out.println("Parsed image: " + image);
+            }
             case "doorbell", "doorlock", "lighting", "speaker", "thermostat" -> {
                 // Create the Product record and add it to the list
                 Product product = new Product(id, retailer, category, name, price, description, image, accessories);
