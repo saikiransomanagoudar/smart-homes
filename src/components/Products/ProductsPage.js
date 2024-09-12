@@ -47,9 +47,9 @@ export default function ProductsPage({ cart, setCart }) {
       },
       body: JSON.stringify({
         id: product.id,
-        name: product.name,
-        price: product.price,
-        image: product.image,
+        name: product.nameP, // Updated to use nameP
+        price: product.priceP, // Updated to use priceP
+        image: product.imageP, // Updated to use imageP
       }),
     })
       .then((response) => response.json())
@@ -81,9 +81,9 @@ export default function ProductsPage({ cart, setCart }) {
       },
       body: JSON.stringify({
         id: accessoryCartId,
-        name: accessory.name,
-        price: accessory.price,
-        image: accessory.image,
+        name: accessory.nameA, // Updated to use nameA
+        price: accessory.priceA, // Updated to use priceA
+        image: accessory.imageA, // Updated to use imageA
       }),
     })
       .then((response) => response.json())
@@ -170,13 +170,13 @@ export default function ProductsPage({ cart, setCart }) {
                   onClick={() => handleProductClick(product)} // Trigger modal on click
                 >
                   <h3 className="text-lg sm:text-xl font-bold">
-                    {product.name}
+                    {product.nameP} {/* Updated to use nameP */}
                   </h3>
 
                   {/* Image component with loader and unloader */}
                   <Img
-                    src={product.image} // Ensure product image is used
-                    alt={product.name}
+                    src={product.imageP} // Updated to use imageP
+                    alt={product.nameP} // Updated to use nameP
                     loader={<div>Loading...</div>}
                     unloader={<div>Image not found</div>}
                     className="h-40 w-auto object-contain mx-auto mt-2"
@@ -185,7 +185,7 @@ export default function ProductsPage({ cart, setCart }) {
                   <p className="mt-2 text-sm sm:text-base">
                     {product.description}
                   </p>
-                  <p className="text-lg font-bold mt-2">{product.price}</p>
+                  <p className="text-lg font-bold mt-2">{product.priceP}</p> {/* Updated to use priceP */}
 
                   <button
                     className="bg-blue-500 text-white px-4 py-2 mt-4 rounded"
@@ -230,14 +230,14 @@ export default function ProductsPage({ cart, setCart }) {
               >
                 &times;
               </button>
-              <h3 className="text-xl font-bold mb-4">{selectedProduct.name}</h3>
+              <h3 className="text-xl font-bold mb-4">{selectedProduct.nameP}</h3> {/* Updated to use nameP */}
               <Img
-                src={selectedProduct.image}
-                alt={selectedProduct.name}
+                src={selectedProduct.imageP} // Updated to use imageP
+                alt={selectedProduct.nameP} // Updated to use nameP
                 className="w-full h-40 object-contain mb-4"
               />
               <p className="text-sm mb-4">{selectedProduct.description}</p>
-              <p className="text-lg font-bold mb-4">{selectedProduct.price}</p>
+              <p className="text-lg font-bold mb-4">{selectedProduct.priceP}</p> {/* Updated to use priceP */}
 
               {/* Display Accessories */}
               {selectedProduct.accessories &&
@@ -249,11 +249,11 @@ export default function ProductsPage({ cart, setCart }) {
                     <ul>
                       {selectedProduct.accessories.map((accessory, index) => (
                         <li key={index}>
-                          <h5>{accessory.name}</h5>
-                          <p className="font-bold">Price: {accessory.price}</p>
+                          <h5>{accessory.nameA}</h5> {/* Updated to use nameA */}
+                          <p className="font-bold">Price: {accessory.priceA}</p> {/* Updated to use priceA */}
                           <Img
-                            src={accessory.image}
-                            alt={accessory.name}
+                            src={accessory.imageA} // Updated to use imageA
+                            alt={accessory.nameA} // Updated to use nameA
                             className="w-20 h-20 object-contain"
                             loader={<div>Loading...</div>}
                             unloader={<div>Image not found</div>}

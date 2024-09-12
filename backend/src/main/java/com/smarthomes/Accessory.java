@@ -1,4 +1,4 @@
 package com.smarthomes;
 
-public record Accessory(String name, String price, String image) {
+public record Accessory(String nameA, String priceA, String imageA) {
 }

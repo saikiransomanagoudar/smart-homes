@@ -50,11 +50,11 @@ public class ProductSAXHandler extends DefaultHandler {
         // Handle accessory fields
         if (currentAccessory != null) {
             if (qName.equals("nameA")) {  // Accessory name tag
-                currentAccessory = new Accessory(content.toString(), currentAccessory.price(), currentAccessory.image());
+                currentAccessory = new Accessory(content.toString(), currentAccessory.priceA(), currentAccessory.imageA());
             } else if (qName.equals("priceA")) {  // Accessory price tag
-                currentAccessory = new Accessory(currentAccessory.name(), content.toString(), currentAccessory.image());
+                currentAccessory = new Accessory(currentAccessory.nameA(), content.toString(), currentAccessory.imageA());
             } else if (qName.equals("imageA")) {  // Accessory image tag
-                currentAccessory = new Accessory(currentAccessory.name(), currentAccessory.price(), content.toString());
+                currentAccessory = new Accessory(currentAccessory.nameA(), currentAccessory.priceA(), content.toString());
             } else if (qName.equals("accessory")) {
                 // Add the accessory to the current product's accessories list
                 accessories.add(currentAccessory);
