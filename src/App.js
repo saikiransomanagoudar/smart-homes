@@ -18,7 +18,7 @@ function App() {
         <Route path="/products/:category" element={<ProductsPage cart={cart} setCart={setCart} />} />
         <Route path="/signin" element={<LoginForm />} />
         <Route path="/signup" element={<Register />} />
-        <Route path="/cart" element={<Cart cart={cart} setCart={setCart} />} />
+        <Route path="/cart" element={<Cart />} />
       </Routes>
     </Router>
   );

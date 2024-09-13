@@ -15,7 +15,11 @@ import java.util.stream.Collectors;
 public class ProductServlet extends HttpServlet {
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        // Enable CORS for GET requests
+        enableCORS(request, response);
+
         response.setContentType("application/json");
         PrintWriter out = response.getWriter();
 
@@ -38,19 +42,18 @@ public class ProductServlet extends HttpServlet {
             saxParser.parse(inputFile, handler);
             System.out.println("XML parsing completed successfully.");
 
-
             // Get the list of products from the handler
             List<Product> products = handler.getProducts();
 
             // Filter products by category if the category parameter is provided
             String requestedCategory = request.getParameter("category");
             if (requestedCategory != null && !requestedCategory.isEmpty()) {
-                System.out.println("Requested Category: " + requestedCategory);  // Debug statement
-                System.out.println("Total Products Before Filtering: " + products.size());  // Debug statement
+                System.out.println("Requested Category: " + requestedCategory); // Debug statement
+                System.out.println("Total Products Before Filtering: " + products.size()); // Debug statement
                 products = products.stream()
-                        .filter(p -> p.category().equalsIgnoreCase(requestedCategory))
+                        .filter(p -> p.getCategory().equalsIgnoreCase(requestedCategory))
                         .collect(Collectors.toList());
-                System.out.println("Total Products After Filtering: " + products.size());  // Debug statement
+                System.out.println("Total Products After Filtering: " + products.size()); // Debug statement
             }
 
             // Convert the filtered products list to JSON
@@ -68,5 +71,20 @@ public class ProductServlet extends HttpServlet {
     // Method to convert the list of products to JSON format
     private String convertToJson(List<Product> products) {
         return new com.google.gson.Gson().toJson(products);
+    }
+
+    // Enable CORS for all methods
+    private void enableCORS(HttpServletRequest request, HttpServletResponse response) {
+        response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000"); // Allow frontend origin
+        response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS"); // Allow these methods
+        response.setHeader("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization"); // Allow these headers
+        response.setHeader("Access-Control-Allow-Credentials", "true"); // Allow credentials (cookies)
+    }
+
+    @Override
+    protected void doOptions(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        enableCORS(request, response);
+        response.setStatus(HttpServletResponse.SC_OK); // Set status to OK for preflight request
     }
 }

@@ -1,108 +1,95 @@
 import React, { useEffect, useState } from "react";
 import { Img } from "react-image";
-import { useUser } from "@clerk/clerk-react";
-import { useNavigate } from "react-router-dom"; // Ensure this is imported correctly
+import { useNavigate } from "react-router-dom";
 
 export default function Cart() {
-  const { isSignedIn } = useUser();
   const navigate = useNavigate();
-  const [cart, setCart] = useState([]);
   const [cartItems, setCartItems] = useState([]);
+  const isLoggedIn = localStorage.getItem("isLoggedIn");
 
   // Fetch cart items from the backend
   useEffect(() => {
-    if (isSignedIn) {
-      fetch("http://localhost:8080/smarthomes/cart") // Change the URL if your API runs on a different port
+    if (isLoggedIn === "true") {
+      fetch("http://localhost:8080/smarthomes/cart", {
+        method: "GET",
+        credentials: "include",  // Include credentials (cookies) in request
+      })
         .then((response) => response.json())
-        .then((data) => setCartItems(data))
+        .then((data) => {
+          console.log("Cart items fetched:", data);
+          setCartItems(data);
+          console.log("Cart items state:", cartItems);
+        })
         .catch((error) => console.error("Error fetching cart:", error));
     } else {
       navigate("/signin"); // Redirect to sign-in if not logged in
     }
-  }, [isSignedIn, navigate]);
+  }, [isLoggedIn, navigate]);
 
-  // Function to remove items from the cart (DELETE request)
+  // Function to increase the quantity of an item (product or accessory)
+  const handleAddItem = (id) => {
+    const updatedCart = cartItems.map((item) => {
+      if (item.id === id) {
+        return { ...item, quantity: item.quantity + 1 };
+      }
+      return item;
+    });
+    setCartItems(updatedCart);
+
+    // Send updated cart data to backend to persist the state
+    const updatedItem = updatedCart.find((item) => item.id === id);
+    updateCartItemBackend(updatedItem);
+  };
+
+  // Function to decrease the quantity of an item (product or accessory)
   const handleRemoveItem = (id) => {
-    // fetch(`http://localhost:8080/smarthomes/cart?id=${id}`, { method: "DELETE" })
-    //   .then((response) => response.json())
-    //   .then(() => {
-    //     setCartItems(cartItems.filter((item) => item.id !== id));
-    //   })
-    //   .catch((error) => console.error("Error removing item:", error));
-    if (id.startsWith("accessory")) {
-      handleDeleteAccessoryFromCart(cart.find((item) => item.id === id));
+    const updatedCart = cartItems.map((item) => {
+      if (item.id === id && item.quantity > 1) {
+        return { ...item, quantity: item.quantity - 1 };
+      }
+      return item;
+    }).filter(item => item.quantity > 0);
+    setCartItems(updatedCart);
+
+    // If quantity > 0, update the backend, else delete from backend
+    const updatedItem = updatedCart.find((item) => item.id === id);
+    if (updatedItem) {
+      updateCartItemBackend(updatedItem);
     } else {
-      handleDeleteProductFromCart(cart.find((item) => item.id === id));
+      deleteCartItemBackend(id);
     }
   };
 
-  const handleDeleteAccessoryFromCart = (accessory) => {
-    const accessoryCartId = `accessory-${accessory.id}`; // Use the same unique identifier
+  // Function to persist the updated item in the backend
+  const updateCartItemBackend = (item) => {
     fetch("http://localhost:8080/smarthomes/cart", {
-      method: "DELETE",
+      method: "PUT",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        id: accessoryCartId,
-        name: accessory.name,
-        price: accessory.price,
-        image: accessory.image
-      })
+      body: JSON.stringify(item),
     })
       .then((response) => response.json())
       .then((data) => {
-        console.log("Accessory deleted from cart:", data);
-        const accessoryInCart = cart.find(
-          (cartItem) => cartItem.id === accessoryCartId
-        );
-        if (accessoryInCart && accessoryInCart.quantity > 1) {
-          setCart(
-            cart.map((cartItem) =>
-              cartItem.id === accessoryCartId
-                ? { ...cartItem, quantity: cartItem.quantity - 1 }
-                : cartItem
-            )
-          );
-        } else {
-          setCart(cart.filter((cartItem) => cartItem.id !== accessoryCartId));
-        }
+        console.log("Item updated in cart:", data);
       })
-      .catch((error) => console.error("Error deleting accessory:", error));
+      .catch((error) => console.error("Error updating item in cart:", error));
   };
 
-  const handleDeleteProductFromCart = (product) => {
+  // Function to remove the item from the backend
+  const deleteCartItemBackend = (id) => {
     fetch("http://localhost:8080/smarthomes/cart", {
       method: "DELETE",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        image: product.image
-      })
+      body: JSON.stringify({ id }),
     })
       .then((response) => response.json())
       .then((data) => {
-        console.log("Product deleted from cart:", data);
-        const productInCart = cart.find(
-          (cartItem) => cartItem.id === product.id
-        );
-        if (productInCart) {
-          setCart(
-            cart.map((cartItem) =>
-              cartItem.id === product.id
-                ? { ...cartItem, quantity: cartItem.quantity - 1 }
-                : cartItem
-            )
-          );
-        } else {
-          setCart([...cart, { ...product, quantity: 1 }]);
-        }
+        console.log("Item removed from cart:", data);
       })
-      .catch((error) => console.error("Error deleting product:", error));
+      .catch((error) => console.error("Error removing item from cart:", error));
   };
 
   return (
@@ -120,26 +107,46 @@ export default function Cart() {
               <div className="flex-grow">
                 <h3 className="text-lg font-bold">{item.name}</h3>
                 <p>{item.price}</p>
+                <p>Quantity: {item.quantity}</p>
               </div>
-              <button
-                className="bg-red-500 text-white px-4 py-2 rounded"
-                onClick={() => handleRemoveItem(item.id)}
-              >
-                Remove
-              </button>
+              <div className="flex flex-col items-center">
+                <button
+                  className="bg-green-500 text-white px-2 py-1 rounded mb-1"
+                  onClick={() => handleAddItem(item.id)}
+                >
+                  Add
+                </button>
+                <button
+                  className="bg-red-500 text-white px-2 py-1 rounded"
+                  onClick={() => handleRemoveItem(item.id)}
+                >
+                  Remove
+                </button>
+              </div>
             </div>
           ))}
         </div>
       ) : (
         <p>Your cart is empty.</p>
       )}
+
+      {/* Subtotal and checkout */}
       {cartItems.length > 0 && (
-        <button
-          className="bg-blue-500 text-white px-4 py-2 mt-4"
-          onClick={() => navigate("/checkout")}
-        >
-          Checkout
-        </button>
+        <div className="mt-4">
+          <p>
+            Subtotal ({cartItems.reduce((sum, item) => sum + item.quantity, 0)}{" "}
+            items):{" "}
+            {cartItems
+              .reduce((total, item) => total + item.price * item.quantity, 0)
+              .toFixed(2)}
+          </p>
+          <button
+            className="bg-blue-500 text-white px-4 py-2 mt-4"
+            onClick={() => navigate("/checkout")}
+          >
+            Checkout
+          </button>
+        </div>
       )}
     </div>
   );

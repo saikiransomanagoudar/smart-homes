@@ -47,9 +47,36 @@ export default function ProductsPage({ cart, setCart }) {
 
   const handleAddProductToCart = (product) => {
     if (isLoggedIn) {
-      const updatedQuantities = { ...quantities, [product.id]: 1 };
-      setQuantities(updatedQuantities);
-      setCart([...cart, { ...product, quantity: 1 }]);
+      const productData = {
+        id: product.id,
+        nameP: product.nameP,
+        priceP: product.priceP,
+        description: product.description,
+        imageP: product.imageP,
+        accessories: product.accessories || [] // Ensure it's an array
+      };
+      
+      fetch("http://localhost:8080/smarthomes/cart", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: 'include', // Include credentials (cookies) in request
+        body: JSON.stringify(productData),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Failed to add product to cart.");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          console.log("Product added to cart:", data);
+          setCart([...cart, { ...product, quantity: 1 }]);
+        })
+        .catch((error) => {
+          console.error("Error adding product to cart:", error);
+        });
     } else {
       navigate("/signin"); // Redirect to sign-in if not logged in
     }
