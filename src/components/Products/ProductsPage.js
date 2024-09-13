@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Img } from "react-image";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faShoppingCart } from "@fortawesome/free-solid-svg-icons";
 
@@ -9,6 +9,9 @@ export default function ProductsPage({ cart, setCart }) {
   const [products, setProducts] = useState([]);
   const [quantities, setQuantities] = useState({});
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const navigate = useNavigate();
+
+  const isLoggedIn = localStorage.getItem("isLoggedIn");
 
   // Fetch products based on category
   useEffect(() => {
@@ -35,38 +38,54 @@ export default function ProductsPage({ cart, setCart }) {
   };
 
   const handleBuyNow = () => {
-    window.location.href = "/payment"; // Proceed to payment directly
+    if (isLoggedIn) {
+      window.location.href = "/payment"; // Proceed to payment directly
+    } else {
+      navigate("/signin"); // Redirect to sign-in if not logged in
+    }
   };
 
   const handleAddProductToCart = (product) => {
-    const updatedQuantities = { ...quantities, [product.id]: 1 };
-    setQuantities(updatedQuantities);
-    setCart([...cart, { ...product, quantity: 1 }]);
+    if (isLoggedIn) {
+      const updatedQuantities = { ...quantities, [product.id]: 1 };
+      setQuantities(updatedQuantities);
+      setCart([...cart, { ...product, quantity: 1 }]);
+    } else {
+      navigate("/signin"); // Redirect to sign-in if not logged in
+    }
+  };
+
+  const handleSignOut = () => {
+    localStorage.removeItem("isLoggedIn"); // Clear the logged-in status
+    navigate("/"); // Redirect to the home page
   };
 
   const handleAddAccessoryToCart = (accessory) => {
     const accessoryCartId = `accessory-${accessory.nameA}`;
     const accessoryInCart = cart.find((item) => item.id === accessoryCartId);
-
-    if (accessoryInCart) {
-      setCart(
-        cart.map((item) =>
-          item.id === accessoryCartId
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        )
-      );
+    if (isLoggedIn) {
+      if (accessoryInCart) {
+        setCart(
+          cart.map((item) =>
+            item.id === accessoryCartId
+              ? { ...item, quantity: item.quantity + 1 }
+              : item
+          )
+        );
+      } else {
+        setCart([
+          ...cart,
+          {
+            id: accessoryCartId,
+            name: accessory.nameA,
+            price: accessory.priceA,
+            image: accessory.imageA,
+            quantity: 1
+          }
+        ]);
+      }
     } else {
-      setCart([
-        ...cart,
-        {
-          id: accessoryCartId,
-          name: accessory.nameA,
-          price: accessory.priceA,
-          image: accessory.imageA,
-          quantity: 1
-        }
-      ]);
+      navigate("/signin"); // Redirect to sign-in if not logged in
     }
   };
 
@@ -133,22 +152,37 @@ export default function ProductsPage({ cart, setCart }) {
               Contact
             </Link>
             <div className="ml-4 text-sm sm:text-base">
-              <Link to="/cart" className="text-white">
-                <FontAwesomeIcon icon={faShoppingCart} className="mr-2" />
-                Cart Items: {cart.reduce((sum, item) => sum + item.quantity, 0)}
-              </Link>
-              <Link
-                to="/signup"
-                className="bg-green-500 text-white px-4 py-2 rounded ml-2 text-sm sm:text-base"
-              >
-                Sign Up
-              </Link>
-              <Link
-                to="/signin"
-                className="bg-blue-500 text-white px-4 py-2 rounded ml-2 text-sm sm:text-base"
-              >
-                Sign In
-              </Link>
+              {isLoggedIn ? (
+                <>
+                  <Link to="/cart" className="text-white">
+                    <FontAwesomeIcon icon={faShoppingCart} className="mr-2" />
+                    Cart Items:{" "}
+                    {cart.reduce((sum, item) => sum + item.quantity, 0)}
+                  </Link>
+
+                  <button
+                    onClick={handleSignOut}
+                    className="bg-red-500 text-white px-4 py-2 rounded ml-2 text-sm sm:text-base"
+                  >
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/signup"
+                    className="bg-green-500 text-white px-4 py-2 rounded ml-2 text-sm sm:text-base"
+                  >
+                    Sign Up
+                  </Link>
+                  <Link
+                    to="/signin"
+                    className="bg-blue-500 text-white px-4 py-2 rounded ml-2 text-sm sm:text-base"
+                  >
+                    Sign In
+                  </Link>
+                </>
+              )}
             </div>
           </nav>
         </div>

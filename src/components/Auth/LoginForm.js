@@ -16,7 +16,7 @@ const LoginForm = () => {
 
     // Create form data to send to backend
     const formData = new URLSearchParams();
-    formData.append("username", email);
+    formData.append("email", email);
     formData.append("password", password);
 
     try {
@@ -29,7 +29,11 @@ const LoginForm = () => {
         },
       });
       console.log(response);
+      console.log(formData.toString());
       if (response.ok) {
+        const data = await response.text(); // Read the response body to set body used
+        console.log(data);
+        localStorage.setItem("isLoggedIn", "true"); // Set the logged-in status in local storage
         // Redirect to home page on successful login
         navigate("/");
       } else {
@@ -91,7 +95,7 @@ const LoginForm = () => {
         </div>
       </div>
       <div
-        className="w-[60%] bg-slate-400 bg-cover bg-right-top hidden lg:block"
+        className="w-[100%] bg-slate-400 bg-cover bg-right-top hidden lg:block"
         style={{ backgroundImage: "url('/image.jpg')" }}
       ></div>
     </main>

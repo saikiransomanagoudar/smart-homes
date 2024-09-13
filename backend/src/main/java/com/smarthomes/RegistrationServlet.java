@@ -29,7 +29,7 @@ public class RegistrationServlet extends HttpServlet {
         if (username == null || email == null || password == null || username.isEmpty() || email.isEmpty() || password.isEmpty()) {
             // Respond with HTTP 400 Bad Request if any field is missing or invalid
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            out.print("{\"status\": \"error\", \"message\": \"Invalid input. All fields are required.\"}");
+            out.print("Invalid input. Username, Email, and Password are required.");
             out.flush();
             return;
         }
@@ -81,10 +81,10 @@ public class RegistrationServlet extends HttpServlet {
         // Return JSON response
         if (error_msg == null) {
             response.setStatus(HttpServletResponse.SC_OK);
-            out.print("{\"status\": \"success\", \"message\": \"Registration successful.\"}");
+            out.print("Registration successful!");
         } else {
             response.setStatus(HttpServletResponse.SC_CONFLICT); // Conflict if username or email already exists
-            out.print("{\"status\": \"error\", \"message\": \"" + error_msg + "\"}");
+            out.print(error_msg);
         }
 
         out.flush(); // Response body is written to the client

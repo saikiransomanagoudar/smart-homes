@@ -16,10 +16,9 @@ function App() {
         <Route exact path="/" element={<Home />} />
         {/* Route for product categories, dynamically loading products based on the category */}
         <Route path="/products/:category" element={<ProductsPage cart={cart} setCart={setCart} />} />
+        <Route path="/signin" element={<LoginForm />} />
+        <Route path="/signup" element={<Register />} />
         <Route path="/cart" element={<Cart cart={cart} setCart={setCart} />} />
-        <Route path="/signin" element={<LoginForm />} /> {/* Use your custom LoginForm */}
-        <Route path="/signup" element={<Register />} /> {/* Use your custom Register */}
-        {/* Add other routes as necessary */}
       </Routes>
     </Router>
   );

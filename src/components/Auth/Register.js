@@ -42,10 +42,10 @@ const RegisterForm = () => {
         navigate("/signin");
       } else if (response.status === 409) {
         // Handle 409 Conflict (duplicate username or email)
-        const data = await response.json();
+        const data = await response.text();
         setError(data.message || "Username or Email already exists.");
       } else {
-        const data = await response.json();
+        const data = await response.text();
         setError(data.message || "Registration failed.");
       }
     } catch (error) {
@@ -115,7 +115,7 @@ const RegisterForm = () => {
         </div>
       </div>
       <div
-        className="w-[60%] bg-slate-400 bg-cover bg-right-top hidden lg:block"
+        className="w-[100%] bg-slate-400 bg-cover bg-right-top hidden lg:block"
         style={{ backgroundImage: "url('/image.jpg')" }}
       ></div>
     </main>

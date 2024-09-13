@@ -1,13 +1,27 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Img } from "react-image";
 import { Link, useNavigate } from "react-router-dom";
 
 export default function Home() {
   const navigate = useNavigate();
+  // State for login status
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+  // On mount, check if the user is logged in
+  useEffect(() => {
+    const loggedInStatus = localStorage.getItem("isLoggedIn");
+    setIsLoggedIn(loggedInStatus === "true");
+  }, []);
+  
   // Handle Shop Now navigation without the sign-in check
   const handleShopNow = (category) => {
     navigate(`/products/${category}`);
+  };
+
+  const handleSignOut = () => {
+    localStorage.removeItem("isLoggedIn"); // Clear the logged-in status
+    setIsLoggedIn(false); // Update state
+    navigate("/"); // Redirect to the home page
   };
 
   return (
@@ -35,18 +49,31 @@ export default function Home() {
             >
               Contact
             </Link>
-            <Link
-              to="/signup"
-              className="bg-green-500 text-white px-4 py-2 rounded ml-2 text-sm sm:text-base"
-            >
-              Sign Up
-            </Link>
-            <Link
-              to="/signin"
-              className="bg-blue-500 text-white px-4 py-2 rounded text-sm sm:text-base"
-            >
-              Sign In
-            </Link>
+            {isLoggedIn ? (
+              <>
+                <button
+                  onClick={handleSignOut}
+                  className="bg-red-500 text-white px-4 py-2 rounded text-sm sm:text-base"
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/signup"
+                  className="bg-green-500 text-white px-4 py-2 rounded ml-2 text-sm sm:text-base"
+                >
+                  Sign Up
+                </Link>
+                <Link
+                  to="/signin"
+                  className="bg-blue-500 text-white px-4 py-2 rounded text-sm sm:text-base"
+                >
+                  Sign In
+                </Link>
+              </>
+            )}
           </nav>
         </div>
       </header>
