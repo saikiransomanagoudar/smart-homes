@@ -12,15 +12,19 @@ export default function Cart() {
     if (isLoggedIn === "true") {
       fetch("http://localhost:8080/smarthomes/cart", {
         method: "GET",
-        credentials: "include",  // Include credentials (cookies) in request
+        credentials: "include" // Include credentials (cookies) in request
       })
         .then((response) => response.json())
         .then((data) => {
           console.log("Cart items fetched:", data);
           // Ensure every item has a quantity property
-          const updatedItems = data.map(item => ({
+          const updatedItems = data.map((item) => ({
             ...item,
             quantity: item.quantity || 1, // Default quantity to 1 if not present
+            accessories: item.accessories.map((acc) => ({
+              ...acc,
+              quantity: acc.quantity || 1 // Default quantity for accessories
+            }))
           }));
           setCartItems(updatedItems);
         })
@@ -30,75 +34,85 @@ export default function Cart() {
     }
   }, [isLoggedIn, navigate]);
 
-  // Function to increase the quantity of an item (product or accessory)
-  const handleAddItem = (id) => {
+  // Function to update the cart on the backend
+  const updateCartBackend = (updatedCart) => {
+    setCartItems(updatedCart);
+    fetch("http://localhost:8080/smarthomes/cart", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(updatedCart)
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Cart updated:", data);
+      })
+      .catch((error) => console.error("Error updating cart:", error));
+  };
+
+  // Function to handle adding a product or accessory
+  const handleAddItem = (id, isAccessory = false, accName = null) => {
     const updatedCart = cartItems.map((item) => {
-      if (item.id === id) {
+      if (
+        isAccessory &&
+        item.accessories.some((acc) => acc.nameA === accName)
+      ) {
+        const updatedAccessories = item.accessories.map((acc) => {
+          if (acc.nameA === accName) {
+            return { ...acc, quantity: acc.quantity + 1 };
+          }
+          return acc;
+        });
+        return { ...item, accessories: updatedAccessories };
+      } else if (item.id === id) {
         return { ...item, quantity: item.quantity + 1 };
       }
       return item;
     });
-    setCartItems(updatedCart);
 
-    // Send updated cart data to backend to persist the state
-    const updatedItem = updatedCart.find((item) => item.id === id);
-    updateCartItemBackend(updatedItem);
+    updateCartBackend(updatedCart);
   };
 
-  // Function to decrease the quantity of an item (product or accessory)
-  const handleRemoveItem = (id) => {
-    const updatedCart = cartItems.map((item) => {
-      if (item.id === id && item.quantity > 1) {
-        return { ...item, quantity: item.quantity - 1 };
-      }
-      return item;
-    }).filter(item => item.quantity > 0);
-    setCartItems(updatedCart);
-
-    // If quantity > 0, update the backend, else delete from backend
-    const updatedItem = updatedCart.find((item) => item.id === id);
-    if (updatedItem) {
-      updateCartItemBackend(updatedItem);
-    } else {
-      deleteCartItemBackend(id);
-    }
-  };
-
-  // Function to persist the updated item in the backend
-  const updateCartItemBackend = (item) => {
-    fetch("http://localhost:8080/smarthomes/cart", {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(item),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Item updated in cart:", data);
+  const handleRemoveItem = (id, isAccessory = false, accName = null) => {
+    const updatedCart = cartItems
+      .map((item) => {
+        if (
+          isAccessory &&
+          item.accessories.some((acc) => acc.nameA === accName)
+        ) {
+          const updatedAccessories = item.accessories
+            .map((acc) => {
+              if (acc.nameA === accName) {
+                return { ...acc, quantity: acc.quantity - 1 };
+              }
+              return acc;
+            })
+            .filter((acc) => acc.quantity > 0); // Remove accessory if its quantity reaches 0
+          return { ...item, accessories: updatedAccessories };
+        } else if (item.id === id) {
+          return { ...item, quantity: item.quantity - 1 };
+        }
+        return item;
       })
-      .catch((error) => console.error("Error updating item in cart:", error));
+      .filter(
+        (item) =>
+          item.quantity > 0 || (item.accessories && item.accessories.length > 0)
+      ); // Remove product if quantity is 0 and no accessories are left
+
+    updateCartBackend(updatedCart);
   };
 
-  // Function to remove the item from the backend
-  const deleteCartItemBackend = (id) => {
-    fetch("http://localhost:8080/smarthomes/cart", {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ id }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Item removed from cart:", data);
-      })
-      .catch((error) => console.error("Error removing item from cart:", error));
-  };
-
-  // Calculate subtotal
+  // Calculate subtotal (includes products and accessories)
   const calculateTotal = () => {
-    return cartItems.reduce((total, item) => total + item.priceP * item.quantity, 0);
+    return cartItems.reduce((total, item) => {
+      const itemTotal = parseFloat(item.priceP) * item.quantity;
+      const accessoriesTotal = item.accessories.reduce(
+        (accSum, acc) => accSum + parseFloat(acc.priceA) * acc.quantity,
+        0
+      );
+      return total + itemTotal + accessoriesTotal;
+    }, 0);
   };
 
   return (
@@ -107,7 +121,10 @@ export default function Cart() {
       {cartItems.length > 0 ? (
         <div className="grid grid-cols-1 gap-4">
           {cartItems.map((item) => (
-            <div key={item.id} className="flex items-center bg-white p-4 shadow">
+            <div
+              key={item.id}
+              className="flex items-center bg-white p-4 shadow"
+            >
               <Img
                 src={item.imageP} // Ensure using the correct image property
                 alt={item.nameP}
@@ -120,13 +137,31 @@ export default function Cart() {
                 <p>Accessories:</p>
                 <ul>
                   {item.accessories.map((acc) => (
-                    <li key={acc.nameA}>
+                    <li key={acc.nameA} className="mb-2">
                       <Img
                         src={acc.imageA}
                         alt={acc.nameA}
                         className="w-10 h-10 object-cover inline-block"
                       />
                       {` ${acc.nameA} - ${acc.priceA}`}
+                      <div className="flex space-x-2 mt-1">
+                        <button
+                          className="bg-green-500 text-white px-2 py-1 rounded"
+                          onClick={() =>
+                            handleAddItem(item.id, true, acc.nameA)
+                          }
+                        >
+                          Add
+                        </button>
+                        <button
+                          className="bg-red-500 text-white px-2 py-1 rounded"
+                          onClick={() =>
+                            handleRemoveItem(item.id, true, acc.nameA)
+                          }
+                        >
+                          Remove
+                        </button>
+                      </div>
                     </li>
                   ))}
                 </ul>
@@ -155,8 +190,10 @@ export default function Cart() {
       {/* Subtotal and checkout */}
       {cartItems.length > 0 && (
         <div className="mt-4">
+          {/* Subtotal calculation */}
           <p>
-            Subtotal ({cartItems.reduce((sum, item) => sum + item.quantity, 0)}{" "}
+            Subtotal (
+            {(cartItems || []).reduce((sum, item) => sum + item.quantity, 0)}{" "}
             items): ${calculateTotal().toFixed(2)}
           </p>
           <button

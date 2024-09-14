@@ -53,16 +53,16 @@ export default function ProductsPage({ cart, setCart }) {
         priceP: product.priceP,
         description: product.description,
         imageP: product.imageP,
-        accessories: product.accessories || [] // Ensure it's an array
+        accessories: [] // Empty accessories array by default
       };
-      
+
       fetch("http://localhost:8080/smarthomes/cart", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/json"
         },
-        credentials: 'include', // Include credentials (cookies) in request
-        body: JSON.stringify(productData),
+        credentials: "include", // Include credentials (cookies) in request
+        body: JSON.stringify(productData)
       })
         .then((response) => {
           if (!response.ok) {
@@ -184,9 +184,8 @@ export default function ProductsPage({ cart, setCart }) {
                   <Link to="/cart" className="text-white">
                     <FontAwesomeIcon icon={faShoppingCart} className="mr-2" />
                     Cart Items:{" "}
-                    {cart.reduce((sum, item) => sum + item.quantity, 0)}
+                    {(cart || []).reduce((sum, item) => sum + item.quantity, 0)}
                   </Link>
-
                   <button
                     onClick={handleSignOut}
                     className="bg-red-500 text-white px-4 py-2 rounded ml-2 text-sm sm:text-base"

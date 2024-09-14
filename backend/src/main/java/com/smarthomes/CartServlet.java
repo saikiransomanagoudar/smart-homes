@@ -111,6 +111,30 @@ public class CartServlet extends HttpServlet {
     }
 
     @Override
+    protected void doPut(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        // Add CORS headers
+        enableCORS(request, response);
+
+        HttpSession session = request.getSession();
+        String userId = session.getId();
+
+        try {
+            BufferedReader reader = request.getReader();
+            Product[] updatedCart = new Gson().fromJson(reader, Product[].class); // Parse updated cart
+            saveCart(userId, List.of(updatedCart)); // Save the updated cart
+            response.setContentType("application/json");
+            response.setStatus(HttpServletResponse.SC_OK);
+            response.getWriter().write("{\"status\": \"success\"}");
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().write("{\"error\": \"Failed to update cart.\"}");
+        }
+    }
+
+    @Override
     protected void doDelete(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
@@ -142,7 +166,7 @@ public class CartServlet extends HttpServlet {
     private void enableCORS(HttpServletRequest request, HttpServletResponse response) {
         response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000"); // Allow frontend origin
         response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS"); // Allow these methods
-        response.setHeader("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization"); // Allow these headers
+        response.setHeader("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization");
         response.setHeader("Access-Control-Allow-Credentials", "true"); // Allow credentials (cookies)
 
         // Handle preflight (OPTIONS) requests
@@ -220,6 +244,7 @@ public class CartServlet extends HttpServlet {
     }
 
     // Method to save the cart to a serialized file
+    // Method to save the cart to a serialized file
     private void saveCart(String userId, List<Product> cart) {
         File directory = new File(CART_DIRECTORY);
         if (!directory.exists()) {
@@ -230,7 +255,8 @@ public class CartServlet extends HttpServlet {
             }
         }
 
-        File cartFile = new File(CART_DIRECTORY + "cart_" + userId + ".txt");
+        File cartFile = new File(CART_DIRECTORY + "cart_" + userId + ".txt"); // Always use the same file name for a
+                                                                              // session
 
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(cartFile))) {
             oos.writeObject(cart);
