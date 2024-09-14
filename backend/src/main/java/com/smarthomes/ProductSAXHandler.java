@@ -10,11 +10,11 @@ import java.util.List;
 public class ProductSAXHandler extends DefaultHandler {
 
     // Temporary variables to hold product data while parsing
-    private String id;
+    private int id;  // int for product id
     private String retailer;
     private String category;
     private String nameP;
-    private String priceP;
+    private double priceP;  // double for price
     private String description;
     private String imageP;
     private List<Accessory> accessories = new ArrayList<>();
@@ -35,13 +35,13 @@ public class ProductSAXHandler extends DefaultHandler {
 
         // Check for product tags (doorbell, doorlock, etc.)
         if (qName.equals("doorbell") || qName.equals("doorlock") || qName.equals("lighting") || qName.equals("speaker") || qName.equals("thermostat")) {
-            id = attributes.getValue("id");
+            id = Integer.parseInt(attributes.getValue("id"));  // Parse id as int
             retailer = attributes.getValue("retailer");
             category = attributes.getValue("category");
             quantity = 1;  // Default quantity when reading a new product
             accessories = new ArrayList<>();  // Reset accessories for each product
         } else if (qName.equals("accessory")) {
-            currentAccessory = new Accessory(null, null, null, 1);  // Default accessory quantity
+            currentAccessory = new Accessory(null, 0.0, null, 1);  // Default accessory quantity
         }
     }
 
@@ -51,7 +51,7 @@ public class ProductSAXHandler extends DefaultHandler {
             if (qName.equals("nameA")) {
                 currentAccessory.setNameA(content.toString());
             } else if (qName.equals("priceA")) {
-                currentAccessory.setPriceA(content.toString());
+                currentAccessory.setPriceA(Double.parseDouble(content.toString()));
             } else if (qName.equals("imageA")) {
                 currentAccessory.setImageA(content.toString());
             } else if (qName.equals("accessory")) {
@@ -64,7 +64,7 @@ public class ProductSAXHandler extends DefaultHandler {
                 nameP = content.toString();
                 break;
             case "priceP":
-                priceP = content.toString();
+                priceP = Double.parseDouble(content.toString());  // Parse price as double
                 break;
             case "description":
                 description = content.toString();

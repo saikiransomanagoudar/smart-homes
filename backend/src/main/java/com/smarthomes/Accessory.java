@@ -5,12 +5,12 @@ import java.io.Serializable;
 public class Accessory implements Serializable {
 
     private String nameA;
-    private String priceA;
+    private double priceA;
     private String imageA;
     private int quantity; // New quantity field
 
     // Constructor
-    public Accessory(String nameA, String priceA, String imageA, int quantity) {
+    public Accessory(String nameA, double priceA, String imageA, int quantity) {
         this.nameA = nameA;
         this.priceA = priceA;
         this.imageA = imageA;
@@ -27,11 +27,11 @@ public class Accessory implements Serializable {
     }
 
     // Getter and Setter methods for priceA
-    public String getPriceA() {
+    public double getPriceA() {
         return priceA;
     }
 
-    public void setPriceA(String priceA) {
+    public void setPriceA(double priceA) {
         this.priceA = priceA;
     }
 

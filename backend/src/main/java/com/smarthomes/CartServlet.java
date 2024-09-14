@@ -213,20 +213,12 @@ public class CartServlet extends HttpServlet {
         response.setStatus(HttpServletResponse.SC_OK);
     }
 
-    // Validate if the product is in the catalog
-    // Validate if the product is in the catalog
     // Validate if the product or accessory is in the catalog
-    private boolean isProductInCatalog(String productId) {
+    private boolean isProductInCatalog(int productId) {
         for (Product p : productCatalog) {
             // Check if the product ID matches
-            if (p.getId().equals(productId)) {
+            if (p.getId() == (productId)) {
                 return true;
-            }
-            // Check for accessories in the product
-            for (Accessory accessory : p.getAccessories()) {
-                if (accessory.getNameA().equals(productId)) {
-                    return true;
-                }
             }
         }
         return false;

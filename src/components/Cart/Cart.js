@@ -87,7 +87,7 @@ export default function Cart() {
       }
       return item;
     });
-
+    setCartItems(updatedCart);
     updateCartBackend(updatedCart);
   };
 
@@ -124,16 +124,15 @@ export default function Cart() {
   // Calculate subtotal (includes products and accessories)
   const calculateTotal = () => {
     return cartItems.reduce((total, item) => {
-      const productPrice = parseFloat(item.priceP) || 0; // Ensure price is parsed as float
-      let itemTotal = productPrice * item.quantity;
-
+      let itemTotal = item.priceP * item.quantity; // Calculate total for product
       const accessoriesTotal = item.accessories.reduce(
-        (accSum, acc) => accSum + (parseFloat(acc.priceA) || 0) * acc.quantity,
+        (accSum, acc) => accSum + (acc.priceA * acc.quantity),
         0
       );
       return total + itemTotal + accessoriesTotal;
     }, 0);
   };
+  
 
   return (
     <div className="container mx-auto py-4">
@@ -152,7 +151,7 @@ export default function Cart() {
               />
               <div className="flex-grow">
                 <h3 className="text-lg font-bold">{item.nameP}</h3>
-                <p>{item.priceP}</p> {/* Price should be formatted properly */}
+                <p>${item.priceP.toFixed(2)}</p>
                 <p>Quantity: {item.quantity}</p>
                 <p>Accessories:</p>
                 <ul>
@@ -163,7 +162,7 @@ export default function Cart() {
                         alt={acc.nameA}
                         className="w-10 h-10 object-cover inline-block"
                       />
-                      {` ${acc.nameA} - ${acc.priceA}`}
+                      {` ${acc.nameA} - $${acc.priceA}`}
                       <div className="flex space-x-2 mt-1">
                         <button
                           className="bg-green-500 text-white px-2 py-1 rounded"

@@ -55,12 +55,50 @@ export default function ProductsPage({ cart, setCart }) {
     handleUpdateCartCount(); // Update cart count whenever cart changes
   }, [cart]);
 
+  // const handleAddProductToCart = (product) => {
+  //   if (isLoggedIn) {
+  //     const productData = {
+  //       id: product.id,
+  //       nameP: product.nameP,
+  //       priceP: product.priceP,
+  //       description: product.description,
+  //       imageP: product.imageP,
+  //       quantity: product.quantity || 1, // Include quantity field
+  //       accessories: product.accessories || [] // Ensure it's an array
+  //     };
+      
+  //     fetch("http://localhost:8080/smarthomes/cart", {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       credentials: 'include', // Include credentials (cookies) in request
+  //       body: JSON.stringify(productData),
+  //     })
+  //       .then((response) => {
+  //         if (!response.ok) {
+  //           throw new Error("Failed to add product to cart.");
+  //         }
+  //         return response.json();
+  //       })
+  //       .then((data) => {
+  //         console.log("Product added to cart:", data);
+  //         setCart([...cart, { ...product, quantity: 1 }]);
+  //         handleUpdateCartCount();
+  //       })
+  //       .catch((error) => {
+  //         console.error("Error adding product to cart:", error);
+  //       });
+  //   } else {
+  //     navigate("/signin"); // Redirect to sign-in if not logged in
+  //   }
+  // };  
   const handleAddProductToCart = (product) => {
     if (isLoggedIn) {
       const productData = {
-        id: product.id,
+        id: product.id, // No need to convert id to string, it's an integer
         nameP: product.nameP,
-        priceP: product.priceP,
+        priceP: product.priceP.toFixed(2), // Ensure priceP is formatted to two decimal places
         description: product.description,
         imageP: product.imageP,
         quantity: product.quantity || 1, // Include quantity field
@@ -81,8 +119,8 @@ export default function ProductsPage({ cart, setCart }) {
           }
           return response.json();
         })
+        // eslint-disable-next-line no-unused-vars
         .then((data) => {
-          console.log("Product added to cart:", data);
           setCart([...cart, { ...product, quantity: 1 }]);
           handleUpdateCartCount();
         })
@@ -94,7 +132,6 @@ export default function ProductsPage({ cart, setCart }) {
     }
   };  
   
-
   const handleSignOut = () => {
     localStorage.removeItem("isLoggedIn"); // Clear the logged-in status
     navigate("/"); // Redirect to the home page
@@ -116,7 +153,7 @@ export default function ProductsPage({ cart, setCart }) {
         const accessoryData = {
           id: accessoryCartId,
           nameP: accessory.nameA,
-          priceP: accessory.priceA,
+          priceP: accessory.priceA.toFixed(2),
           imageP: accessory.imageA,
           quantity: 1,
           accessories: [] // no nested accessories
@@ -276,7 +313,7 @@ export default function ProductsPage({ cart, setCart }) {
                   <p className="mt-2 text-sm sm:text-base">
                     {product.description}
                   </p>
-                  <p className="text-lg font-bold mt-2">{product.priceP}</p>
+                  <p className="text-lg font-bold mt-2">${product.priceP.toFixed(2)}</p>
 
                   {productQuantity > 0 ? (
                     <div className="flex items-center justify-between mt-4">
@@ -355,7 +392,7 @@ export default function ProductsPage({ cart, setCart }) {
                 className="w-full h-40 object-contain mb-4"
               />
               <p className="text-sm mb-4">{selectedProduct.description}</p>
-              <p className="text-lg font-bold mb-4">{selectedProduct.priceP}</p>
+              <p className="text-lg font-bold mb-4">{selectedProduct.priceP.toFixed(2)}</p>
 
               {/* Display Accessories */}
               {selectedProduct.accessories &&
@@ -379,7 +416,7 @@ export default function ProductsPage({ cart, setCart }) {
                               {accessory.nameA}
                             </h5>
                             <p className="text-sm font-bold">
-                              Price: {accessory.priceA}
+                              Price: ${accessory.priceA.toFixed(2)}
                             </p>
                             <Img
                               src={accessory.imageA}
