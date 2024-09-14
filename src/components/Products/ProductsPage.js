@@ -96,21 +96,21 @@ export default function ProductsPage({ cart, setCart }) {
   const handleAddProductToCart = (product) => {
     if (isLoggedIn) {
       const productData = {
-        id: product.id, // No need to convert id to string, it's an integer
+        id: product.id,
         nameP: product.nameP,
-        priceP: product.priceP.toFixed(2), // Ensure priceP is formatted to two decimal places
+        priceP: product.priceP.toFixed(2),
         description: product.description,
         imageP: product.imageP,
         quantity: product.quantity || 1, // Include quantity field
         accessories: product.accessories || [] // Ensure it's an array
       };
       
-      fetch("http://localhost:8080/smarthomes/cart", {
+      fetch("http://localhost:8080/smarthomes/cart/product", {  // Use /product endpoint
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        credentials: 'include', // Include credentials (cookies) in request
+        credentials: 'include',
         body: JSON.stringify(productData),
       })
         .then((response) => {
@@ -128,9 +128,11 @@ export default function ProductsPage({ cart, setCart }) {
           console.error("Error adding product to cart:", error);
         });
     } else {
-      navigate("/signin"); // Redirect to sign-in if not logged in
+      navigate("/signin");
     }
-  };  
+  };
+
+    
   
   const handleSignOut = () => {
     localStorage.removeItem("isLoggedIn"); // Clear the logged-in status
@@ -140,6 +142,7 @@ export default function ProductsPage({ cart, setCart }) {
   const handleAddAccessoryToCart = (accessory) => {
     const accessoryCartId = `accessory-${accessory.nameA}`;
     const accessoryInCart = cart.find((item) => item.id === accessoryCartId);
+    
     if (isLoggedIn) {
       if (accessoryInCart) {
         setCart(
@@ -158,19 +161,23 @@ export default function ProductsPage({ cart, setCart }) {
           quantity: 1,
           accessories: [] // no nested accessories
         };
-
-        // Make sure accessory is added to cart
-        fetch("http://localhost:8080/smarthomes/cart", {
+  
+        fetch("http://localhost:8080/smarthomes/cart/accessory", { // Use /accessory endpoint
           method: "POST",
           headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
           },
           credentials: "include",
-          body: JSON.stringify(accessoryData)
+          body: JSON.stringify(accessoryData),
         })
-          .then((response) => response.json())
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Failed to add accessory to cart.");
+            }
+            return response.json();
+          })
+          // eslint-disable-next-line no-unused-vars
           .then((data) => {
-            console.log("Accessory added to cart:", data);
             setCart([...cart, accessoryData]);
           })
           .catch((error) => {
@@ -181,6 +188,8 @@ export default function ProductsPage({ cart, setCart }) {
       navigate("/signin");
     }
   };
+
+    
 
   const handleIncreaseQuantity = (id) => {
     const updatedQuantities = {

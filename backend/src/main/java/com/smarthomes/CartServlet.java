@@ -13,9 +13,8 @@ import javax.xml.parsers.SAXParserFactory;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Arrays;
 
-@WebServlet("/cart")
+@WebServlet(urlPatterns = { "/cart", "/cart/product", "/cart/accessory" })
 public class CartServlet extends HttpServlet {
 
     // Directory to store cart files
@@ -34,74 +33,73 @@ public class CartServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // Add CORS headers
         enableCORS(request, response);
-
         HttpSession session = request.getSession();
         String userId = session.getId();
-        System.out.println("User ID (POST): " + userId); // Log session/user ID
+        BufferedReader reader = request.getReader();
+
+        String path = request.getRequestURI(); // Extract the path to distinguish between products and accessories
 
         try {
-            BufferedReader reader = request.getReader();
-            Product product = new Gson().fromJson(reader, Product.class);
-            System.out.println("Product being added (POST): " + product); // Log the product being added
+            if (path.contains("/product")) { // Check for product path
+                Product product = new Gson().fromJson(reader, Product.class);
 
-            // Validate product exists in the catalog
-            if (!isProductInCatalog(product.getId())) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write("{\"error\": \"Product does not exist in the catalog.\"}");
-                System.out.println("Product does not exist in catalog (POST): " + product.getId());
-                return;
-            }
+                // Load the user's current cart
+                List<Product> cart = loadCart(userId);
 
-            // Load user's cart from file
-            List<Product> cart = loadCart(userId);
-            System.out.println("Cart before adding product (POST): " + cart); // Log the cart before adding the product
-
-            // Add or update product in the cart
-            boolean productExists = false;
-            for (Product p : cart) {
-                if (p.getId() == product.getId()) {
-                    // Update product quantity and accessories
-                    p.setQuantity(p.getQuantity() + product.getQuantity());
-
-                    List<Accessory> updatedAccessories = new ArrayList<>(p.getAccessories());
-                    for (Accessory newAccessory : product.getAccessories()) {
-                        boolean accessoryExists = false;
-                        for (Accessory existingAccessory : updatedAccessories) {
-                            if (existingAccessory.getNameA().equals(newAccessory.getNameA())) {
-                                existingAccessory
-                                        .setQuantity(existingAccessory.getQuantity() + newAccessory.getQuantity());
-                                accessoryExists = true;
-                                break;
-                            }
-                        }
-                        if (!accessoryExists) {
-                            updatedAccessories.add(newAccessory);
-                        }
-                    }
-                    p.setAccessories(updatedAccessories);
-                    productExists = true;
-                    break;
+                if (!isProductInCatalog(product.getId())) {
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    response.setContentType("application/json");
+                    response.getWriter().write("{\"error\": \"Product does not exist in the catalog.\"}");
+                    return;
                 }
+
+                boolean productExists = false;
+                for (Product p : cart) {
+                    if (p.getId() == product.getId()) {
+                        p.setQuantity(p.getQuantity() + product.getQuantity());
+                        productExists = true;
+                        break;
+                    }
+                }
+
+                if (!productExists) {
+                    cart.add(product);
+                }
+
+                saveCart(userId, cart);
+
+                response.setContentType("application/json");
+                response.setStatus(HttpServletResponse.SC_OK);
+                response.getWriter().write(new Gson().toJson(cart)); // Return updated cart as JSON
+            } else if (path.contains("/accessory")) { // Check for accessory path
+                Accessory accessory = new Gson().fromJson(reader, Accessory.class);
+                List<Accessory> accessories = loadAccessories(userId);
+
+                boolean accessoryExists = false;
+                for (Accessory a : accessories) {
+                    if (a.getNameA().equals(accessory.getNameA())) {
+                        a.setQuantity(a.getQuantity() + accessory.getQuantity());
+                        accessoryExists = true;
+                        break;
+                    }
+                }
+
+                if (!accessoryExists) {
+                    accessories.add(accessory);
+                }
+
+                saveAccessories(userId, accessories);
+
+                response.setContentType("application/json");
+                response.setStatus(HttpServletResponse.SC_OK);
+                response.getWriter().write(new Gson().toJson(accessories)); // Return updated accessories as JSON
             }
-
-            if (!productExists) {
-                cart.add(product);
-            }
-
-            // Save the updated cart to the file
-            saveCart(userId, cart);
-            System.out.println("Cart after adding product (POST): " + cart); // Log the cart after adding the product
-
-            // Return the updated cart as JSON
-            response.setContentType("application/json");
-            response.setStatus(HttpServletResponse.SC_OK);
-            response.getWriter().write(new Gson().toJson(cart));
         } catch (Exception e) {
             e.printStackTrace();
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().write("{\"error\": \"Failed to add product to cart.\"}");
+            response.setContentType("application/json"); // Set content type to JSON here
+            response.getWriter().write("{\"error\": \"Failed to add item to cart.\"}");
         }
     }
 
@@ -109,57 +107,81 @@ public class CartServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // Add CORS headers
         enableCORS(request, response);
-
         HttpSession session = request.getSession();
         String userId = session.getId();
-        System.out.println("User ID (GET): " + userId); // Log session/user ID
 
-        // Load the user's cart from the file
+        // Load the user's cart (products) and accessories
         List<Product> cart = loadCart(userId);
-        System.out.println("Cart fetched (GET): " + cart); // Log the cart fetched
+        List<Accessory> accessories = loadAccessories(userId);
 
-        // Return the cart as JSON
+        CartResponse cartResponse = new CartResponse(cart != null ? cart : new ArrayList<>(),
+                accessories != null ? accessories : new ArrayList<>());
+
         response.setContentType("application/json");
-        response.getWriter().write(new Gson().toJson(cart));
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.getWriter().write(new Gson().toJson(cartResponse)); // Return cart and accessories as JSON
     }
 
     @Override
     protected void doPut(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // Add CORS headers
         enableCORS(request, response);
-
         HttpSession session = request.getSession();
         String userId = session.getId();
-        System.out.println("User ID (PUT): " + userId); // Log session/user ID
+        BufferedReader reader = request.getReader();
 
-        try {
-            BufferedReader reader = request.getReader();
-            Product[] updatedCart = new Gson().fromJson(reader, Product[].class); // Assuming array of products
-            System.out.println("Updated cart received: " + Arrays.toString(updatedCart)); // Log the updated cart
+        String path = request.getRequestURI(); // Extract the path to distinguish between products and accessories
 
-            // Load the current cart for the user
-            List<Product> currentCart = loadCart(userId);
+        if (path.contains("/product")) {
+            // Handle product quantity update
+            Product updatedProduct = new Gson().fromJson(reader, Product.class); // Parse product from request
+            List<Product> cart = loadCart(userId);
 
-            // Replace the current cart with the updated cart
-            currentCart.clear();
-            currentCart.addAll(Arrays.asList(updatedCart));
+            boolean productUpdated = false;
 
-            // Save the updated cart to the file
-            saveCart(userId, currentCart);
-            System.out.println("Cart after update (PUT): " + currentCart); // Log the updated cart
+            for (Product p : cart) {
+                if (p.getId() == updatedProduct.getId()) {
+                    p.setQuantity(updatedProduct.getQuantity()); // Set the updated quantity
+                    productUpdated = true;
+                    break;
+                }
+            }
 
-            // Return the updated cart as JSON
+            if (!productUpdated) {
+                // If product does not exist in the cart, add it (optional based on your use
+                // case)
+                cart.add(updatedProduct);
+            }
+
+            saveCart(userId, cart);
             response.setContentType("application/json");
-            response.setStatus(HttpServletResponse.SC_OK);
-            response.getWriter().write(new Gson().toJson(currentCart));
-        } catch (Exception e) {
-            e.printStackTrace();
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().write("{\"error\": \"Failed to update cart.\"}");
+            response.getWriter().write(new Gson().toJson(cart));
+
+        } else if (path.contains("/accessory")) {
+            // Handle accessory quantity update
+            Accessory updatedAccessory = new Gson().fromJson(reader, Accessory.class); // Parse accessory from request
+            List<Accessory> accessories = loadAccessories(userId);
+
+            boolean accessoryUpdated = false;
+
+            for (Accessory a : accessories) {
+                if (a.getNameA().equals(updatedAccessory.getNameA())) {
+                    a.setQuantity(updatedAccessory.getQuantity()); // Set the updated quantity
+                    accessoryUpdated = true;
+                    break;
+                }
+            }
+
+            if (!accessoryUpdated) {
+                // If accessory does not exist, add it (optional based on your use case)
+                accessories.add(updatedAccessory);
+            }
+
+            saveAccessories(userId, accessories);
+            response.setContentType("application/json");
+            response.getWriter().write(new Gson().toJson(accessories));
         }
     }
 
@@ -167,28 +189,34 @@ public class CartServlet extends HttpServlet {
     protected void doDelete(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // Add CORS headers
         enableCORS(request, response);
-
         HttpSession session = request.getSession();
         String userId = session.getId();
-
-        // Parse the product to be removed
         BufferedReader reader = request.getReader();
-        Product productToDelete = new Gson().fromJson(reader, Product.class);
 
-        // Load user's cart from the file
-        List<Product> cart = loadCart(userId);
+        String path = request.getRequestURI(); // Extract the path to distinguish between products and accessories
 
-        // Remove the product from the cart
-        cart.removeIf(p -> p.getId() == productToDelete.getId());
+        if (path.contains("/product")) {
+            Product productToRemove = new Gson().fromJson(reader, Product.class); // Parse product from request
+            List<Product> cart = loadCart(userId);
 
-        // Save the updated cart to the file
-        saveCart(userId, cart);
+            cart.removeIf(p -> p.getId() == productToRemove.getId()); // Completely remove the product
 
-        // Respond with the updated cart
-        response.setContentType("application/json");
-        response.getWriter().write(new Gson().toJson(cart));
+            saveCart(userId, cart);
+            response.setContentType("application/json");
+            response.getWriter().write(new Gson().toJson(cart));
+
+        } else if (path.contains("/accessory")) {
+            Accessory accessoryToRemove = new Gson().fromJson(reader, Accessory.class); // Parse accessory from request
+            List<Accessory> accessories = loadAccessories(userId);
+
+            accessories.removeIf(a -> a.getNameA().equals(accessoryToRemove.getNameA())); // Completely remove the
+                                                                                          // accessory
+
+            saveAccessories(userId, accessories);
+            response.setContentType("application/json");
+            response.getWriter().write(new Gson().toJson(accessories));
+        }
     }
 
     // Helper method to add CORS headers
@@ -276,6 +304,8 @@ public class CartServlet extends HttpServlet {
     // Method to save the cart to a serialized file
     private void saveCart(String userId, List<Product> cart) {
         File directory = new File(CART_DIRECTORY);
+
+        // Create the cart directory if it doesn't exist
         if (!directory.exists()) {
             boolean dirCreated = directory.mkdirs();
             if (!dirCreated) {
@@ -284,14 +314,54 @@ public class CartServlet extends HttpServlet {
             }
         }
 
+        // Define the cart file path for the specific user
         File cartFile = new File(CART_DIRECTORY + "cart_" + userId + ".txt");
 
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(cartFile))) {
+            // Save the cart to the file
             oos.writeObject(cart);
-            System.out.println("Cart saved to file (SAVE): " + cart); // Log the cart saved to file
+            System.out.println("Cart saved to file (SAVE): " + cart); // Log the saved cart
         } catch (IOException e) {
             e.printStackTrace();
             System.out.println("Error saving cart (SAVE)");
         }
     }
+
+    // Method to load accessories from the cart file
+    @SuppressWarnings("unchecked")
+    private List<Accessory> loadAccessories(String userId) {
+        File accessoryFile = new File(CART_DIRECTORY + "accessories_" + userId + ".txt");
+        if (!accessoryFile.exists()) {
+            return new ArrayList<>(); // Return empty cart if file doesn't exist
+        }
+
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(accessoryFile))) {
+            return (List<Accessory>) ois.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
+
+    // Method to save accessories to a file
+    private void saveAccessories(String userId, List<Accessory> accessories) {
+        File directory = new File(CART_DIRECTORY);
+        if (!directory.exists()) {
+            boolean dirCreated = directory.mkdirs();
+            if (!dirCreated) {
+                System.err.println("Failed to create directory: " + CART_DIRECTORY);
+                return;
+            }
+        }
+
+        File accessoryFile = new File(CART_DIRECTORY + "accessories_" + userId + ".txt");
+
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(accessoryFile))) {
+            oos.writeObject(accessories);
+            System.out.println("Accessories saved to file: " + accessories);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 }
