@@ -17,8 +17,12 @@ export default function Cart() {
         .then((response) => response.json())
         .then((data) => {
           console.log("Cart items fetched:", data);
-          setCartItems(data);
-          console.log("Cart items state:", cartItems);
+          // Ensure every item has a quantity property
+          const updatedItems = data.map(item => ({
+            ...item,
+            quantity: item.quantity || 1, // Default quantity to 1 if not present
+          }));
+          setCartItems(updatedItems);
         })
         .catch((error) => console.error("Error fetching cart:", error));
     } else {
@@ -92,6 +96,11 @@ export default function Cart() {
       .catch((error) => console.error("Error removing item from cart:", error));
   };
 
+  // Calculate subtotal
+  const calculateTotal = () => {
+    return cartItems.reduce((total, item) => total + item.priceP * item.quantity, 0);
+  };
+
   return (
     <div className="container mx-auto py-4">
       <h1 className="text-2xl font-bold mb-4">Your Cart</h1>
@@ -100,14 +109,27 @@ export default function Cart() {
           {cartItems.map((item) => (
             <div key={item.id} className="flex items-center bg-white p-4 shadow">
               <Img
-                src={item.image}
-                alt={item.name}
+                src={item.imageP} // Ensure using the correct image property
+                alt={item.nameP}
                 className="w-20 h-20 object-cover mr-4"
               />
               <div className="flex-grow">
-                <h3 className="text-lg font-bold">{item.name}</h3>
-                <p>{item.price}</p>
+                <h3 className="text-lg font-bold">{item.nameP}</h3>
+                <p>{item.priceP}</p> {/* Price should be formatted properly */}
                 <p>Quantity: {item.quantity}</p>
+                <p>Accessories:</p>
+                <ul>
+                  {item.accessories.map((acc) => (
+                    <li key={acc.nameA}>
+                      <Img
+                        src={acc.imageA}
+                        alt={acc.nameA}
+                        className="w-10 h-10 object-cover inline-block"
+                      />
+                      {` ${acc.nameA} - ${acc.priceA}`}
+                    </li>
+                  ))}
+                </ul>
               </div>
               <div className="flex flex-col items-center">
                 <button
@@ -135,10 +157,7 @@ export default function Cart() {
         <div className="mt-4">
           <p>
             Subtotal ({cartItems.reduce((sum, item) => sum + item.quantity, 0)}{" "}
-            items):{" "}
-            {cartItems
-              .reduce((total, item) => total + item.price * item.quantity, 0)
-              .toFixed(2)}
+            items): ${calculateTotal().toFixed(2)}
           </p>
           <button
             className="bg-blue-500 text-white px-4 py-2 mt-4"
