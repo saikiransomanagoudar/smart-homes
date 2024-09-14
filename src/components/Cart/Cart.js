@@ -7,6 +7,16 @@ export default function Cart() {
   const [cartItems, setCartItems] = useState([]);
   const isLoggedIn = localStorage.getItem("isLoggedIn");
 
+  const handleUpdateCartCount = () => {
+    const newCartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+    localStorage.setItem('cartCount', newCartCount); // Store updated cart count
+  };
+
+  // Update cart count whenever cartItems changes
+  useEffect(() => {
+    handleUpdateCartCount();
+  }, [cartItems]);
+
   // Fetch cart items from the backend
   useEffect(() => {
     if (isLoggedIn === "true") {
@@ -36,7 +46,8 @@ export default function Cart() {
 
   // Function to update the cart on the backend
   const updateCartBackend = (updatedCart) => {
-    setCartItems(updatedCart);
+    console.log("Updating cart:", updatedCart);  // Log the cart being sent
+
     fetch("http://localhost:8080/smarthomes/cart", {
       method: "PUT",
       headers: {
@@ -44,12 +55,18 @@ export default function Cart() {
       },
       body: JSON.stringify(updatedCart)
     })
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
       .then((data) => {
         console.log("Cart updated:", data);
       })
       .catch((error) => console.error("Error updating cart:", error));
   };
+
 
   // Function to handle adding a product or accessory
   const handleAddItem = (id, isAccessory = false, accName = null) => {
@@ -83,32 +100,35 @@ export default function Cart() {
         ) {
           const updatedAccessories = item.accessories
             .map((acc) => {
-              if (acc.nameA === accName) {
-                return { ...acc, quantity: acc.quantity - 1 };
+              if (acc.nameA === accName && acc.quantity > 1) {
+                return { ...acc, quantity: acc.quantity - 1 }; // Decrease accessory quantity
               }
               return acc;
             })
-            .filter((acc) => acc.quantity > 0); // Remove accessory if its quantity reaches 0
+            .filter((acc) => acc.quantity > 0); // Remove if quantity is 0
           return { ...item, accessories: updatedAccessories };
-        } else if (item.id === id) {
-          return { ...item, quantity: item.quantity - 1 };
+        } else if (item.id === id && item.quantity > 1) {
+          return { ...item, quantity: item.quantity - 1 }; // Decrease product quantity
         }
         return item;
       })
       .filter(
         (item) =>
           item.quantity > 0 || (item.accessories && item.accessories.length > 0)
-      ); // Remove product if quantity is 0 and no accessories are left
+      ); // Remove product if quantity is 0
 
-    updateCartBackend(updatedCart);
+    setCartItems(updatedCart); // Update cart items
+    updateCartBackend(updatedCart); // Update backend
   };
 
   // Calculate subtotal (includes products and accessories)
   const calculateTotal = () => {
     return cartItems.reduce((total, item) => {
-      const itemTotal = parseFloat(item.priceP) * item.quantity;
+      const productPrice = parseFloat(item.priceP) || 0; // Ensure price is parsed as float
+      let itemTotal = productPrice * item.quantity;
+
       const accessoriesTotal = item.accessories.reduce(
-        (accSum, acc) => accSum + parseFloat(acc.priceA) * acc.quantity,
+        (accSum, acc) => accSum + (parseFloat(acc.priceA) || 0) * acc.quantity,
         0
       );
       return total + itemTotal + accessoriesTotal;
@@ -190,10 +210,8 @@ export default function Cart() {
       {/* Subtotal and checkout */}
       {cartItems.length > 0 && (
         <div className="mt-4">
-          {/* Subtotal calculation */}
           <p>
-            Subtotal (
-            {(cartItems || []).reduce((sum, item) => sum + item.quantity, 0)}{" "}
+            Subtotal ({cartItems.reduce((sum, item) => sum + item.quantity, 0)}{" "}
             items): ${calculateTotal().toFixed(2)}
           </p>
           <button

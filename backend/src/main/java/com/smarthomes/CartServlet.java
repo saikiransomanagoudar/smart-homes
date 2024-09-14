@@ -13,6 +13,7 @@ import javax.xml.parsers.SAXParserFactory;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Arrays;
 
 @WebServlet("/cart")
 public class CartServlet extends HttpServlet {
@@ -61,11 +62,25 @@ public class CartServlet extends HttpServlet {
             boolean productExists = false;
             for (Product p : cart) {
                 if (p.getId() == product.getId()) {
-                    cart.remove(p);
+                    // Update product quantity and accessories
+                    p.setQuantity(p.getQuantity() + product.getQuantity());
+
                     List<Accessory> updatedAccessories = new ArrayList<>(p.getAccessories());
-                    updatedAccessories.addAll(product.getAccessories());
-                    cart.add(new Product(p.getId(), p.getRetailer(), p.getCategory(), p.getNameP(), p.getPriceP(),
-                            p.getDescription(), p.getImageP(), updatedAccessories));
+                    for (Accessory newAccessory : product.getAccessories()) {
+                        boolean accessoryExists = false;
+                        for (Accessory existingAccessory : updatedAccessories) {
+                            if (existingAccessory.getNameA().equals(newAccessory.getNameA())) {
+                                existingAccessory
+                                        .setQuantity(existingAccessory.getQuantity() + newAccessory.getQuantity());
+                                accessoryExists = true;
+                                break;
+                            }
+                        }
+                        if (!accessoryExists) {
+                            updatedAccessories.add(newAccessory);
+                        }
+                    }
+                    p.setAccessories(updatedAccessories);
                     productExists = true;
                     break;
                 }
@@ -119,14 +134,28 @@ public class CartServlet extends HttpServlet {
 
         HttpSession session = request.getSession();
         String userId = session.getId();
+        System.out.println("User ID (PUT): " + userId); // Log session/user ID
 
         try {
             BufferedReader reader = request.getReader();
-            Product[] updatedCart = new Gson().fromJson(reader, Product[].class); // Parse updated cart
-            saveCart(userId, List.of(updatedCart)); // Save the updated cart
+            Product[] updatedCart = new Gson().fromJson(reader, Product[].class); // Assuming array of products
+            System.out.println("Updated cart received: " + Arrays.toString(updatedCart)); // Log the updated cart
+
+            // Load the current cart for the user
+            List<Product> currentCart = loadCart(userId);
+
+            // Replace the current cart with the updated cart
+            currentCart.clear();
+            currentCart.addAll(Arrays.asList(updatedCart));
+
+            // Save the updated cart to the file
+            saveCart(userId, currentCart);
+            System.out.println("Cart after update (PUT): " + currentCart); // Log the updated cart
+
+            // Return the updated cart as JSON
             response.setContentType("application/json");
             response.setStatus(HttpServletResponse.SC_OK);
-            response.getWriter().write("{\"status\": \"success\"}");
+            response.getWriter().write(new Gson().toJson(currentCart));
         } catch (Exception e) {
             e.printStackTrace();
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -185,10 +214,19 @@ public class CartServlet extends HttpServlet {
     }
 
     // Validate if the product is in the catalog
-    private boolean isProductInCatalog(int productId) {
+    // Validate if the product is in the catalog
+    // Validate if the product or accessory is in the catalog
+    private boolean isProductInCatalog(String productId) {
         for (Product p : productCatalog) {
-            if (p.getId() == productId) {
+            // Check if the product ID matches
+            if (p.getId().equals(productId)) {
                 return true;
+            }
+            // Check for accessories in the product
+            for (Accessory accessory : p.getAccessories()) {
+                if (accessory.getNameA().equals(productId)) {
+                    return true;
+                }
             }
         }
         return false;
@@ -244,7 +282,6 @@ public class CartServlet extends HttpServlet {
     }
 
     // Method to save the cart to a serialized file
-    // Method to save the cart to a serialized file
     private void saveCart(String userId, List<Product> cart) {
         File directory = new File(CART_DIRECTORY);
         if (!directory.exists()) {
@@ -255,8 +292,7 @@ public class CartServlet extends HttpServlet {
             }
         }
 
-        File cartFile = new File(CART_DIRECTORY + "cart_" + userId + ".txt"); // Always use the same file name for a
-                                                                              // session
+        File cartFile = new File(CART_DIRECTORY + "cart_" + userId + ".txt");
 
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(cartFile))) {
             oos.writeObject(cart);

@@ -3,24 +3,63 @@ package com.smarthomes;
 import java.io.Serializable;
 
 public class Accessory implements Serializable {
-    private static final long serialVersionUID = 1L;  // Add this to ensure version compatibility
+
     private String nameA;
     private String priceA;
     private String imageA;
+    private int quantity; // New quantity field
 
-    // Constructor, getters, and setters
-    public Accessory(String nameA, String priceA, String imageA) {
+    // Constructor
+    public Accessory(String nameA, String priceA, String imageA, int quantity) {
         this.nameA = nameA;
         this.priceA = priceA;
         this.imageA = imageA;
+        this.quantity = quantity;
     }
 
-    // Getters and setters
-    public String getNameA() { return nameA; }
-    public String getPriceA() { return priceA; }
-    public String getImageA() { return imageA; }
+    // Getter and Setter methods for nameA
+    public String getNameA() {
+        return nameA;
+    }
 
-    public void setNameA(String nameA) { this.nameA = nameA; }
-    public void setPriceA(String priceA) { this.priceA = priceA; }
-    public void setImageA(String imageA) { this.imageA = imageA; }
+    public void setNameA(String nameA) {
+        this.nameA = nameA;
+    }
+
+    // Getter and Setter methods for priceA
+    public String getPriceA() {
+        return priceA;
+    }
+
+    public void setPriceA(String priceA) {
+        this.priceA = priceA;
+    }
+
+    // Getter and Setter methods for imageA
+    public String getImageA() {
+        return imageA;
+    }
+
+    public void setImageA(String imageA) {
+        this.imageA = imageA;
+    }
+
+    // Getter and Setter methods for quantity
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
+    @Override
+    public String toString() {
+        return "Accessory{" +
+                "nameA='" + nameA + '\'' +
+                ", priceA='" + priceA + '\'' +
+                ", imageA='" + imageA + '\'' +
+                ", quantity=" + quantity +
+                '}';
+    }
 }

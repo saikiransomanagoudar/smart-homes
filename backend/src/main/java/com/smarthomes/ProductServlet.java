@@ -15,8 +15,7 @@ import java.util.stream.Collectors;
 public class ProductServlet extends HttpServlet {
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         // Enable CORS for GET requests
         enableCORS(request, response);
 
@@ -49,11 +48,9 @@ public class ProductServlet extends HttpServlet {
             String requestedCategory = request.getParameter("category");
             if (requestedCategory != null && !requestedCategory.isEmpty()) {
                 System.out.println("Requested Category: " + requestedCategory); // Debug statement
-                System.out.println("Total Products Before Filtering: " + products.size()); // Debug statement
                 products = products.stream()
                         .filter(p -> p.getCategory().equalsIgnoreCase(requestedCategory))
                         .collect(Collectors.toList());
-                System.out.println("Total Products After Filtering: " + products.size()); // Debug statement
             }
 
             // Convert the filtered products list to JSON

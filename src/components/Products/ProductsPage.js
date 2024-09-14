@@ -45,6 +45,16 @@ export default function ProductsPage({ cart, setCart }) {
     }
   };
 
+  const handleUpdateCartCount = () => {
+    const newCartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+    localStorage.setItem('cartCount', newCartCount); // Store updated cart count
+  };
+
+  // useEffect to update cart count whenever cart changes
+  useEffect(() => {
+    handleUpdateCartCount(); // Update cart count whenever cart changes
+  }, [cart]);
+
   const handleAddProductToCart = (product) => {
     if (isLoggedIn) {
       const productData = {
@@ -53,16 +63,17 @@ export default function ProductsPage({ cart, setCart }) {
         priceP: product.priceP,
         description: product.description,
         imageP: product.imageP,
-        accessories: [] // Empty accessories array by default
+        quantity: product.quantity || 1, // Include quantity field
+        accessories: product.accessories || [] // Ensure it's an array
       };
-
+      
       fetch("http://localhost:8080/smarthomes/cart", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
-        credentials: "include", // Include credentials (cookies) in request
-        body: JSON.stringify(productData)
+        credentials: 'include', // Include credentials (cookies) in request
+        body: JSON.stringify(productData),
       })
         .then((response) => {
           if (!response.ok) {
@@ -73,6 +84,7 @@ export default function ProductsPage({ cart, setCart }) {
         .then((data) => {
           console.log("Product added to cart:", data);
           setCart([...cart, { ...product, quantity: 1 }]);
+          handleUpdateCartCount();
         })
         .catch((error) => {
           console.error("Error adding product to cart:", error);
@@ -80,7 +92,8 @@ export default function ProductsPage({ cart, setCart }) {
     } else {
       navigate("/signin"); // Redirect to sign-in if not logged in
     }
-  };
+  };  
+  
 
   const handleSignOut = () => {
     localStorage.removeItem("isLoggedIn"); // Clear the logged-in status
@@ -100,19 +113,35 @@ export default function ProductsPage({ cart, setCart }) {
           )
         );
       } else {
-        setCart([
-          ...cart,
-          {
-            id: accessoryCartId,
-            name: accessory.nameA,
-            price: accessory.priceA,
-            image: accessory.imageA,
-            quantity: 1
-          }
-        ]);
+        const accessoryData = {
+          id: accessoryCartId,
+          nameP: accessory.nameA,
+          priceP: accessory.priceA,
+          imageP: accessory.imageA,
+          quantity: 1,
+          accessories: [] // no nested accessories
+        };
+
+        // Make sure accessory is added to cart
+        fetch("http://localhost:8080/smarthomes/cart", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          credentials: "include",
+          body: JSON.stringify(accessoryData)
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            console.log("Accessory added to cart:", data);
+            setCart([...cart, accessoryData]);
+          })
+          .catch((error) => {
+            console.error("Error adding accessory to cart:", error);
+          });
       }
     } else {
-      navigate("/signin"); // Redirect to sign-in if not logged in
+      navigate("/signin");
     }
   };
 
