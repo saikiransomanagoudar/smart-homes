@@ -7,6 +7,7 @@ import Checkout from './components/Checkout/Checkout';
 import './styles/globals.css';
 import { useState } from 'react';
 import ProductsPage from './components/Products/ProductsPage';
+import Orders from './components/Orders/Orders';
 
 function App() {
   const [cart, setCart] = useState([]);
@@ -21,6 +22,7 @@ function App() {
         <Route path="/signup" element={<Register />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={<Checkout cart={cart} setCart={setCart} />} />
+        <Route path="/orders" element={<Orders />} />
       </Routes>
     </Router>
   );

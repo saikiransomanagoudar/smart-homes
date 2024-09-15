@@ -1,48 +1,97 @@
 package com.smarthomes;
 
 import com.google.gson.Gson;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.util.*;
 
 @WebServlet("/orders")
 public class OrderServlet extends HttpServlet {
 
+    private Map<String, Orders> orders = new HashMap<>();
+
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        // Enable CORS
-        response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
-        response.setHeader("Content-Type", "application/json");
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        response.setContentType("application/json");
+        HttpSession session = request.getSession(false);
 
-        // Retrieve orders from the saved data (this could be a file or database)
-        List<Order> orders = getOrdersForUser(request);
+        if (session == null || session.getAttribute("username") == null) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("User not logged in");
+            return;
+        }
 
-        // Convert orders to JSON and send back to the client
-        Map<String, Object> responseData = new HashMap<>();
-        responseData.put("orders", orders);
-        response.getWriter().write(new Gson().toJson(responseData));
+        String username = (String) session.getAttribute("username");
+
+        List<Orders> userOrders = new ArrayList<>();
+        for (Orders order : orders.values()) {
+            if (order.getCustomerName().equals(username)) {
+                userOrders.add(order);
+            }
+        }
+
+        String jsonResponse = new Gson().toJson(Map.of("orders", userOrders));
+        response.getWriter().write(jsonResponse);
     }
 
-    private List<Order> getOrdersForUser(HttpServletRequest request) {
-        // Logic to retrieve orders for the user (e.g., from a file or database)
-        // Here, you'd likely use the session or user ID to filter the orders
-        HttpSession session = request.getSession();
-        session.getId();  // Use session ID or user ID to get user-specific orders
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("username") == null) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("User not logged in");
+            return;
+        }
 
-        // Example dummy data
-        List<Order> orders = new ArrayList<>();
-        // Add code to fetch real data from file or database
-        // Example Order: new Order("Product 1", 99.99, "12345", "2024-09-20", "pickup", "Store 1")
-        return orders;
+        String customerName = (String) session.getAttribute("username");
+
+        try {
+            String requestData = request.getReader().lines().reduce("", (accumulator, actual) -> accumulator + actual);
+            Orders order = new Gson().fromJson(requestData, Orders.class);
+
+            if (order == null || order.getProductName() == null || order.getProductPrice() <= 0) {
+                throw new IllegalArgumentException("Invalid order data");
+            }
+
+            order.setCustomerName(customerName);
+            String confirmationNumber = UUID.randomUUID().toString();
+            order.setConfirmationNumber(confirmationNumber);
+
+            // Calculate delivery date and convert it to a String
+            LocalDate deliveryDate = LocalDate.now().plusDays("pickup".equals(order.getDeliveryOption()) ? 1 : 3);
+            order.setDeliveryDate(deliveryDate.toString()); // Convert LocalDate to String
+
+            String orderId = UUID.randomUUID().toString();
+            orders.put(orderId, order);
+
+            Map<String, String> responseMap = Map.of(
+                "confirmationNumber", confirmationNumber,
+                "deliveryDate", deliveryDate.toString() // Send back as String
+            );
+
+            response.setContentType("application/json");
+            response.setStatus(HttpServletResponse.SC_OK);
+            response.getWriter().write(new Gson().toJson(responseMap));
+        } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().write("Error processing order: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String orderId = request.getPathInfo().substring(1);
+        if (orders.remove(orderId) != null) {
+            response.setStatus(HttpServletResponse.SC_OK);
+        } else {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        }
     }
 }

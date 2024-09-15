@@ -89,13 +89,23 @@ export default function Checkout() {
       setError('Please fill out all required fields.');
       return;
     }
-
+  
     // Prepare order data
     const orderData = {
-      ...formData,
+      name: formData.name,
+      address: formData.address,
+      city: formData.city,
+      state: formData.state,
+      zip: formData.zip,
+      deliveryOption: formData.deliveryOption,
+      storeLocation: formData.deliveryOption === 'pickup' ? formData.storeLocation : 'Home Delivery',
       cartItems, // Include cart items in the order
+      productName: cartItems[0]?.nameP || '',  // Make sure productName is correctly set
+      productPrice: cartItems[0]?.priceP || 0, // Make sure productPrice is correctly set
+      creditCard: formData.creditCard,
+      totalPrice,
     };
-
+  
     // Call backend to process the order
     fetch('http://localhost:8080/smarthomes/checkout', {
       method: 'POST',
@@ -104,7 +114,14 @@ export default function Checkout() {
       },
       body: JSON.stringify(orderData),
     })
-      .then((response) => response.json())
+      .then(async (response) => {
+        // Check if the response is JSON, handle error cases
+        if (!response.ok) {
+          const err = await response.json();
+          throw new Error(err.error || 'Unknown error');
+        }
+        return response.json();
+      })
       .then((data) => {
         // Handle order confirmation
         setConfirmation({
@@ -112,10 +129,11 @@ export default function Checkout() {
           deliveryDate: data.deliveryDate,
         });
       })
-      .catch(() => {
-        setError('Error processing your order. Please try again.');
+      .catch((error) => {
+        console.error('Error:', error.message);
+        setError(error.message || 'Error processing your order. Please try again.');
       });
-  };
+  };  
 
   // Confirmation page after placing the order
   if (confirmation) {

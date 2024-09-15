@@ -9,97 +9,108 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.*;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.ArrayList;
 
 @WebServlet("/checkout")
 public class CheckoutServlet extends HttpServlet {
 
-    // Define the file path to store payment details
     private static final String PAYMENT_FILE_PATH = "C:/Users/saiki/smarthomes_data/PaymentDetails.txt";
-    
+
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Enable CORS
         enableCORS(request, response);
 
-        // Read request data
-        BufferedReader reader = request.getReader();
-        Order order = new Gson().fromJson(reader, Order.class);
+        try {
+            BufferedReader reader = request.getReader();
+            Orders order = new Gson().fromJson(reader, Orders.class);
 
-        // Generate confirmation number and delivery date
-        String confirmationNumber = UUID.randomUUID().toString();
-        LocalDate deliveryDate = LocalDate.now().plusWeeks(2);
+            // Validate that the order contains the required fields
+            if (order == null || order.getProductName() == null || order.getProductPrice() == 0.0) {
+                throw new IllegalArgumentException("Product name or price is invalid");
+            }
 
-        // Save the order details (including product details like image, name)
-        saveOrder(order, confirmationNumber, deliveryDate);
+            // Generate confirmation number and delivery date
+            String confirmationNumber = UUID.randomUUID().toString();
+            String deliveryDate = LocalDate.now().plusWeeks(2).toString(); // Save as String
 
-        // Prepare the response data, including product details
-        Map<String, String> responseData = new HashMap<>();
-        responseData.put("confirmationNumber", confirmationNumber);
-        responseData.put("deliveryDate", deliveryDate.toString());
-        responseData.put("productName", order.getProductName());
-        responseData.put("productPrice", String.valueOf(order.getProductPrice()));
-        responseData.put("productImage", order.getProductImage()); // Assuming the image is a URL or base64 encoded string
-        responseData.put("productDescription", order.getProductDescription());
+            // Save the order details
+            saveOrder(order, confirmationNumber, deliveryDate);
 
-        // Send response
-        response.getWriter().write(new Gson().toJson(responseData));
+            // Prepare the response data
+            Map<String, String> responseData = new HashMap<>();
+            responseData.put("confirmationNumber", confirmationNumber);
+            responseData.put("deliveryDate", deliveryDate);
+            responseData.put("productName", order.getProductName());
+            responseData.put("productPrice", String.valueOf(order.getProductPrice()));
+            responseData.put("productImage", order.getProductImage());
+            responseData.put("productDescription", order.getProductDescription());
+
+            response.setContentType("application/json");
+            response.setStatus(HttpServletResponse.SC_OK);
+            response.getWriter().write(new Gson().toJson(responseData));
+
+        } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.setContentType("application/json");
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Error processing your order: " + e.getMessage());
+            response.getWriter().write(new Gson().toJson(errorResponse));
+        }
     }
 
     private void enableCORS(HttpServletRequest request, HttpServletResponse response) {
-        response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000"); // Allow frontend origin
-        response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS"); // Allow these methods
+        response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+        response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
         response.setHeader("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization");
-        response.setHeader("Access-Control-Allow-Credentials", "true"); // Allow credentials (cookies)
+        response.setHeader("Access-Control-Allow-Credentials", "true");
 
-        // Handle preflight (OPTIONS) requests
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             response.setStatus(HttpServletResponse.SC_OK);
         }
     }
 
     @SuppressWarnings("unchecked")
-    private void saveOrder(Order order, String confirmationNumber, LocalDate deliveryDate) {
-        // Create a new order object with additional product details
-        Order orderPayment = new Order(order.getOrderId(), order.getOrderName(),
-                order.getOrderPrice(), order.getUserAddress(), order.getCreditCardNo(),
-                confirmationNumber, deliveryDate, order.getProductName(), 
-                order.getProductPrice(), order.getProductImage(), order.getProductDescription());
+    private void saveOrder(Orders order, String confirmationNumber, String deliveryDate) throws IOException {
+        File paymentFile = new File(PAYMENT_FILE_PATH);
 
-        // Initialize the HashMap to store payments
-        HashMap<Integer, ArrayList<Order>> orderPayments = new HashMap<>();
-
-        // Load existing payments from the file
-        try (FileInputStream fileInputStream = new FileInputStream(PAYMENT_FILE_PATH);
-             ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream)) {
-            orderPayments = (HashMap<Integer, ArrayList<Order>>) objectInputStream.readObject();
-        } catch (FileNotFoundException e) {
-            // If the file doesn't exist, we will create a new one
-            System.out.println("Payment file not found, creating a new one.");
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
+        if (!paymentFile.exists()) {
+            paymentFile.getParentFile().mkdirs();
+            paymentFile.createNewFile();
         }
 
-        // Check if the order ID already exists, otherwise create a new list
-        if (!orderPayments.containsKey(order.getOrderId())) {
-            orderPayments.put(order.getOrderId(), new ArrayList<>());
+        HashMap<Integer, ArrayList<Orders>> orderPayments = new HashMap<>();
+        if (paymentFile.length() > 0) {
+            try (FileInputStream fileInputStream = new FileInputStream(paymentFile);
+                 ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream)) {
+                orderPayments = (HashMap<Integer, ArrayList<Orders>>) objectInputStream.readObject();
+            } catch (FileNotFoundException e) {
+                System.out.println("Payment file not found, creating a new one.");
+            } catch (ClassNotFoundException e) {
+                System.out.println("Class not found during deserialization: " + e.getMessage());
+            } catch (IOException e) {
+                System.out.println("Error reading from the file: " + e.getMessage());
+            }
         }
 
-        // Add the new order payment to the list
-        ArrayList<Order> paymentList = orderPayments.get(order.getOrderId());
-        paymentList.add(orderPayment);
+        // Add the new order to the list
+        orderPayments.computeIfAbsent(order.getOrderId(), k -> new ArrayList<>()).add(
+                new Orders(order.getOrderId(), order.getOrderName(), order.getOrderPrice(),
+                        order.getUserAddress(), order.getCreditCardNo(), confirmationNumber, deliveryDate,
+                        order.getProductName(), order.getProductPrice(), order.getProductImage(),
+                        order.getProductDescription(), order.getDeliveryOption(), order.getCustomerName())
+        );
 
         // Save the updated payments back to the file
-        try (FileOutputStream fileOutputStream = new FileOutputStream(PAYMENT_FILE_PATH);
+        try (FileOutputStream fileOutputStream = new FileOutputStream(paymentFile);
              ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream)) {
             objectOutputStream.writeObject(orderPayments);
-            objectOutputStream.flush();
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Error writing to the file: " + e.getMessage());
         }
+        System.out.println("Order saved successfully to " + PAYMENT_FILE_PATH);
     }
 }

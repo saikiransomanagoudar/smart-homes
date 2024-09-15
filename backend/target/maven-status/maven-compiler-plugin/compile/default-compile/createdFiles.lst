@@ -1,5 +1,6 @@
 com\smarthomes\Accessory.class
 com\smarthomes\User.class
+com\smarthomes\Orders.class
 com\smarthomes\Product.class
 com\smarthomes\ProductSAXHandler.class
 com\smarthomes\CartServlet.class
@@ -8,5 +9,4 @@ com\smarthomes\ProductServlet.class
 com\smarthomes\RegistrationServlet.class
 com\smarthomes\LoginServlet.class
 com\smarthomes\OrderServlet.class
-com\smarthomes\Order.class
 com\smarthomes\CheckoutServlet.class
