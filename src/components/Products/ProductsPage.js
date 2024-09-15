@@ -39,8 +39,18 @@ export default function ProductsPage({ cart, setCart }) {
 
   const handleBuyNow = (product) => {
     if (isLoggedIn) {
-      // Pass product details to the checkout page
-      navigate("/checkout", { state: { product } });
+      // Remove accessories from the product object before passing to the checkout page
+      const productWithoutAccessories = {
+        id: product.id,
+        nameP: product.nameP,
+        priceP: product.priceP,
+        description: product.description,
+        imageP: product.imageP,
+        quantity: product.quantity || 1, // Add default quantity if not present
+      };
+  
+      // Pass product details (without accessories) to the checkout page
+      navigate("/checkout", { state: { product: productWithoutAccessories } });
     } else {
       navigate("/signin"); // Redirect to sign-in if not logged in
     }
@@ -96,44 +106,57 @@ export default function ProductsPage({ cart, setCart }) {
   // };  
   const handleAddProductToCart = (product) => {
     if (isLoggedIn) {
-      const productData = {
-        id: product.id,
-        nameP: product.nameP,
-        priceP: product.priceP.toFixed(2),
-        description: product.description,
-        imageP: product.imageP,
-        quantity: product.quantity || 1, // Include quantity field
-        accessories: product.accessories || [] // Ensure it's an array
-      };
-      
-      fetch("http://localhost:8080/smarthomes/cart/product", {  // Use /product endpoint
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: 'include',
-        body: JSON.stringify(productData),
-      })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Failed to add product to cart.");
-          }
-          return response.json();
+      const existingProduct = cart.find((item) => item.id === product.id);
+  
+      if (existingProduct) {
+        const updatedCart = cart.map((item) =>
+          item.id === product.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
+        setCart(updatedCart);
+      } else {
+        const productData = {
+          id: product.id,
+          nameP: product.nameP,
+          priceP: product.priceP,
+          description: product.description,
+          imageP: product.imageP,
+          quantity: 1,
+          accessories: product.accessories || [],
+        };
+  
+        fetch("http://localhost:8080/smarthomes/cart/product", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify(productData),
         })
-        // eslint-disable-next-line no-unused-vars
-        .then((data) => {
-          setCart([...cart, { ...product, quantity: 1 }]);
-          handleUpdateCartCount();
-        })
-        .catch((error) => {
-          console.error("Error adding product to cart:", error);
-        });
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Failed to add product to cart.");
+            }
+            return response.json();
+          })
+          .then(() => {
+            setCart([...cart, { ...product, quantity: 1 }]);
+            handleUpdateCartCount();
+          })
+          .catch((error) => {
+            console.error("Error adding product to cart:", error);
+          });
+      }
+  
+      setQuantities((prevQuantities) => ({
+        ...prevQuantities,
+        [product.id]: (prevQuantities[product.id] || 0) + 1,
+      }));
     } else {
       navigate("/signin");
     }
-  };
-
-    
+  };      
   
   const handleSignOut = () => {
     localStorage.removeItem("isLoggedIn"); // Clear the logged-in status
@@ -143,7 +166,7 @@ export default function ProductsPage({ cart, setCart }) {
   const handleAddAccessoryToCart = (accessory) => {
     const accessoryCartId = `accessory-${accessory.nameA}`;
     const accessoryInCart = cart.find((item) => item.id === accessoryCartId);
-    
+  
     if (isLoggedIn) {
       if (accessoryInCart) {
         setCart(
@@ -160,10 +183,10 @@ export default function ProductsPage({ cart, setCart }) {
           priceP: accessory.priceA.toFixed(2),
           imageP: accessory.imageA,
           quantity: 1,
-          accessories: [] // no nested accessories
+          accessories: [],
         };
   
-        fetch("http://localhost:8080/smarthomes/cart/accessory", { // Use /accessory endpoint
+        fetch("http://localhost:8080/smarthomes/cart/accessory", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -177,8 +200,7 @@ export default function ProductsPage({ cart, setCart }) {
             }
             return response.json();
           })
-          // eslint-disable-next-line no-unused-vars
-          .then((data) => {
+          .then(() => {
             setCart([...cart, accessoryData]);
           })
           .catch((error) => {
@@ -190,41 +212,40 @@ export default function ProductsPage({ cart, setCart }) {
     }
   };
 
-    
-
   const handleIncreaseQuantity = (id) => {
-    const updatedQuantities = {
-      ...quantities,
-      [id]: (quantities[id] || 0) + 1
-    };
-    setQuantities(updatedQuantities);
-
     setCart(
       cart.map((item) =>
         item.id === id ? { ...item, quantity: item.quantity + 1 } : item
       )
     );
-  };
+  
+    // Update quantity in quantities state
+    setQuantities((prevQuantities) => ({
+      ...prevQuantities,
+      [id]: (prevQuantities[id] || 0) + 1,
+    }));
+  };  
 
   const handleDecreaseQuantity = (id) => {
-    if (quantities[id] > 1) {
-      const updatedQuantities = {
-        ...quantities,
-        [id]: quantities[id] - 1
-      };
-      setQuantities(updatedQuantities);
-
+    const product = cart.find((item) => item.id === id);
+  
+    if (product.quantity > 1) {
       setCart(
         cart.map((item) =>
           item.id === id ? { ...item, quantity: item.quantity - 1 } : item
         )
       );
+  
+      // Update quantity in quantities state
+      setQuantities((prevQuantities) => ({
+        ...prevQuantities,
+        [id]: prevQuantities[id] - 1,
+      }));
     } else {
+      setCart(cart.filter((item) => item.id !== id));
       const updatedQuantities = { ...quantities };
       delete updatedQuantities[id];
       setQuantities(updatedQuantities);
-
-      setCart(cart.filter((item) => item.id !== id));
     }
   };
 
@@ -405,7 +426,7 @@ export default function ProductsPage({ cart, setCart }) {
               />
               <p className="text-sm mb-4">{selectedProduct.description}</p>
               <p className="text-lg font-bold mb-4">
-                {selectedProduct.priceP.toFixed(2)}
+                ${selectedProduct.priceP.toFixed(2)}
               </p>
 
               {/* Display Accessories */}

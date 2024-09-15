@@ -23,7 +23,7 @@ export default function Cart() {
     if (isLoggedIn === "true") {
       fetch("http://localhost:8080/smarthomes/cart", {
         method: "GET",
-        credentials: "include", // Include credentials (cookies) in request
+        credentials: "include" // Include credentials (cookies) in request
       })
         .then((response) => {
           if (!response.ok) {
@@ -40,12 +40,12 @@ export default function Cart() {
             ...products.map((item) => ({
               ...item,
               quantity: item.quantity || 1,
-              accessories: item.accessories || [],
+              accessories: item.accessories || []
             })),
             ...accessories.map((acc) => ({
               ...acc,
-              quantity: acc.quantity || 1,
-            })),
+              quantity: acc.quantity || 1
+            }))
           ];
 
           setCartItems(combinedItems);
@@ -62,9 +62,9 @@ export default function Cart() {
     fetch("http://localhost:8080/smarthomes/cart", {
       method: "PUT",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify(updatedCart),
+      body: JSON.stringify(updatedCart)
     })
       .then((response) => {
         if (!response.ok) {
@@ -99,7 +99,7 @@ export default function Cart() {
     });
 
     setCartItems(updatedCart);
-    updateCartBackend(updatedCart);
+    updateCartBackend(updatedCart); // Save the updated cart to the backend
   };
 
   const handleRemoveItem = (id, isAccessory = false, accName = null) => {
@@ -131,7 +131,7 @@ export default function Cart() {
       .filter((item) => item !== null);
 
     setCartItems(updatedCart);
-    updateCartBackend(updatedCart);
+    updateCartBackend(updatedCart); // Update the backend with the updated cart
   };
 
   const calculateTotal = () => {
@@ -145,7 +145,7 @@ export default function Cart() {
         : 0;
       return total + itemTotal + accessoriesTotal;
     }, 0);
-  };
+  };  
 
   const handleCheckout = () => {
     if (cartItems.length > 0) {
@@ -161,7 +161,10 @@ export default function Cart() {
       {cartItems.length > 0 ? (
         <div className="grid grid-cols-1 gap-4">
           {cartItems.map((item) => (
-            <div key={item.id} className="flex items-center bg-white p-4 shadow">
+            <div
+              key={item.id}
+              className="flex items-center bg-white p-4 shadow"
+            >
               <Img
                 src={item.imageP}
                 alt={item.nameP}
@@ -170,10 +173,7 @@ export default function Cart() {
               <div className="flex-grow">
                 <h3 className="text-lg font-bold">{item.nameP}</h3>
                 <p>
-                  $
-                  {item.priceP !== undefined
-                    ? item.priceP.toFixed(2)
-                    : "0.00"}
+                  ${item.priceP !== undefined ? item.priceP.toFixed(2) : "0.00"}
                 </p>
                 <p>Quantity: {item.quantity}</p>
                 <p>Accessories:</p>
@@ -194,13 +194,17 @@ export default function Cart() {
                         <div className="flex space-x-2 mt-1">
                           <button
                             className="bg-green-500 text-white px-2 py-1 rounded"
-                            onClick={() => handleAddItem(item.id, true, acc.nameA)}
+                            onClick={() =>
+                              handleAddItem(item.id, true, acc.nameA)
+                            }
                           >
                             Add
                           </button>
                           <button
                             className="bg-red-500 text-white px-2 py-1 rounded"
-                            onClick={() => handleRemoveItem(item.id, true, acc.nameA)}
+                            onClick={() =>
+                              handleRemoveItem(item.id, true, acc.nameA)
+                            }
                           >
                             Remove
                           </button>

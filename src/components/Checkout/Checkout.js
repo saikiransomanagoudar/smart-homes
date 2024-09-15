@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function Checkout() {
@@ -17,10 +17,36 @@ export default function Checkout() {
   });
   const [confirmation, setConfirmation] = useState(null);
   const [error, setError] = useState('');
-  
-  // Retrieve product details from location state
-  const productDetails = location.state?.product || {};
-  
+  const [cartItems, setCartItems] = useState([]); // For cart items or product
+  const [totalPrice, setTotalPrice] = useState(0); // Track the total price
+
+  // Retrieve product details from location state (for Buy Now)
+  const productDetails = location.state?.product || null;
+
+  // Load cart items if no product details (coming from Cart page)
+  useEffect(() => {
+    if (!productDetails) {
+      // Fetch cart items from the backend
+      fetch('http://localhost:8080/smarthomes/cart', {
+        method: 'GET',
+        credentials: 'include', // Include credentials (cookies) in request
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          const products = data.products || [];
+          setCartItems(products);
+          calculateTotalPrice(products);
+        })
+        .catch((error) => {
+          console.error("Error fetching cart items:", error);
+        });
+    } else {
+      // If it's a Buy Now, set the product as the only item in cartItems
+      setCartItems([{ ...productDetails, quantity: 1 }]);
+      setTotalPrice(productDetails.priceP); // Set initial price for Buy Now
+    }
+  }, [productDetails]);
+
   // Hardcoded store locations for pickup
   const storeLocations = [
     'Store 1: 1001 Main St, ZIP: 12345',
@@ -40,6 +66,20 @@ export default function Checkout() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // Calculate total price based on cart items and accessories
+  const calculateTotalPrice = (items) => {
+    const total = items.reduce((sum, item) => {
+      const accessoriesTotal = item.accessories
+        ? item.accessories.reduce(
+            (accSum, acc) => accSum + acc.priceA * acc.quantity,
+            0
+          )
+        : 0;
+      return sum + item.priceP * item.quantity + accessoriesTotal;
+    }, 0);
+    setTotalPrice(total);
+  };
+
   // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -50,13 +90,10 @@ export default function Checkout() {
       return;
     }
 
-    // Prepare order data with product details
+    // Prepare order data
     const orderData = {
       ...formData,
-      productName: productDetails.nameP,
-      productPrice: productDetails.priceP,
-      productImage: productDetails.imageP,
-      productDescription: productDetails.description,
+      cartItems, // Include cart items in the order
     };
 
     // Call backend to process the order
@@ -88,13 +125,34 @@ export default function Checkout() {
         <p className="text-lg mt-4">Your confirmation number is: <span className="font-bold">{confirmation.confirmationNumber}</span></p>
         <p className="text-lg">Your delivery/pickup date is: <span className="font-bold">{confirmation.deliveryDate}</span></p>
 
-        {/* Show ordered product details */}
+        {/* Show ordered product or cart details */}
         <div className="mt-6">
-          <h3 className="text-xl font-semibold">Product Details</h3>
-          <img src={productDetails.imageP} alt={productDetails.nameP} className="mx-auto my-4 w-40 h-40 object-contain" />
-          <p><strong>{productDetails.nameP}</strong></p>
-          <p>Price: ${productDetails.priceP}</p>
-          <p>{productDetails.description}</p>
+          <h3 className="text-xl font-semibold">Order Details</h3>
+          {cartItems.map((item, index) => (
+            <div key={index} className="flex items-center mb-4">
+              <img src={item.imageP} alt={item.nameP} className="w-40 h-40 object-contain mr-4" />
+              <div>
+                <p><strong>{item.nameP}</strong></p>
+                <p>Price: ${item.priceP}</p>
+                <p>{item.description}</p>
+                <p>Quantity: {item.quantity}</p>
+
+                {/* Show accessories if any */}
+                {item.accessories && item.accessories.length > 0 && (
+                  <div className="mt-2">
+                    <h4 className="font-semibold">Accessories:</h4>
+                    <ul>
+                      {item.accessories.map((acc, idx) => (
+                        <li key={idx}>
+                          {acc.nameA} - ${acc.priceA.toFixed(2)} (x{acc.quantity})
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
 
         <button onClick={() => navigate('/')} className="mt-8 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Go back to homepage</button>
@@ -158,14 +216,37 @@ export default function Checkout() {
         <button type="submit" className="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Place Order</button>
       </form>
 
-      {/* Display product summary if product details are passed */}
-      {productDetails.nameP && (
+      {/* Display cart or product summary */}
+      {cartItems.length > 0 && (
         <div className="mt-8 p-4 border rounded bg-gray-100">
           <h3 className="text-lg font-semibold">Product Summary</h3>
-          <img src={productDetails.imageP} alt={productDetails.nameP} className="w-20 h-20 object-contain my-2" />
-          <p><strong>{productDetails.nameP}</strong></p>
-          <p>Price: ${productDetails.priceP}</p>
-          <p>{productDetails.description}</p>
+          {cartItems.map((item, index) => (
+            <div key={index} className="flex items-center mb-4">
+              <img src={item.imageP} alt={item.nameP} className="w-20 h-20 object-contain mr-4" />
+              <div>
+                <p><strong>{item.nameP}</strong></p>
+                <p>Price: ${item.priceP}</p>
+                <p>Quantity: {item.quantity || 1}</p>
+
+                {/* Show accessories if any */}
+                {item.accessories && item.accessories.length > 0 && (
+                  <div className="mt-2">
+                    <h4 className="font-semibold">Accessories:</h4>
+                    <ul>
+                      {item.accessories.map((acc, idx) => (
+                        <li key={idx}>
+                          {acc.nameA} - ${acc.priceA.toFixed(2)} (x{acc.quantity})
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+          <div className="mt-4 text-right font-bold">
+            <p>Total Price: ${totalPrice.toFixed(2)}</p>
+          </div>
         </div>
       )}
     </div>

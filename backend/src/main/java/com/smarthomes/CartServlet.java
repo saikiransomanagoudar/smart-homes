@@ -14,7 +14,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-@WebServlet(urlPatterns = { "/cart", "/cart/product", "/cart/accessory" })
+@WebServlet(urlPatterns = {"/cart", "/cart/product", "/cart/accessory"})
 public class CartServlet extends HttpServlet {
 
     // Directory to store cart files
@@ -38,19 +38,16 @@ public class CartServlet extends HttpServlet {
         String userId = session.getId();
         BufferedReader reader = request.getReader();
 
-        String path = request.getRequestURI(); // Extract the path to distinguish between products and accessories
+        String path = request.getRequestURI();
 
         try {
-            if (path.contains("/product")) { // Check for product path
+            if (path.contains("/product")) {
                 Product product = new Gson().fromJson(reader, Product.class);
-
-                // Load the user's current cart
                 List<Product> cart = loadCart(userId);
 
+                // Ensure the product exists in the catalog
                 if (!isProductInCatalog(product.getId())) {
-                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    response.setContentType("application/json");
-                    response.getWriter().write("{\"error\": \"Product does not exist in the catalog.\"}");
+                    sendErrorResponse(response, "Product does not exist in the catalog.");
                     return;
                 }
 
@@ -69,10 +66,10 @@ public class CartServlet extends HttpServlet {
 
                 saveCart(userId, cart);
 
-                response.setContentType("application/json");
-                response.setStatus(HttpServletResponse.SC_OK);
-                response.getWriter().write(new Gson().toJson(cart)); // Return updated cart as JSON
-            } else if (path.contains("/accessory")) { // Check for accessory path
+                // Return the updated cart
+                sendJsonResponse(response, cart);
+
+            } else if (path.contains("/accessory")) {
                 Accessory accessory = new Gson().fromJson(reader, Accessory.class);
                 List<Accessory> accessories = loadAccessories(userId);
 
@@ -91,15 +88,12 @@ public class CartServlet extends HttpServlet {
 
                 saveAccessories(userId, accessories);
 
-                response.setContentType("application/json");
-                response.setStatus(HttpServletResponse.SC_OK);
-                response.getWriter().write(new Gson().toJson(accessories)); // Return updated accessories as JSON
+                // Return the updated accessories
+                sendJsonResponse(response, accessories);
             }
         } catch (Exception e) {
             e.printStackTrace();
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.setContentType("application/json"); // Set content type to JSON here
-            response.getWriter().write("{\"error\": \"Failed to add item to cart.\"}");
+            sendErrorResponse(response, "Failed to add item to cart.");
         }
     }
 
@@ -111,79 +105,83 @@ public class CartServlet extends HttpServlet {
         HttpSession session = request.getSession();
         String userId = session.getId();
 
-        // Load the user's cart (products) and accessories
+        // Load the user's cart and accessories
         List<Product> cart = loadCart(userId);
         List<Accessory> accessories = loadAccessories(userId);
 
-        CartResponse cartResponse = new CartResponse(cart != null ? cart : new ArrayList<>(),
+        CartResponse cartResponse = new CartResponse(
+                cart != null ? cart : new ArrayList<>(),
                 accessories != null ? accessories : new ArrayList<>());
 
-        response.setContentType("application/json");
-        response.setStatus(HttpServletResponse.SC_OK);
-        response.getWriter().write(new Gson().toJson(cartResponse)); // Return cart and accessories as JSON
+        sendJsonResponse(response, cartResponse);
     }
 
     @Override
-    protected void doPut(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+protected void doPut(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException {
 
-        enableCORS(request, response);
-        HttpSession session = request.getSession();
-        String userId = session.getId();
-        BufferedReader reader = request.getReader();
+    enableCORS(request, response);  // Enable CORS headers for the request
+    HttpSession session = request.getSession();  // Get user session
+    String userId = session.getId();  // Get session ID as user ID
+    BufferedReader reader = request.getReader();  // Read request data
+    String path = request.getRequestURI();  // Extract the path to distinguish between products and accessories
 
-        String path = request.getRequestURI(); // Extract the path to distinguish between products and accessories
-
+    try {
+        // Handle product update
         if (path.contains("/product")) {
-            // Handle product quantity update
-            Product updatedProduct = new Gson().fromJson(reader, Product.class); // Parse product from request
-            List<Product> cart = loadCart(userId);
+            Product updatedProduct = new Gson().fromJson(reader, Product.class);  // Parse product from the request
+            List<Product> cart = loadCart(userId);  // Load the user's cart
 
             boolean productUpdated = false;
-
             for (Product p : cart) {
                 if (p.getId() == updatedProduct.getId()) {
-                    p.setQuantity(updatedProduct.getQuantity()); // Set the updated quantity
+                    p.setQuantity(updatedProduct.getQuantity());  // Update the quantity of the product
                     productUpdated = true;
                     break;
                 }
             }
 
             if (!productUpdated) {
-                // If product does not exist in the cart, add it (optional based on your use
-                // case)
-                cart.add(updatedProduct);
+                cart.add(updatedProduct);  // If the product does not exist in the cart, add it
             }
 
-            saveCart(userId, cart);
+            saveCart(userId, cart);  // Save the updated cart to the file
             response.setContentType("application/json");
-            response.getWriter().write(new Gson().toJson(cart));
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write(new Gson().toJson(cart));  // Send updated cart as JSON response
+        }
 
-        } else if (path.contains("/accessory")) {
-            // Handle accessory quantity update
-            Accessory updatedAccessory = new Gson().fromJson(reader, Accessory.class); // Parse accessory from request
-            List<Accessory> accessories = loadAccessories(userId);
+        // Handle accessory update
+        else if (path.contains("/accessory")) {
+            Accessory updatedAccessory = new Gson().fromJson(reader, Accessory.class);  // Parse accessory from the request
+            List<Accessory> accessories = loadAccessories(userId);  // Load the user's accessories
 
             boolean accessoryUpdated = false;
-
             for (Accessory a : accessories) {
                 if (a.getNameA().equals(updatedAccessory.getNameA())) {
-                    a.setQuantity(updatedAccessory.getQuantity()); // Set the updated quantity
+                    a.setQuantity(updatedAccessory.getQuantity());  // Update the quantity of the accessory
                     accessoryUpdated = true;
                     break;
                 }
             }
 
             if (!accessoryUpdated) {
-                // If accessory does not exist, add it (optional based on your use case)
-                accessories.add(updatedAccessory);
+                accessories.add(updatedAccessory);  // If the accessory does not exist, add it
             }
 
-            saveAccessories(userId, accessories);
+            saveAccessories(userId, accessories);  // Save the updated accessories to the file
             response.setContentType("application/json");
-            response.getWriter().write(new Gson().toJson(accessories));
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write(new Gson().toJson(accessories));  // Send updated accessories as JSON response
         }
+    } catch (Exception e) {
+        e.printStackTrace();
+        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write("{\"error\": \"Failed to update the cart.\"}");
     }
+}
 
     @Override
     protected void doDelete(HttpServletRequest request, HttpServletResponse response)
@@ -194,29 +192,39 @@ public class CartServlet extends HttpServlet {
         String userId = session.getId();
         BufferedReader reader = request.getReader();
 
-        String path = request.getRequestURI(); // Extract the path to distinguish between products and accessories
+        String path = request.getRequestURI();
 
         if (path.contains("/product")) {
-            Product productToRemove = new Gson().fromJson(reader, Product.class); // Parse product from request
+            Product productToRemove = new Gson().fromJson(reader, Product.class);
             List<Product> cart = loadCart(userId);
 
-            cart.removeIf(p -> p.getId() == productToRemove.getId()); // Completely remove the product
-
+            cart.removeIf(p -> p.getId() == productToRemove.getId());
             saveCart(userId, cart);
-            response.setContentType("application/json");
-            response.getWriter().write(new Gson().toJson(cart));
+            sendJsonResponse(response, cart);
 
         } else if (path.contains("/accessory")) {
-            Accessory accessoryToRemove = new Gson().fromJson(reader, Accessory.class); // Parse accessory from request
+            Accessory accessoryToRemove = new Gson().fromJson(reader, Accessory.class);
             List<Accessory> accessories = loadAccessories(userId);
 
-            accessories.removeIf(a -> a.getNameA().equals(accessoryToRemove.getNameA())); // Completely remove the
-                                                                                          // accessory
-
+            accessories.removeIf(a -> a.getNameA().equals(accessoryToRemove.getNameA()));
             saveAccessories(userId, accessories);
-            response.setContentType("application/json");
-            response.getWriter().write(new Gson().toJson(accessories));
+            sendJsonResponse(response, accessories);
         }
+    }
+
+    // Utility methods to send responses
+    private void sendJsonResponse(HttpServletResponse response, Object data) throws IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(new Gson().toJson(data));
+        response.getWriter().flush();
+    }
+
+    private void sendErrorResponse(HttpServletResponse response, String message) throws IOException {
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        response.setContentType("application/json");
+        response.getWriter().write("{\"error\": \"" + message + "\"}");
+        response.getWriter().flush();
     }
 
     // Helper method to add CORS headers
@@ -363,5 +371,4 @@ public class CartServlet extends HttpServlet {
             e.printStackTrace();
         }
     }
-
 }
