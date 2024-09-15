@@ -3,6 +3,7 @@ import LoginForm from './components/Auth/LoginForm';
 import Register from './components/Auth/Register';
 import Home from './routes/Home';
 import Cart from './components/Cart/Cart';
+import Checkout from './components/Checkout/Checkout';
 import './styles/globals.css';
 import { useState } from 'react';
 import ProductsPage from './components/Products/ProductsPage';
@@ -19,6 +20,7 @@ function App() {
         <Route path="/signin" element={<LoginForm />} />
         <Route path="/signup" element={<Register />} />
         <Route path="/cart" element={<Cart />} />
+        <Route path="/checkout" element={<Checkout cart={cart} setCart={setCart} />} />
       </Routes>
     </Router>
   );

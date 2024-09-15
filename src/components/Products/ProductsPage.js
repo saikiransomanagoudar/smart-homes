@@ -37,9 +37,10 @@ export default function ProductsPage({ cart, setCart }) {
     setSelectedProduct(null); // Close the modal
   };
 
-  const handleBuyNow = () => {
+  const handleBuyNow = (product) => {
     if (isLoggedIn) {
-      window.location.href = "/payment"; // Proceed to payment directly
+      // Pass product details to the checkout page
+      navigate("/checkout", { state: { product } });
     } else {
       navigate("/signin"); // Redirect to sign-in if not logged in
     }
@@ -322,7 +323,9 @@ export default function ProductsPage({ cart, setCart }) {
                   <p className="mt-2 text-sm sm:text-base">
                     {product.description}
                   </p>
-                  <p className="text-lg font-bold mt-2">${product.priceP.toFixed(2)}</p>
+                  <p className="text-lg font-bold mt-2">
+                    ${product.priceP.toFixed(2)}
+                  </p>
 
                   {productQuantity > 0 ? (
                     <div className="flex items-center justify-between mt-4">
@@ -361,7 +364,7 @@ export default function ProductsPage({ cart, setCart }) {
                         className="bg-blue-500 text-white px-4 py-2 mt-4 rounded"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleBuyNow();
+                          handleBuyNow(product); // Pass the current product to the Buy Now logic
                         }}
                       >
                         Buy Now
@@ -401,7 +404,9 @@ export default function ProductsPage({ cart, setCart }) {
                 className="w-full h-40 object-contain mb-4"
               />
               <p className="text-sm mb-4">{selectedProduct.description}</p>
-              <p className="text-lg font-bold mb-4">{selectedProduct.priceP.toFixed(2)}</p>
+              <p className="text-lg font-bold mb-4">
+                {selectedProduct.priceP.toFixed(2)}
+              </p>
 
               {/* Display Accessories */}
               {selectedProduct.accessories &&
@@ -473,7 +478,7 @@ export default function ProductsPage({ cart, setCart }) {
 
               <button
                 className="bg-blue-500 text-white px-4 py-2 mt-4 rounded w-full"
-                onClick={handleBuyNow}
+                onClick={() => handleBuyNow(selectedProduct)} // Pass selected product to Buy Now
               >
                 Buy Now
               </button>
