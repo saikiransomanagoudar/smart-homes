@@ -118,7 +118,7 @@ export default function ProductsPage({ cart, setCart }) {
   const handleAddAccessoryToCart = (accessory) => {
     const accessoryCartId = `accessory-${accessory.nameA}`;
     const accessoryInCart = cart.find((item) => item.id === accessoryCartId);
-
+  
     if (isLoggedIn) {
       if (accessoryInCart) {
         setCart(
@@ -131,12 +131,15 @@ export default function ProductsPage({ cart, setCart }) {
       } else {
         const accessoryData = {
           id: accessoryCartId,
-          nameP: accessory.nameA,
-          priceP: accessory.priceA.toFixed(2),
-          imageP: accessory.imageA,
+          nameA: accessory.nameA,
+          priceA: accessory.priceA, // Check price formatting
+          imageA: accessory.imageA,
           quantity: 1,
         };
-
+  
+        // Log the accessory data before sending it
+        console.log("Accessory data being sent:", accessoryData);
+  
         fetch("http://localhost:8080/smarthomes/cart/accessory", {
           method: "POST",
           headers: {
@@ -161,7 +164,7 @@ export default function ProductsPage({ cart, setCart }) {
     } else {
       navigate("/signin");
     }
-  };
+  };  
 
   const handleIncreaseQuantity = (id) => {
     setCart(
