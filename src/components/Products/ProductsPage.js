@@ -39,75 +39,33 @@ export default function ProductsPage({ cart, setCart }) {
 
   const handleBuyNow = (product) => {
     if (isLoggedIn) {
-      // Remove accessories from the product object before passing to the checkout page
       const productWithoutAccessories = {
         id: product.id,
         nameP: product.nameP,
         priceP: product.priceP,
         description: product.description,
         imageP: product.imageP,
-        quantity: product.quantity || 1, // Add default quantity if not present
+        quantity: product.quantity || 1,
       };
-  
-      // Pass product details (without accessories) to the checkout page
       navigate("/checkout", { state: { product: productWithoutAccessories } });
     } else {
-      navigate("/signin"); // Redirect to sign-in if not logged in
+      navigate("/signin");
     }
   };
 
   const handleUpdateCartCount = () => {
     const newCartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-    localStorage.setItem('cartCount', newCartCount); // Store updated cart count
+    localStorage.setItem("cartCount", newCartCount);
   };
 
-  // useEffect to update cart count whenever cart changes
   useEffect(() => {
-    handleUpdateCartCount(); // Update cart count whenever cart changes
+    handleUpdateCartCount();
   }, [cart]);
 
-  // const handleAddProductToCart = (product) => {
-  //   if (isLoggedIn) {
-  //     const productData = {
-  //       id: product.id,
-  //       nameP: product.nameP,
-  //       priceP: product.priceP,
-  //       description: product.description,
-  //       imageP: product.imageP,
-  //       quantity: product.quantity || 1, // Include quantity field
-  //       accessories: product.accessories || [] // Ensure it's an array
-  //     };
-      
-  //     fetch("http://localhost:8080/smarthomes/cart", {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       credentials: 'include', // Include credentials (cookies) in request
-  //       body: JSON.stringify(productData),
-  //     })
-  //       .then((response) => {
-  //         if (!response.ok) {
-  //           throw new Error("Failed to add product to cart.");
-  //         }
-  //         return response.json();
-  //       })
-  //       .then((data) => {
-  //         console.log("Product added to cart:", data);
-  //         setCart([...cart, { ...product, quantity: 1 }]);
-  //         handleUpdateCartCount();
-  //       })
-  //       .catch((error) => {
-  //         console.error("Error adding product to cart:", error);
-  //       });
-  //   } else {
-  //     navigate("/signin"); // Redirect to sign-in if not logged in
-  //   }
-  // };  
   const handleAddProductToCart = (product) => {
     if (isLoggedIn) {
       const existingProduct = cart.find((item) => item.id === product.id);
-  
+
       if (existingProduct) {
         const updatedCart = cart.map((item) =>
           item.id === product.id
@@ -123,9 +81,8 @@ export default function ProductsPage({ cart, setCart }) {
           description: product.description,
           imageP: product.imageP,
           quantity: 1,
-          accessories: product.accessories || [],
         };
-  
+
         fetch("http://localhost:8080/smarthomes/cart/product", {
           method: "POST",
           headers: {
@@ -148,7 +105,7 @@ export default function ProductsPage({ cart, setCart }) {
             console.error("Error adding product to cart:", error);
           });
       }
-  
+
       setQuantities((prevQuantities) => ({
         ...prevQuantities,
         [product.id]: (prevQuantities[product.id] || 0) + 1,
@@ -156,17 +113,12 @@ export default function ProductsPage({ cart, setCart }) {
     } else {
       navigate("/signin");
     }
-  };      
-  
-  const handleSignOut = () => {
-    localStorage.removeItem("isLoggedIn"); // Clear the logged-in status
-    navigate("/"); // Redirect to the home page
   };
 
   const handleAddAccessoryToCart = (accessory) => {
     const accessoryCartId = `accessory-${accessory.nameA}`;
     const accessoryInCart = cart.find((item) => item.id === accessoryCartId);
-  
+
     if (isLoggedIn) {
       if (accessoryInCart) {
         setCart(
@@ -183,9 +135,8 @@ export default function ProductsPage({ cart, setCart }) {
           priceP: accessory.priceA.toFixed(2),
           imageP: accessory.imageA,
           quantity: 1,
-          accessories: [],
         };
-  
+
         fetch("http://localhost:8080/smarthomes/cart/accessory", {
           method: "POST",
           headers: {
@@ -218,25 +169,23 @@ export default function ProductsPage({ cart, setCart }) {
         item.id === id ? { ...item, quantity: item.quantity + 1 } : item
       )
     );
-  
-    // Update quantity in quantities state
+
     setQuantities((prevQuantities) => ({
       ...prevQuantities,
       [id]: (prevQuantities[id] || 0) + 1,
     }));
-  };  
+  };
 
   const handleDecreaseQuantity = (id) => {
     const product = cart.find((item) => item.id === id);
-  
+
     if (product.quantity > 1) {
       setCart(
         cart.map((item) =>
           item.id === id ? { ...item, quantity: item.quantity - 1 } : item
         )
       );
-  
-      // Update quantity in quantities state
+
       setQuantities((prevQuantities) => ({
         ...prevQuantities,
         [id]: prevQuantities[id] - 1,
@@ -284,7 +233,10 @@ export default function ProductsPage({ cart, setCart }) {
                     {(cart || []).reduce((sum, item) => sum + item.quantity, 0)}
                   </Link>
                   <button
-                    onClick={handleSignOut}
+                    onClick={() => {
+                      localStorage.removeItem("isLoggedIn");
+                      navigate("/");
+                    }}
                     className="bg-red-500 text-white px-4 py-2 rounded ml-2 text-sm sm:text-base"
                   >
                     Sign Out
@@ -329,7 +281,7 @@ export default function ProductsPage({ cart, setCart }) {
                 <div
                   key={product.id}
                   className="p-4 bg-white shadow rounded flex flex-col justify-between"
-                  onClick={() => handleProductClick(product)} // Trigger modal on click
+                  onClick={() => handleProductClick(product)}
                 >
                   <h3 className="text-lg sm:text-xl font-bold">
                     {product.nameP}
@@ -385,7 +337,7 @@ export default function ProductsPage({ cart, setCart }) {
                         className="bg-blue-500 text-white px-4 py-2 mt-4 rounded"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleBuyNow(product); // Pass the current product to the Buy Now logic
+                          handleBuyNow(product);
                         }}
                       >
                         Buy Now
@@ -400,7 +352,6 @@ export default function ProductsPage({ cart, setCart }) {
           )}
         </div>
 
-        {/* Modal for selected product */}
         {selectedProduct && (
           <div
             className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
@@ -429,7 +380,6 @@ export default function ProductsPage({ cart, setCart }) {
                 ${selectedProduct.priceP.toFixed(2)}
               </p>
 
-              {/* Display Accessories */}
               {selectedProduct.accessories &&
                 selectedProduct.accessories.length > 0 && (
                   <div className="mb-4">
@@ -499,7 +449,7 @@ export default function ProductsPage({ cart, setCart }) {
 
               <button
                 className="bg-blue-500 text-white px-4 py-2 mt-4 rounded w-full"
-                onClick={() => handleBuyNow(selectedProduct)} // Pass selected product to Buy Now
+                onClick={() => handleBuyNow(selectedProduct)}
               >
                 Buy Now
               </button>
