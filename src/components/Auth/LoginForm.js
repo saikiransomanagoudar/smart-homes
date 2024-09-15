@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loginType, setLoginType] = useState("Customer"); // Track login type (Customer or Salesman)
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
@@ -14,7 +15,13 @@ const LoginForm = () => {
       return;
     }
 
-    // Create form data to send to backend
+    // If Salesman is selected, navigate to the signup page
+    if (loginType === "Salesman") {
+      navigate("/signup");
+      return;
+    }
+
+    // Create form data to send to backend (for Customer login)
     const formData = new URLSearchParams();
     formData.append("email", email);
     formData.append("password", password);
@@ -35,7 +42,6 @@ const LoginForm = () => {
         const data = await response.text(); // Read the response body to set body used
         console.log(data);
         localStorage.setItem("isLoggedIn", "true"); // Set the logged-in status in local storage
-        // Redirect to home page on successful login
         navigate("/");
       } else {
         const data = await response.text();
@@ -62,6 +68,20 @@ const LoginForm = () => {
             </a>
           </p>
           {error && <div className="text-red-500">{error}</div>}
+          
+          {/* Add Dropdown Menu for selecting login type */}
+          <div className="mt-6 w-full">
+            <label>Select Role</label>
+            <select
+              value={loginType}
+              onChange={(e) => setLoginType(e.target.value)}
+              className="font-medium border-b border-black p-4 outline-0 focus-within:border-blue-400 w-full"
+            >
+              <option value="Customer">Customer Login</option>
+              <option value="Salesman">Salesman Login</option>
+            </select>
+          </div>
+
           <form
             onSubmit={(e) => e.preventDefault()}
             className="w-full flex flex-col items-center"
