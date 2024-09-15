@@ -24,6 +24,7 @@ const LoginForm = () => {
       const response = await fetch("http://localhost:8080/smarthomes/signin", {
         method: "POST",
         body: formData,
+        credentials: "include",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
         },

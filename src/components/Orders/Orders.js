@@ -1,14 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 export default function Orders() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Extract the order details passed from the Checkout page via state
-  const { name, address, deliveryOption, storeLocation, cartItems, totalPrice } = location.state || {};
+  // Extract order details passed from the Checkout page via state
+  // Use default values if state is undefined
+  const {
+    name = 'Guest',
+    address = 'No Address Provided',
+    deliveryOption = 'home',
+    storeLocation = 'Not Provided',
+    cartItems = [],
+    totalPrice = 0
+  } = location.state || {};
 
-  const [orders, setOrders] = useState([{ name, address, deliveryOption, storeLocation, cartItems, totalPrice }]);
+  // Initialize orders state with the received order or an empty array
+  const [orders, setOrders] = useState([]);
+
+  useEffect(() => {
+    if (location.state) {
+      setOrders([{
+        name,
+        address,
+        deliveryOption,
+        storeLocation,
+        cartItems,
+        totalPrice,
+      }]);
+    }
+  }, [location.state, name, address, deliveryOption, storeLocation, cartItems, totalPrice]);
 
   // Handle order cancellation
   const cancelOrder = (index) => {
@@ -31,30 +53,34 @@ export default function Orders() {
 
             <div className="mt-4">
               <h4 className="font-semibold">Items Purchased:</h4>
-              {order.cartItems.map((item, idx) => (
-                <div key={idx} className="flex items-center mb-4">
-                  <img src={item.imageP} alt={item.nameP} className="w-20 h-20 object-contain mr-4" />
-                  <div>
-                    <p><strong>{item.nameP}</strong></p>
-                    <p>Price: ${item.priceP}</p>
-                    <p>Quantity: {item.quantity}</p>
+              {order.cartItems.length > 0 ? (
+                order.cartItems.map((item, idx) => (
+                  <div key={idx} className="flex items-center mb-4">
+                    <img src={item.imageP} alt={item.nameP} className="w-20 h-20 object-contain mr-4" />
+                    <div>
+                      <p><strong>{item.nameP}</strong></p>
+                      <p>Price: ${item.priceP}</p>
+                      <p>Quantity: {item.quantity}</p>
 
-                    {/* Show accessories if any */}
-                    {item.accessories && item.accessories.length > 0 && (
-                      <div className="mt-2">
-                        <h4 className="font-semibold">Accessories:</h4>
-                        <ul>
-                          {item.accessories.map((acc, idx) => (
-                            <li key={idx}>
-                              {acc.nameA} - ${acc.priceA.toFixed(2)} (x{acc.quantity})
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+                      {/* Show accessories if any */}
+                      {item.accessories && item.accessories.length > 0 && (
+                        <div className="mt-2">
+                          <h4 className="font-semibold">Accessories:</h4>
+                          <ul>
+                            {item.accessories.map((acc, idx) => (
+                              <li key={idx}>
+                                {acc.nameA} - ${acc.priceA.toFixed(2)} (x{acc.quantity})
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p>No items in cart.</p>
+              )}
             </div>
             <p className="mt-2 font-bold">Total Price: ${order.totalPrice.toFixed(2)}</p>
 

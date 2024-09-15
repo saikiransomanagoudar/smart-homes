@@ -20,6 +20,9 @@ export default function Checkout() {
   const [cartItems, setCartItems] = useState([]); // For cart items or product
   const [totalPrice, setTotalPrice] = useState(0); // Track the total price
 
+  // Assuming you pass cartItems through navigation state
+  const { products, accessories } = location.state;
+
   // Retrieve product details from location state (for Buy Now)
   const productDetails = location.state?.product || null;
 
@@ -78,6 +81,52 @@ export default function Checkout() {
     setTotalPrice(total);
   };
 
+  const handlePlaceOrder = () => {
+    // Prepare the order data (you can include other fields such as user details here)
+    const orderData = {
+      productName: products[0]?.nameP || "",  
+      productPrice: products[0]?.priceP || 0, 
+      productImage: products[0]?.imageP || "", 
+      productDescription: products[0]?.description || "",  
+    
+      accessoryName: accessories[0]?.nameA || "",  
+      accessoryPrice: accessories[0]?.priceA || 0, 
+    
+      userAddress: `${formData.address}, ${formData.city}, ${formData.state}, ${formData.zip}`,  // Full address
+      creditCardNo: formData.creditCard,  
+      deliveryOption: formData.deliveryOption, 
+  
+      customerName: "test1@gmail.com", 
+      totalPrice: totalPrice 
+    };
+    
+    console.log("Placing order with data:", orderData); 
+
+    // Send the order data to the backend
+    fetch("http://localhost:8080/smarthomes/orders", {
+      method: "POST",
+      credentials: "include", // Ensure credentials are included
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(orderData)
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Failed to place order, status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log("Order placed successfully:", data); // Debugging statement
+        // Navigate to the Orders page and pass the order data
+        navigate("/orders", { state: { orders: data.orders } });
+      })
+      .catch((error) => {
+        console.error("Error placing order:", error); // Error handling
+      });
+  };
+
   // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -97,26 +146,30 @@ export default function Checkout() {
 
     // Prepare order data
     const orderData = {
-      name: formData.name,
-      address: formData.address,
-      city: formData.city,
-      state: formData.state,
-      zip: formData.zip,
-      deliveryOption: formData.deliveryOption,
-      storeLocation:
-        formData.deliveryOption === "pickup"
-          ? formData.storeLocation
-          : "Home Delivery",
-      cartItems, // Include cart items in the order
-      productName: cartItems[0]?.nameP || "", // Make sure productName is correctly set
-      productPrice: cartItems[0]?.priceP || 0, // Make sure productPrice is correctly set
-      creditCard: formData.creditCard,
-      totalPrice
-    };
+      // Assuming you are sending an array of products and accessories, flatten them into order details
+      productName: products[0]?.nameP || "",  // Assuming you're sending the first product for simplicity
+      productPrice: products[0]?.priceP || 0, // Get the product price
+      productImage: products[0]?.imageP || "", // Product image if needed
+      productDescription: products[0]?.description || "",  // Add the product description
+    
+      // For accessories, you could handle them separately or include them in the product if applicable
+      accessoryName: accessories[0]?.nameA || "",  // Optional: Include accessory details if necessary
+      accessoryPrice: accessories[0]?.priceA || 0, // Optional: Include accessory price
+    
+      // Include user details directly in the object
+      userAddress: `${formData.address}, ${formData.city}, ${formData.state}, ${formData.zip}`,  // Full address
+      creditCardNo: formData.creditCard,  // Credit card number based on the Orders class field
+      deliveryOption: formData.deliveryOption,  // Delivery option from the form
+    
+      // Assuming customerName comes from session in the backend, you can leave this out
+      customerName: "test1@gmail.com",  // Or pass the session-stored username, if known
+      totalPrice: totalPrice  // Include the total price calculated
+    };    
 
     // Call backend to process the order
     fetch("http://localhost:8080/smarthomes/checkout", {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json"
       },
@@ -160,7 +213,6 @@ export default function Checkout() {
           Your delivery/pickup date is:{" "}
           <span className="font-bold">{confirmation.deliveryDate}</span>
         </p>
-
         {/* Show ordered product or cart details */}
         <div className="mt-6">
           <h3 className="text-xl font-semibold">Order Details</h3>
@@ -197,12 +249,17 @@ export default function Checkout() {
             </div>
           ))}
         </div>
-
         <button
           onClick={() => navigate("/")}
           className="mt-8 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
         >
           Go back to homepage
+        </button>{" "}
+        <button
+          onClick={() => navigate("/orders")}
+          className="mt-8 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        >
+          View Orders
         </button>
       </div>
     );
@@ -319,6 +376,7 @@ export default function Checkout() {
         <button
           type="submit"
           className="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          onClick={handlePlaceOrder}
         >
           Place Order
         </button>

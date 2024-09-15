@@ -52,8 +52,7 @@ public class LoginServlet extends HttpServlet {
 
             for (User user : hm.values()) {
                 // Check if email or email matches and if the password is correct
-                if ((user.email().equals(email) || user.email().equals(email)) &&
-                    user.password().equals(password)) {
+                if (user.email().equals(email) && user.password().equals(password)) {
                     validCredentials = true;
                     loggedInUser = user;
                     break;
@@ -61,14 +60,16 @@ public class LoginServlet extends HttpServlet {
             }
 
             if (validCredentials) {
-                // User successfully logged in
                 response.setStatus(HttpServletResponse.SC_OK);
-                out.print("Login successful!, \"email\": " + loggedInUser.email());
+                out.print("{ \"message\": \"Login successful\", \"email\": \"" + loggedInUser.email() + "\" }");
+                HttpSession session = request.getSession(true);
+                session.setAttribute("username", loggedInUser.email());
+                System.out.println("Username set in session: " + session.getAttribute("username"));
             } else {
                 // Incorrect email or password
                 error_msg = "Invalid email or password!";
             }
-
+            
         } catch (Exception e) {
             e.printStackTrace();
             error_msg = "An error occurred during login!";
@@ -76,8 +77,8 @@ public class LoginServlet extends HttpServlet {
 
         // Return JSON response for error
         if (error_msg != null) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // Unauthorized if login failed
-            out.print(error_msg);
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            out.print("{ \"error\": \"" + error_msg + "\" }");
         }
 
         out.flush(); // Ensure the response body is written to the client

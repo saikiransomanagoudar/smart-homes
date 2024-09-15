@@ -48,6 +48,7 @@ export default function Cart() {
 
     fetch("http://localhost:8080/smarthomes/cart", {
       method: "PUT",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
@@ -88,18 +89,18 @@ export default function Cart() {
 
   const handleAddAccessory = (nameA) => {
     const updatedAccessories = accessories.map((acc) =>
-      acc.id === nameA ? { ...acc, quantity: acc.quantity + 1 } : acc
+      acc.nameA === nameA ? { ...acc, quantity: acc.quantity + 1 } : acc
     );
     setAccessories(updatedAccessories);
     updateCartBackend({ products, accessories: updatedAccessories });
   };
 
-  const handleRemoveAccessory = (id) => {
+  const handleRemoveAccessory = (nameA) => {
     const updatedAccessories = accessories
       .map((acc) => {
-        if (acc.id === id && acc.quantity > 1) {
+        if (acc.nameA === nameA && acc.quantity > 1) {
           return { ...acc, quantity: acc.quantity - 1 };
-        } else if (acc.id === id && acc.quantity === 1) {
+        } else if (acc.nameA === nameA && acc.quantity === 1) {
           return null;
         }
         return acc;
@@ -183,29 +184,29 @@ export default function Cart() {
           <div className="grid grid-cols-1 gap-4">
             {accessories.map((acc, index) => (
               <div
-                key={`${acc.id}-${index}`}
+                key={`${acc.nameA}-${index}`}
                 className="flex items-center bg-white p-4 shadow"
               >
                 <Img
                   src={acc.imageA}
-                  alt={acc.id}
+                  alt={acc.nameA}
                   className="w-20 h-20 object-cover mr-4"
                 />
                 <div className="flex-grow">
-                  <h3 className="text-lg font-bold">{acc.id}</h3>
+                  <h3 className="text-lg font-bold">{acc.nameA}</h3>
                   <p>${acc.priceA?.toFixed(2) || "N/A"}</p>
                   <p>Quantity: {acc.quantity}</p>
                 </div>
                 <div className="flex flex-col items-center">
                   <button
                     className="bg-green-500 text-white px-2 py-1 rounded mb-1"
-                    onClick={() => handleAddAccessory(acc.id)}
+                    onClick={() => handleAddAccessory(acc.nameA)}
                   >
                     Add
                   </button>
                   <button
                     className="bg-red-500 text-white px-2 py-1 rounded"
-                    onClick={() => handleRemoveAccessory(acc.id)}
+                    onClick={() => handleRemoveAccessory(acc.nameA)}
                   >
                     Remove
                   </button>
