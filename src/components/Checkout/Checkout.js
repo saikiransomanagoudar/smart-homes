@@ -21,7 +21,7 @@ export default function Checkout() {
   const [totalPrice, setTotalPrice] = useState(0); // Track the total price
 
   // Assuming you pass cartItems through navigation state
-  const { products, accessories } = location.state;
+  const { products = [], accessories = [] } = location.state || [];
 
   // Retrieve product details from location state (for Buy Now)
   const productDetails = location.state?.product || null;
@@ -84,23 +84,23 @@ export default function Checkout() {
   const handlePlaceOrder = () => {
     // Prepare the order data (you can include other fields such as user details here)
     const orderData = {
-      productName: products[0]?.nameP || "",  
-      productPrice: products[0]?.priceP || 0, 
-      productImage: products[0]?.imageP || "", 
-      productDescription: products[0]?.description || "",  
-    
-      accessoryName: accessories[0]?.nameA || "",  
-      accessoryPrice: accessories[0]?.priceA || 0, 
-    
-      userAddress: `${formData.address}, ${formData.city}, ${formData.state}, ${formData.zip}`,  // Full address
-      creditCardNo: formData.creditCard,  
-      deliveryOption: formData.deliveryOption, 
-  
-      customerName: "test1@gmail.com", 
-      totalPrice: totalPrice 
+      productName: products[0]?.nameP || "",
+      productPrice: products[0]?.priceP || 0,
+      productImage: products[0]?.imageP || "",
+      productDescription: products[0]?.description || "",
+
+      accessoryName: accessories[0]?.nameA || "",
+      accessoryPrice: accessories[0]?.priceA || 0,
+
+      userAddress: `${formData.address}, ${formData.city}, ${formData.state}, ${formData.zip}`, // Full address
+      creditCardNo: formData.creditCard,
+      deliveryOption: formData.deliveryOption,
+
+      customerName: "test1@gmail.com",
+      totalPrice: totalPrice
     };
-    
-    console.log("Placing order with data:", orderData); 
+
+    console.log("Placing order with data:", orderData);
 
     // Send the order data to the backend
     fetch("http://localhost:8080/smarthomes/orders", {
@@ -127,6 +127,14 @@ export default function Checkout() {
       });
   };
 
+  const handleCancelOrder = () => {
+    if (window.confirm("Are you sure you want to cancel the order?")) {
+      // Show success message and navigate to home page
+      alert("Order cancelled successfully");
+      navigate("/");
+    }
+  };
+
   // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -147,24 +155,24 @@ export default function Checkout() {
     // Prepare order data
     const orderData = {
       // Assuming you are sending an array of products and accessories, flatten them into order details
-      productName: products[0]?.nameP || "",  // Assuming you're sending the first product for simplicity
+      productName: products[0]?.nameP || "", // Assuming you're sending the first product for simplicity
       productPrice: products[0]?.priceP || 0, // Get the product price
       productImage: products[0]?.imageP || "", // Product image if needed
-      productDescription: products[0]?.description || "",  // Add the product description
-    
+      productDescription: products[0]?.description || "", // Add the product description
+
       // For accessories, you could handle them separately or include them in the product if applicable
-      accessoryName: accessories[0]?.nameA || "",  // Optional: Include accessory details if necessary
+      accessoryName: accessories[0]?.nameA || "", // Optional: Include accessory details if necessary
       accessoryPrice: accessories[0]?.priceA || 0, // Optional: Include accessory price
-    
+
       // Include user details directly in the object
-      userAddress: `${formData.address}, ${formData.city}, ${formData.state}, ${formData.zip}`,  // Full address
-      creditCardNo: formData.creditCard,  // Credit card number based on the Orders class field
-      deliveryOption: formData.deliveryOption,  // Delivery option from the form
-    
+      userAddress: `${formData.address}, ${formData.city}, ${formData.state}, ${formData.zip}`, // Full address
+      creditCardNo: formData.creditCard, // Credit card number based on the Orders class field
+      deliveryOption: formData.deliveryOption, // Delivery option from the form
+
       // Assuming customerName comes from session in the backend, you can leave this out
-      customerName: "test1@gmail.com",  // Or pass the session-stored username, if known
-      totalPrice: totalPrice  // Include the total price calculated
-    };    
+      customerName: "test1@gmail.com", // Or pass the session-stored username, if known
+      totalPrice: totalPrice // Include the total price calculated
+    };
 
     // Call backend to process the order
     fetch("http://localhost:8080/smarthomes/checkout", {
@@ -213,6 +221,14 @@ export default function Checkout() {
           Your delivery/pickup date is:{" "}
           <span className="font-bold">{confirmation.deliveryDate}</span>
         </p>
+        <p className="text-lg">
+          Delivery Option:{" "}
+          <span className="font-bold">
+            {formData.deliveryOption === "home"
+              ? "Home Delivery"
+              : `Store Pickup at: ${formData.storeLocation}`}
+          </span>
+        </p>
         {/* Show ordered product or cart details */}
         <div className="mt-6">
           <h3 className="text-xl font-semibold">Order Details</h3>
@@ -250,16 +266,16 @@ export default function Checkout() {
           ))}
         </div>
         <button
+          onClick={handleCancelOrder}
+          className="mt-8 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+        >
+          Cancel Order
+        </button>{" "}
+        <button
           onClick={() => navigate("/")}
           className="mt-8 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
         >
           Go back to homepage
-        </button>{" "}
-        <button
-          onClick={() => navigate("/orders")}
-          className="mt-8 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        >
-          View Orders
         </button>
       </div>
     );
