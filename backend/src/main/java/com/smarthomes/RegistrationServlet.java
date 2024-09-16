@@ -18,7 +18,7 @@ public class RegistrationServlet extends HttpServlet {
         PrintWriter out = response.getWriter();
 
         // Get the user parameters from the request
-        String username = request.getParameter("username");
+        String name = request.getParameter("name");
         String email = request.getParameter("email");
         String password = request.getParameter("password");
 
@@ -26,7 +26,7 @@ public class RegistrationServlet extends HttpServlet {
         String filePath = "C:\\Users\\saiki\\smarthomes_data\\UserDetails.txt";
 
         // Validate input fields
-        if (username == null || email == null || password == null || username.isEmpty() || email.isEmpty() || password.isEmpty()) {
+        if (name == null || email == null || password == null || name.isEmpty() || email.isEmpty() || password.isEmpty()) {
             // Respond with HTTP 400 Bad Request if any field is missing or invalid
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             out.print("Invalid input. Username, Email, and Password are required.");
@@ -52,15 +52,15 @@ public class RegistrationServlet extends HttpServlet {
                 System.out.println("Existing users in system: " + hm.keySet());
             }
 
-            // Check if username or email already exists
-            boolean userExists = hm.values().stream().anyMatch(user -> user.username().equals(username) || user.email().equals(email));
-            if (userExists) {
-                System.out.println("Conflict: Username or email already exists: " + username + " or " + email);
-                error_msg = "Username or Email already exists!";
+            // Check if email already exists (use email as the unique identifier)
+            boolean emailExists = hm.values().stream().anyMatch(user -> user.email().equals(email));
+            if (emailExists) {
+                System.out.println("Conflict: Email already exists: " + email);
+                error_msg = "Email already exists!";
             } else {
                 // If not, create a new user and store it in the HashMap
-                User newUser = new User(username, email, password);
-                hm.put(username, newUser);
+                User newUser = new User(name, email, password);
+                hm.put(email, newUser);  // Using email as the key instead of name
 
                 // Save the updated HashMap back to the file
                 FileOutputStream fileOutputStream = new FileOutputStream(userFile);
@@ -71,7 +71,7 @@ public class RegistrationServlet extends HttpServlet {
                 fileOutputStream.close();
 
                 // Log successful registration
-                System.out.println("User registered successfully: " + username);
+                System.out.println("User registered successfully: " + name);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -83,10 +83,10 @@ public class RegistrationServlet extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_OK);
             out.print("Registration successful!");
         } else {
-            response.setStatus(HttpServletResponse.SC_CONFLICT); // Conflict if username or email already exists
+            response.setStatus(HttpServletResponse.SC_CONFLICT);
             out.print(error_msg);
         }
-
-        out.flush(); // Response body is written to the client
+        
+        out.flush();
     }
 }

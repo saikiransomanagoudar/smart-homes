@@ -6,10 +6,12 @@ const RegisterForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const navigate = useNavigate();
 
   const signUpHandler = async () => {
     setError("");
+    setSuccess("");
 
     // Validate input
     if (!name || !email || !password) {
@@ -23,7 +25,7 @@ const RegisterForm = () => {
 
     // Create form data to send to backend
     const formData = new URLSearchParams();
-    formData.append("username", name);
+    formData.append("name", name);
     formData.append("email", email);
     formData.append("password", password);
 
@@ -37,17 +39,20 @@ const RegisterForm = () => {
           "Content-Type": "application/x-www-form-urlencoded",
         },
       });
-      console.log(response);
+
       if (response.ok) {
-        // Registration successful, redirect to login or homepage
-        navigate("/signin");
+        // Registration successful, show a success message and redirect to login
+        setSuccess("Registration successful! Redirecting to login...");
+        setTimeout(() => {
+          navigate("/signin");
+        }, 2000); // Redirect after 2 seconds
       } else if (response.status === 409) {
         // Handle 409 Conflict (duplicate username or email)
         const data = await response.text();
-        setError(data.message || "Username or Email already exists.");
+        setError(data || "Username or Email already exists.");
       } else {
         const data = await response.text();
-        setError(data.message || "Registration failed.");
+        setError(data || "Registration failed.");
       }
     } catch (error) {
       console.error("Error during registration:", error);
@@ -73,6 +78,7 @@ const RegisterForm = () => {
             </a>
           </p>
           {error && <div className="text-red-500">{error}</div>}
+          {success && <div className="text-green-500">{success}</div>} {/* Success message */}
           <form
             onSubmit={(e) => e.preventDefault()}
             className="w-full flex flex-col items-center"
@@ -83,6 +89,7 @@ const RegisterForm = () => {
                 type="text"
                 className="font-medium border-b border-black p-4 outline-0 focus-within:border-blue-400 w-full"
                 required
+                value={name}
                 onChange={(e) => setName(e.target.value)}
               />
             </div>
@@ -92,6 +99,7 @@ const RegisterForm = () => {
                 type="email"
                 className="font-medium border-b border-black p-4 outline-0 focus-within:border-blue-400 w-full"
                 required
+                value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
@@ -102,6 +110,7 @@ const RegisterForm = () => {
                 className="font-medium border-b border-black p-4 outline-0 focus-within:border-blue-400 w-full"
                 required
                 autoComplete="on"
+                value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>

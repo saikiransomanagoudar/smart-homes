@@ -86,49 +86,49 @@ export default function Checkout() {
     setTotalPrice(total);
   };
 
-  const handlePlaceOrder = () => {
-    // Prepare the order data (you can include other fields such as user details here)
-    const orderData = {
-      productName: products[0]?.nameP || "",
-      productPrice: products[0]?.priceP || 0,
-      productImage: products[0]?.imageP || "",
-      productDescription: products[0]?.description || "",
+  // const handlePlaceOrder = () => {
+  //   // Prepare the order data (you can include other fields such as user details here)
+  //   const orderData = {
+  //     productName: products[0]?.nameP || "",
+  //     productPrice: products[0]?.priceP || 0,
+  //     productImage: products[0]?.imageP || "",
+  //     productDescription: products[0]?.description || "",
 
-      accessoryName: accessories[0]?.nameA || "",
-      accessoryPrice: accessories[0]?.priceA || 0,
+  //     accessoryName: accessories[0]?.nameA || "",
+  //     accessoryPrice: accessories[0]?.priceA || 0,
 
-      userAddress: `${formData.address}, ${formData.city}, ${formData.state}, ${formData.zip}`, // Full address
-      creditCardNo: formData.creditCard,
-      deliveryOption: formData.deliveryOption,
+  //     userAddress: `${formData.address}, ${formData.city}, ${formData.state}, ${formData.zip}`, // Full address
+  //     creditCardNo: formData.creditCard,
+  //     deliveryOption: formData.deliveryOption,
 
-      customerName: "test1@gmail.com",
-      totalPrice: totalPrice
-    };
+  //     customerName: "test1@gmail.com",
+  //     totalPrice: totalPrice
+  //   };
 
-    console.log("Placing order with data:", orderData);
+  //   console.log("Placing order with data:", orderData);
 
-    // Send the order data to the backend
-    fetch("http://localhost:8080/smarthomes/orders", {
-      method: "POST",
-      credentials: "include", // Ensure credentials are included
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(orderData)
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`Failed to place order, status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then((data) => {
-        console.log("Order placed successfully:", data); // Debugging statement
-      })
-      .catch((error) => {
-        console.error("Error placing order:", error); // Error handling
-      });
-  };
+  //   // Send the order data to the backend
+  //   fetch("http://localhost:8080/smarthomes/orders", {
+  //     method: "POST",
+  //     credentials: "include", // Ensure credentials are included
+  //     headers: {
+  //       "Content-Type": "application/json"
+  //     },
+  //     body: JSON.stringify(orderData)
+  //   })
+  //     .then((response) => {
+  //       if (!response.ok) {
+  //         throw new Error(`Failed to place order, status: ${response.status}`);
+  //       }
+  //       return response.json();
+  //     })
+  //     .then((data) => {
+  //       console.log("Order placed successfully:", data); // Debugging statement
+  //     })
+  //     .catch((error) => {
+  //       console.error("Error placing order:", error); // Error handling
+  //     });
+  // };
   const handleCancelOrder = () => {
     if (window.confirm("Are you sure you want to cancel the order?")) {
       // Show success message and navigate to home page
@@ -286,7 +286,7 @@ export default function Checkout() {
   return (
     <div className="checkout max-w-2xl mx-auto p-8 bg-white shadow-lg rounded-lg">
       <h2 className="text-2xl font-bold mb-6">Checkout</h2>
-      <form onSubmit={handleSubmit}>
+      <form>
         <div className="mb-4">
           <label className="block text-gray-700">Name:</label>
           <input
@@ -394,7 +394,7 @@ export default function Checkout() {
         <button
           type="submit"
           className="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-          onClick={handlePlaceOrder}
+          onClick={handleSubmit}
         >
           Place Order
         </button>
