@@ -1,7 +1,6 @@
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import LoginForm from './components/Auth/LoginForm';
 import Register from './components/Auth/Register';
-import PrivateRoute from './components/Auth/PrivateRoute';
 import Home from './routes/Home';
 import Cart from './components/Cart/Cart';
 import Checkout from './components/Checkout/Checkout';
@@ -21,14 +20,6 @@ function App() {
         <Route path="/products/:category" element={<ProductsPage cart={cart} setCart={setCart} />} />
         <Route path="/signin" element={<LoginForm />} />
         <Route path="/signup" element={<Register />} />
-        <Route
-          path="/checkout"
-          element={
-            <PrivateRoute>
-              <Checkout />
-            </PrivateRoute>
-          }
-        />
         <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={<Checkout cart={cart} setCart={setCart} />} />
         <Route path="/orders" element={<Orders />} />

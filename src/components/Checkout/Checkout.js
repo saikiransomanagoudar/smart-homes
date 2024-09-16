@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 export default function Checkout() {
   const location = useLocation();
   const navigate = useNavigate();
+  const isLoggedIn = localStorage.getItem("isLoggedIn");
 
   const [formData, setFormData] = useState({
     name: "",
@@ -28,26 +29,30 @@ export default function Checkout() {
 
   // Load cart items if no product details (coming from Cart page)
   useEffect(() => {
-    if (!productDetails) {
-      // Fetch cart items from the backend
-      fetch("http://localhost:8080/smarthomes/cart", {
-        method: "GET",
-        credentials: "include" // Include credentials (cookies) in request
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          const products = data.products || [];
-          const accessories = data.accessories || []; // Ensure accessories are included
-          setCartItems([...products, ...accessories]); // Add accessories to cart items
-          calculateTotalPrice(products, accessories); // Update price calculation
+    if (isLoggedIn === "true") {
+      if (!productDetails) {
+        // Fetch cart items from the backend
+        fetch("http://localhost:8080/smarthomes/cart", {
+          method: "GET",
+          credentials: "include" // Include credentials (cookies) in request
         })
-        .catch((error) => {
-          console.error("Error fetching cart items:", error);
-        });
+          .then((response) => response.json())
+          .then((data) => {
+            const products = data.products || [];
+            const accessories = data.accessories || []; // Ensure accessories are included
+            setCartItems([...products, ...accessories]); // Add accessories to cart items
+            calculateTotalPrice(products, accessories); // Update price calculation
+          })
+          .catch((error) => {
+            console.error("Error fetching cart items:", error);
+          });
+      } else {
+        // If it's a Buy Now, set the product as the only item in cartItems
+        setCartItems([{ ...productDetails, quantity: 1 }]);
+        setTotalPrice(productDetails.priceP); // Set initial price for Buy Now
+      }
     } else {
-      // If it's a Buy Now, set the product as the only item in cartItems
-      setCartItems([{ ...productDetails, quantity: 1 }]);
-      setTotalPrice(productDetails.priceP); // Set initial price for Buy Now
+      navigate("/signin");
     }
   }, [productDetails]);
 
@@ -119,14 +124,11 @@ export default function Checkout() {
       })
       .then((data) => {
         console.log("Order placed successfully:", data); // Debugging statement
-        // Navigate to the Orders page and pass the order data
-        navigate("/orders", { state: { orders: data.orders } });
       })
       .catch((error) => {
         console.error("Error placing order:", error); // Error handling
       });
   };
-
   const handleCancelOrder = () => {
     if (window.confirm("Are you sure you want to cancel the order?")) {
       // Show success message and navigate to home page
