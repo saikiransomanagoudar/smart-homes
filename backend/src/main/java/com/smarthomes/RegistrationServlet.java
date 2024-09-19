@@ -4,12 +4,14 @@ import java.io.*;
 import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
-import java.util.HashMap;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 @WebServlet("/signup")
 public class RegistrationServlet extends HttpServlet {
 
-    @SuppressWarnings("unchecked")
     public void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
@@ -23,7 +25,6 @@ public class RegistrationServlet extends HttpServlet {
         String password = request.getParameter("password");
 
         String error_msg = null;
-        String filePath = "C:\\Users\\saiki\\smarthomes_data\\UserDetails.txt";
 
         // Validate input fields
         if (name == null || email == null || password == null || name.isEmpty() || email.isEmpty() || password.isEmpty()) {
@@ -34,48 +35,42 @@ public class RegistrationServlet extends HttpServlet {
             return;
         }
 
-        // Create a HashMap to store users
-        HashMap<String, User> hm = new HashMap<>();
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
 
         try {
-            // Read the user details from the file
-            File userFile = new File(filePath);
+            // Establish connection to MySQL database
+            conn = MySQLDataStoreUtilities.getConnection();
 
-            if (userFile.exists()) {
-                FileInputStream fileInputStream = new FileInputStream(userFile);
-                ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
-                hm = (HashMap<String, User>) objectInputStream.readObject();
-                objectInputStream.close();
-                fileInputStream.close();
+            // Check if the email already exists in the database
+            String checkQuery = "SELECT * FROM users WHERE email = ?";
+            ps = conn.prepareStatement(checkQuery);
+            ps.setString(1, email);
+            rs = ps.executeQuery();
 
-                // Log current users in the system
-                System.out.println("Existing users in system: " + hm.keySet());
-            }
-
-            // Check if email already exists (use email as the unique identifier)
-            boolean emailExists = hm.values().stream().anyMatch(user -> user.email().equals(email));
-            if (emailExists) {
+            if (rs.next()) {
+                // Email already exists
                 System.out.println("Conflict: Email already exists: " + email);
                 error_msg = "Email already exists!";
             } else {
-                // If not, create a new user and store it in the HashMap
-                User newUser = new User(name, email, password);
-                hm.put(email, newUser);  // Using email as the key instead of name
-
-                // Save the updated HashMap back to the file
-                FileOutputStream fileOutputStream = new FileOutputStream(userFile);
-                ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
-                objectOutputStream.writeObject(hm);
-                objectOutputStream.flush();
-                objectOutputStream.close();
-                fileOutputStream.close();
+                // Insert new user into the database
+                String insertQuery = "INSERT INTO users (name, email, password) VALUES (?, ?, ?)";
+                ps = conn.prepareStatement(insertQuery);
+                ps.setString(1, name);
+                ps.setString(2, email);
+                ps.setString(3, password);
+                ps.executeUpdate();
 
                 // Log successful registration
                 System.out.println("User registered successfully: " + name);
             }
-        } catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
             error_msg = "An error occurred during registration!";
+        } finally {
+            // Close the database connection
+            MySQLDataStoreUtilities.closeConnection(conn);
         }
 
         // Return JSON response

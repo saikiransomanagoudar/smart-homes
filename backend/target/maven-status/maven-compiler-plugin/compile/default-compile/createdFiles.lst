@@ -5,6 +5,7 @@ com\smarthomes\Product.class
 com\smarthomes\ProductSAXHandler.class
 com\smarthomes\CartServlet.class
 com\smarthomes\CartResponse.class
+com\smarthomes\MySQLDataStoreUtilities.class
 com\smarthomes\ProductServlet.class
 com\smarthomes\RegistrationServlet.class
 com\smarthomes\LoginServlet.class
