@@ -17,10 +17,12 @@ Smart Homes is a full-stack web application designed to simulate an e-commerce p
   - React.js
   - Tailwind CSS for styling
   - React Router for navigation
+  - ```http://localhost:3000```
 
 - **Backend**:
   - Java Servlets
   - Jakarta EE
 
 - **Deployment**:
-  - Hosted locally using Apache Tomcat.
+  - Hosted locally using Apache Tomcat
+  - ```http://localhost:8080```
