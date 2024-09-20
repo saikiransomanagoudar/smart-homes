@@ -60,7 +60,14 @@ export default function Checkout() {
   const storeLocations = [
     "Store 1: 1001 Main St, ZIP: 12345",
     "Store 2: 1501 Maple Ave, ZIP: 12346",
-    "Store 3: 2001 Oak St, ZIP: 12347"
+    "Store 3: 2001 Oak St, ZIP: 12347",
+    "Store 4: 2501 Pine St, ZIP: 12348",
+    "Store 5: 3001 Elm St, ZIP: 12349",
+    "Store 6: 3501 Cedar St, ZIP: 12350",
+    "Store 7: 4001 Birch St, ZIP: 12351",
+    "Store 8: 4501 Walnut St, ZIP: 12352",
+    "Store 9: 5001 Chestnut St, ZIP: 12353",
+    "Store 10: 5501 Spruce St, ZIP: 12354"
   ];
 
   // Handle form input changes
@@ -96,10 +103,7 @@ export default function Checkout() {
       return;
     }
 
-    // Validate numeric fields (ensure they aren't empty or invalid)
-    const productPrice = products[0]?.priceP
-      ? parseFloat(products[0].priceP)
-      : 0;
+    const productPrice = products[0]?.priceP ? parseFloat(products[0].priceP) : 0;
     if (productPrice <= 0) {
       setError("Invalid product price.");
       return;
@@ -109,16 +113,16 @@ export default function Checkout() {
     const orderData = {
       productId: products[0]?.id || "",
       productName: products[0]?.nameP || "",
-      price: productPrice, // Ensure this is a valid number
+      price: productPrice,  // Ensure this is a valid number
       quantity: products[0]?.quantity || 1, // Validate quantity
       category: products[0]?.category || "General",
       userAddress: `${formData.address}, ${formData.city}, ${formData.state}, ${formData.zip}`,
       creditCardNo: formData.creditCard,
       deliveryOption: formData.deliveryOption,
       storeLocation: formData.storeLocation || null,
-      customerName: "test1@gmail.com",
-      shippingCost: 5.0,
-      discount: 0.0,
+      customerName: "test1@gmail.com", 
+      shippingCost: 5.0, 
+      discount: 0.0, 
       totalPrice: totalPrice
     };
 
@@ -295,9 +299,7 @@ export default function Checkout() {
 
         {formData.deliveryOption === "pickup" && (
           <div className="mb-4">
-            <label className="block text-gray-700">
-              Select Store Location:
-            </label>
+            <label className="block text-gray-700">Select Store Location:</label>
             <select
               name="storeLocation"
               value={formData.storeLocation}
