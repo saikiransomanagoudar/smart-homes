@@ -13,8 +13,8 @@ export default function Checkout() {
     state: "",
     zip: "",
     creditCard: "",
-    deliveryOption: "home", // default to home delivery
-    storeLocation: ""
+    deliveryOption: "home", // Default to home delivery
+    storeLocation: "" // Store location for in-store pickup
   });
   const [confirmation, setConfirmation] = useState(null);
   const [error, setError] = useState("");
@@ -22,7 +22,7 @@ export default function Checkout() {
   const [totalPrice, setTotalPrice] = useState(0); // Track the total price
 
   // Assuming you pass cartItems through navigation state
-  const { products = [], accessories = [] } = location.state || [];
+  const { products = [] } = location.state || [];
 
   // Retrieve product details from location state (for Buy Now)
   const productDetails = location.state?.product || null;
@@ -39,7 +39,7 @@ export default function Checkout() {
           .then((response) => response.json())
           .then((data) => {
             const products = data.products || [];
-            const accessories = data.accessories || []; // Ensure accessories are included
+            const accessories = data.accessories || [];
             setCartItems([...products, ...accessories]); // Add accessories to cart items
             calculateTotalPrice(products, accessories); // Update price calculation
           })
@@ -60,14 +60,7 @@ export default function Checkout() {
   const storeLocations = [
     "Store 1: 1001 Main St, ZIP: 12345",
     "Store 2: 1501 Maple Ave, ZIP: 12346",
-    "Store 3: 2001 Oak St, ZIP: 12347",
-    "Store 4: 2501 Pine St, ZIP: 12348",
-    "Store 5: 3001 Elm St, ZIP: 12349",
-    "Store 6: 3501 Cedar St, ZIP: 12350",
-    "Store 7: 4001 Birch St, ZIP: 12351",
-    "Store 8: 4501 Walnut St, ZIP: 12352",
-    "Store 9: 5001 Chestnut St, ZIP: 12353",
-    "Store 10: 5501 Spruce St, ZIP: 12354"
+    "Store 3: 2001 Oak St, ZIP: 12347"
   ];
 
   // Handle form input changes
@@ -84,57 +77,6 @@ export default function Checkout() {
         0
       );
     setTotalPrice(total);
-  };
-
-  // const handlePlaceOrder = () => {
-  //   // Prepare the order data (you can include other fields such as user details here)
-  //   const orderData = {
-  //     productName: products[0]?.nameP || "",
-  //     productPrice: products[0]?.priceP || 0,
-  //     productImage: products[0]?.imageP || "",
-  //     productDescription: products[0]?.description || "",
-
-  //     accessoryName: accessories[0]?.nameA || "",
-  //     accessoryPrice: accessories[0]?.priceA || 0,
-
-  //     userAddress: `${formData.address}, ${formData.city}, ${formData.state}, ${formData.zip}`, // Full address
-  //     creditCardNo: formData.creditCard,
-  //     deliveryOption: formData.deliveryOption,
-
-  //     customerName: "test1@gmail.com",
-  //     totalPrice: totalPrice
-  //   };
-
-  //   console.log("Placing order with data:", orderData);
-
-  //   // Send the order data to the backend
-  //   fetch("http://localhost:8080/smarthomes/orders", {
-  //     method: "POST",
-  //     credentials: "include", // Ensure credentials are included
-  //     headers: {
-  //       "Content-Type": "application/json"
-  //     },
-  //     body: JSON.stringify(orderData)
-  //   })
-  //     .then((response) => {
-  //       if (!response.ok) {
-  //         throw new Error(`Failed to place order, status: ${response.status}`);
-  //       }
-  //       return response.json();
-  //     })
-  //     .then((data) => {
-  //       console.log("Order placed successfully:", data); // Debugging statement
-  //     })
-  //     .catch((error) => {
-  //       console.error("Error placing order:", error); // Error handling
-  //     });
-  // };
-  const handleCancelOrder = () => {
-    if (window.confirm("Are you sure you want to cancel the order?")) {
-      // Show success message and navigate to home page
-      alert("Order cancelled successfully");
-      navigate("/");
-    }
   };
 
   // Handle form submission
@@ -154,26 +96,30 @@ export default function Checkout() {
       return;
     }
 
+    // Validate numeric fields (ensure they aren't empty or invalid)
+    const productPrice = products[0]?.priceP
+      ? parseFloat(products[0].priceP)
+      : 0;
+    if (productPrice <= 0) {
+      setError("Invalid product price.");
+      return;
+    }
+
     // Prepare order data
     const orderData = {
-      // Assuming you are sending an array of products and accessories, flatten them into order details
-      productName: products[0]?.nameP || "", // Assuming you're sending the first product for simplicity
-      productPrice: products[0]?.priceP || 0, // Get the product price
-      productImage: products[0]?.imageP || "", // Product image if needed
-      productDescription: products[0]?.description || "", // Add the product description
-
-      // For accessories, you could handle them separately or include them in the product if applicable
-      accessoryName: accessories[0]?.nameA || "", // Optional: Include accessory details if necessary
-      accessoryPrice: accessories[0]?.priceA || 0, // Optional: Include accessory price
-
-      // Include user details directly in the object
-      userAddress: `${formData.address}, ${formData.city}, ${formData.state}, ${formData.zip}`, // Full address
-      creditCardNo: formData.creditCard, // Credit card number based on the Orders class field
-      deliveryOption: formData.deliveryOption, // Delivery option from the form
-
-      // Assuming customerName comes from session in the backend, you can leave this out
-      customerName: "test1@gmail.com", // Or pass the session-stored username, if known
-      totalPrice: totalPrice // Include the total price calculated
+      productId: products[0]?.id || "",
+      productName: products[0]?.nameP || "",
+      price: productPrice, // Ensure this is a valid number
+      quantity: products[0]?.quantity || 1, // Validate quantity
+      category: products[0]?.category || "General",
+      userAddress: `${formData.address}, ${formData.city}, ${formData.state}, ${formData.zip}`,
+      creditCardNo: formData.creditCard,
+      deliveryOption: formData.deliveryOption,
+      storeLocation: formData.storeLocation || null,
+      customerName: "test1@gmail.com",
+      shippingCost: 5.0,
+      discount: 0.0,
+      totalPrice: totalPrice
     };
 
     // Call backend to process the order
@@ -186,7 +132,6 @@ export default function Checkout() {
       body: JSON.stringify(orderData)
     })
       .then(async (response) => {
-        // Check if the response is JSON, handle error cases
         if (!response.ok) {
           const err = await response.json();
           throw new Error(err.error || "Unknown error");
@@ -194,17 +139,13 @@ export default function Checkout() {
         return response.json();
       })
       .then((data) => {
-        // Handle order confirmation
         setConfirmation({
           confirmationNumber: data.confirmationNumber,
-          deliveryDate: data.deliveryDate
+          deliveryDate: data.shipDate
         });
       })
-      .catch((error) => {
-        console.error("Error:", error.message);
-        setError(
-          error.message || "Error processing your order. Please try again."
-        );
+      .catch(() => {
+        setError("Error processing your order. Please try again.");
       });
   };
 
@@ -231,7 +172,6 @@ export default function Checkout() {
               : `Store Pickup at: ${formData.storeLocation}`}
           </span>
         </p>
-        {/* Show ordered product or cart details */}
         <div className="mt-6">
           <h3 className="text-xl font-semibold">Order Details</h3>
           {cartItems.map((item, index) => (
@@ -248,30 +188,15 @@ export default function Checkout() {
                 <p>Price: ${item.priceP}</p>
                 <p>{item.description}</p>
                 <p>Quantity: {item.quantity}</p>
-
-                {/* Show accessories if any */}
-                {item.accessories && item.accessories.length > 0 && (
-                  <div className="mt-2">
-                    <h4 className="font-semibold">Accessories:</h4>
-                    <ul>
-                      {item.accessories.map((acc, idx) => (
-                        <li key={idx}>
-                          {acc.nameA} - ${acc.priceA.toFixed(2)} (x
-                          {acc.quantity})
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
               </div>
             </div>
           ))}
         </div>
         <button
-          onClick={handleCancelOrder}
-          className="mt-8 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+          onClick={() => navigate("/orders")} // Redirect to orders page
+          className="mt-8 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
         >
-          Cancel Order
+          View Orders
         </button>{" "}
         <button
           onClick={() => navigate("/")}
@@ -286,7 +211,7 @@ export default function Checkout() {
   return (
     <div className="checkout max-w-2xl mx-auto p-8 bg-white shadow-lg rounded-lg">
       <h2 className="text-2xl font-bold mb-6">Checkout</h2>
-      <form>
+      <form onSubmit={handleSubmit}>
         <div className="mb-4">
           <label className="block text-gray-700">Name:</label>
           <input
@@ -394,7 +319,6 @@ export default function Checkout() {
         <button
           type="submit"
           className="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-          onClick={handleSubmit}
         >
           Place Order
         </button>

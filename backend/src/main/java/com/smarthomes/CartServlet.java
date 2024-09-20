@@ -17,10 +17,9 @@ import java.util.List;
 @WebServlet(urlPatterns = {"/cart", "/cart/product", "/cart/accessory"})
 public class CartServlet extends HttpServlet {
 
-    // Directory to store cart files
     private static final String CART_DIRECTORY = "C:/Users/saiki/smarthomes_data/";
 
-    // List to store products loaded from the ProductCatalog.xml
+    // List to store products loaded from ProductCatalog.xml
     private List<Product> productCatalog = new ArrayList<>();
 
     @Override
@@ -117,71 +116,71 @@ public class CartServlet extends HttpServlet {
     }
 
     @Override
-protected void doPut(HttpServletRequest request, HttpServletResponse response)
-        throws ServletException, IOException {
+    protected void doPut(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
 
-    enableCORS(request, response);  // Enable CORS headers for the request
-    HttpSession session = request.getSession();  // Get user session
-    String userId = session.getId();  // Get session ID as user ID
-    BufferedReader reader = request.getReader();  // Read request data
-    String path = request.getRequestURI();  // Extract the path to distinguish between products and accessories
+        enableCORS(request, response);  // Enable CORS headers for the request
+        HttpSession session = request.getSession();  // Get user session
+        String userId = session.getId();  // Get session ID as user ID
+        BufferedReader reader = request.getReader();  // Read request data
+        String path = request.getRequestURI();  // Extract the path to distinguish between products and accessories
 
-    try {
-        // Handle product update
-        if (path.contains("/product")) {
-            Product updatedProduct = new Gson().fromJson(reader, Product.class);  // Parse product from the request
-            List<Product> cart = loadCart(userId);  // Load the user's cart
+        try {
+            // Handle product update
+            if (path.contains("/product")) {
+                Product updatedProduct = new Gson().fromJson(reader, Product.class);  // Parse product from the request
+                List<Product> cart = loadCart(userId);  // Load the user's cart
 
-            boolean productUpdated = false;
-            for (Product p : cart) {
-                if (p.getId() == updatedProduct.getId()) {
-                    p.setQuantity(updatedProduct.getQuantity());  // Update the quantity of the product
-                    productUpdated = true;
-                    break;
+                boolean productUpdated = false;
+                for (Product p : cart) {
+                    if (p.getId() == updatedProduct.getId()) {
+                        p.setQuantity(updatedProduct.getQuantity());  // Update the quantity of the product
+                        productUpdated = true;
+                        break;
+                    }
                 }
+
+                if (!productUpdated) {
+                    cart.add(updatedProduct);  // If the product does not exist in the cart, add it
+                }
+
+                saveCart(userId, cart);  // Save the updated cart to the file
+                response.setContentType("application/json");
+                response.setCharacterEncoding("UTF-8");
+                response.getWriter().write(new Gson().toJson(cart));  // Send updated cart as JSON response
             }
 
-            if (!productUpdated) {
-                cart.add(updatedProduct);  // If the product does not exist in the cart, add it
-            }
+            // Handle accessory update
+            else if (path.contains("/accessory")) {
+                Accessory updatedAccessory = new Gson().fromJson(reader, Accessory.class);  // Parse accessory from the request
+                List<Accessory> accessories = loadAccessories(userId);  // Load the user's accessories
 
-            saveCart(userId, cart);  // Save the updated cart to the file
+                boolean accessoryUpdated = false;
+                for (Accessory a : accessories) {
+                    if (a.getNameA().equals(updatedAccessory.getNameA())) {
+                        a.setQuantity(updatedAccessory.getQuantity());  // Update the quantity of the accessory
+                        accessoryUpdated = true;
+                        break;
+                    }
+                }
+
+                if (!accessoryUpdated) {
+                    accessories.add(updatedAccessory);  // If the accessory does not exist, add it
+                }
+
+                saveAccessories(userId, accessories);  // Save the updated accessories to the file
+                response.setContentType("application/json");
+                response.setCharacterEncoding("UTF-8");
+                response.getWriter().write(new Gson().toJson(accessories));  // Send updated accessories as JSON response
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
-            response.getWriter().write(new Gson().toJson(cart));  // Send updated cart as JSON response
+            response.getWriter().write("{\"error\": \"Failed to update the cart.\"}");
         }
-
-        // Handle accessory update
-        else if (path.contains("/accessory")) {
-            Accessory updatedAccessory = new Gson().fromJson(reader, Accessory.class);  // Parse accessory from the request
-            List<Accessory> accessories = loadAccessories(userId);  // Load the user's accessories
-
-            boolean accessoryUpdated = false;
-            for (Accessory a : accessories) {
-                if (a.getNameA().equals(updatedAccessory.getNameA())) {
-                    a.setQuantity(updatedAccessory.getQuantity());  // Update the quantity of the accessory
-                    accessoryUpdated = true;
-                    break;
-                }
-            }
-
-            if (!accessoryUpdated) {
-                accessories.add(updatedAccessory);  // If the accessory does not exist, add it
-            }
-
-            saveAccessories(userId, accessories);  // Save the updated accessories to the file
-            response.setContentType("application/json");
-            response.setCharacterEncoding("UTF-8");
-            response.getWriter().write(new Gson().toJson(accessories));  // Send updated accessories as JSON response
-        }
-    } catch (Exception e) {
-        e.printStackTrace();
-        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-        response.getWriter().write("{\"error\": \"Failed to update the cart.\"}");
     }
-}
 
     @Override
     protected void doDelete(HttpServletRequest request, HttpServletResponse response)
@@ -243,16 +242,12 @@ protected void doPut(HttpServletRequest request, HttpServletResponse response)
     @Override
     protected void doOptions(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Enable CORS headers for preflight requests
         enableCORS(request, response);
-        // Send OK response for OPTIONS requests
         response.setStatus(HttpServletResponse.SC_OK);
     }
 
-    // Validate if the product or accessory is in the catalog
     private boolean isProductInCatalog(int productId) {
         for (Product p : productCatalog) {
-            // Check if the product ID matches
             if (p.getId() == (productId)) {
                 return true;
             }
@@ -260,27 +255,20 @@ protected void doPut(HttpServletRequest request, HttpServletResponse response)
         return false;
     }
 
-    // Load the products from ProductCatalog.xml using SAXParser
     private List<Product> loadProductCatalog() {
         List<Product> catalog = new ArrayList<>();
         try {
-            // Get the SAX parser factory
             SAXParserFactory factory = SAXParserFactory.newInstance();
             SAXParser saxParser = factory.newSAXParser();
-
-            // Create a handler for SAX parsing
             ProductSAXHandler handler = new ProductSAXHandler();
 
-            // Parse the ProductCatalog.xml file
             InputStream inputFile = getClass().getClassLoader().getResourceAsStream("ProductCatalog.xml");
             if (inputFile == null) {
                 throw new FileNotFoundException("ProductCatalog.xml file not found in resources folder.");
             }
             saxParser.parse(inputFile, handler);
 
-            // Populate the catalog with parsed products
             catalog = handler.getProducts();
-
             System.out.println("Loaded product catalog with " + catalog.size() + " products.");
 
         } catch (Exception e) {
@@ -289,58 +277,45 @@ protected void doPut(HttpServletRequest request, HttpServletResponse response)
         return catalog;
     }
 
-    // Method to load the cart from file
     @SuppressWarnings("unchecked")
     private List<Product> loadCart(String userId) {
         File cartFile = new File(CART_DIRECTORY + "cart_" + userId + ".txt");
         if (!cartFile.exists()) {
-            System.out.println("Cart file not found, returning empty cart (LOAD): " + cartFile.getAbsolutePath());
-            return new ArrayList<>(); // Return empty cart if file doesn't exist
+            return new ArrayList<>();
         }
 
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(cartFile))) {
-            List<Product> cart = (List<Product>) ois.readObject();
-            System.out.println("Cart loaded from file (LOAD): " + cart); // Log the cart loaded from file
-            return cart;
+            return (List<Product>) ois.readObject();
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
-            System.out.println("Error loading cart (LOAD), returning empty cart");
-            return new ArrayList<>(); // Return empty cart in case of an error
+            return new ArrayList<>();
         }
     }
 
-    // Method to save the cart to a serialized file
     private void saveCart(String userId, List<Product> cart) {
         File directory = new File(CART_DIRECTORY);
 
-        // Create the cart directory if it doesn't exist
         if (!directory.exists()) {
             boolean dirCreated = directory.mkdirs();
             if (!dirCreated) {
-                System.err.println("Failed to create directory: " + CART_DIRECTORY);
                 return;
             }
         }
 
-        // Define the cart file path for the specific user
         File cartFile = new File(CART_DIRECTORY + "cart_" + userId + ".txt");
 
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(cartFile))) {
-            // Save the cart to the file
             oos.writeObject(cart);
-            System.out.println("Cart saved to file (SAVE): " + cart); // Log the saved cart
         } catch (IOException e) {
             e.printStackTrace();
-            System.out.println("Error saving cart (SAVE)");
         }
     }
 
-    // Method to load accessories from the cart file
     @SuppressWarnings("unchecked")
     private List<Accessory> loadAccessories(String userId) {
         File accessoryFile = new File(CART_DIRECTORY + "accessories_" + userId + ".txt");
         if (!accessoryFile.exists()) {
-            return new ArrayList<>(); // Return empty cart if file doesn't exist
+            return new ArrayList<>();
         }
 
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(accessoryFile))) {
@@ -351,22 +326,16 @@ protected void doPut(HttpServletRequest request, HttpServletResponse response)
         }
     }
 
-    // Method to save accessories to a file
     private void saveAccessories(String userId, List<Accessory> accessories) {
         File directory = new File(CART_DIRECTORY);
         if (!directory.exists()) {
-            boolean dirCreated = directory.mkdirs();
-            if (!dirCreated) {
-                System.err.println("Failed to create directory: " + CART_DIRECTORY);
-                return;
-            }
+            directory.mkdirs();
         }
 
         File accessoryFile = new File(CART_DIRECTORY + "accessories_" + userId + ".txt");
 
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(accessoryFile))) {
             oos.writeObject(accessories);
-            System.out.println("Accessories saved to file: " + accessories);
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -127,7 +127,28 @@ export default function Cart() {
   // Handle checkout action
   const handleCheckout = () => {
     if (products.length > 0 || accessories.length > 0) {
-      navigate("/checkout", { state: { products, accessories } });
+      // Modify data before sending it to Checkout.js
+      const productDetails = products.map((product) => ({
+        productId: product.id,
+        productName: product.nameP,
+        price: product.priceP,
+        quantity: product.quantity,
+      }));
+
+      const accessoryDetails = accessories.map((accessory) => ({
+        accessoryId: accessory.id,
+        accessoryName: accessory.nameA,
+        price: accessory.priceA,
+        quantity: accessory.quantity,
+      }));
+
+      // Send modified product and accessory details to Checkout.js
+      navigate("/checkout", {
+        state: {
+          products: productDetails,
+          accessories: accessoryDetails,
+        },
+      });
     } else {
       alert("Your cart is empty!");
     }

@@ -4,44 +4,56 @@ import java.io.Serializable;
 
 public class Orders implements Serializable {
     private int orderId;
-    private String orderName;
-    private double orderPrice;
-    private String userAddress;
+    private int userId;
+    private String customerName;
+    private String customerAddress; // Shipping Address (Street, City, State, Zip)
     private String creditCardNo;
     private String confirmationNumber;
-    private String deliveryDate; // Changed LocalDate to String for easier serialization
-    
-    // New fields for product details
+    private String purchaseDate;
+    private String shipDate;
+
+    private int productId;
     private String productName;
-    private double productPrice;
-    private String productImage;
-    private String productDescription;
+    private String category;
+    private int quantity;
+    private double price;
+    private double shippingCost;
+    private double discount;
+    private double totalSales;
 
-    // Field for delivery option (pickup or home)
-    private String deliveryOption;
+    private int storeId;
+    private String storeAddress; // In-store pickup address
+    private String deliveryOption; // pickup or delivery
+    private String deliveryDate; // Delivery date
 
-    // Add customerName field
-    private String customerName;
-
-    public Orders(int orderId, String orderName, double orderPrice, String userAddress, String creditCardNo,
-                 String confirmationNumber, String deliveryDate, String productName, double productPrice, 
-                 String productImage, String productDescription, String deliveryOption, String customerName) {
+    // Constructors, getters, and setters for all fields
+    public Orders(int orderId, int userId, String customerName, String customerAddress, String creditCardNo,
+                  String confirmationNumber, String purchaseDate, String shipDate, int productId, String productName,
+                  String category, int quantity, double price, double shippingCost, double discount, double totalSales,
+                  int storeId, String storeAddress, String deliveryOption, String deliveryDate) {
         this.orderId = orderId;
-        this.orderName = orderName;
-        this.orderPrice = orderPrice;
-        this.userAddress = userAddress;
+        this.userId = userId;
+        this.customerName = customerName;
+        this.customerAddress = customerAddress;
         this.creditCardNo = creditCardNo;
         this.confirmationNumber = confirmationNumber;
-        this.deliveryDate = deliveryDate;  // Assign delivery date correctly
+        this.purchaseDate = purchaseDate;
+        this.shipDate = shipDate;
+        this.productId = productId;
         this.productName = productName;
-        this.productPrice = productPrice;
-        this.productImage = productImage;
-        this.productDescription = productDescription;
-        this.deliveryOption = deliveryOption;  // Initialize delivery option
-        this.customerName = customerName;  // Initialize customer name
+        this.category = category;
+        this.quantity = quantity;
+        this.price = price;
+        this.shippingCost = shippingCost;
+        this.discount = discount;
+        this.totalSales = totalSales;
+        this.storeId = storeId;
+        this.storeAddress = storeAddress;
+        this.deliveryOption = deliveryOption;
+        this.deliveryDate = deliveryDate;
     }
 
-    // Getters and Setters
+    // Add getter and setter methods for all fields.
     public int getOrderId() {
         return orderId;
     }
@@ -50,28 +62,28 @@ public class Orders implements Serializable {
         this.orderId = orderId;
     }
 
-    public String getOrderName() {
-        return orderName;
+    public int getUserId() {
+        return userId;
     }
 
-    public void setOrderName(String orderName) {
-        this.orderName = orderName;
+    public void setUserId(int userId) {
+        this.userId = userId;
     }
 
-    public double getOrderPrice() {
-        return orderPrice;
+    public String getCustomerName() {
+        return customerName;
     }
 
-    public void setOrderPrice(double orderPrice) {
-        this.orderPrice = orderPrice;
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
     }
 
-    public String getUserAddress() {
-        return userAddress;
+    public String getCustomerAddress() {
+        return customerAddress;
     }
-
-    public void setUserAddress(String userAddress) {
-        this.userAddress = userAddress;
+    
+    public void setCustomerAddress(String customerAddress) {
+        this.customerAddress = customerAddress;
     }
 
     public String getCreditCardNo() {
@@ -90,12 +102,28 @@ public class Orders implements Serializable {
         this.confirmationNumber = confirmationNumber;
     }
 
-    public String getDeliveryDate() {
-        return deliveryDate;
+    public String getPurchaseDate() {
+        return purchaseDate;
     }
 
-    public void setDeliveryDate(String deliveryDate) {
-        this.deliveryDate = deliveryDate;
+    public void setPurchaseDate(String purchaseDate) {
+        this.purchaseDate = purchaseDate;
+    }
+
+    public String getShipDate() {
+        return shipDate;
+    }
+
+    public void setShipDate(String shipDate) {
+        this.shipDate = shipDate;
+    }
+
+    public int getProductId() {
+        return productId;
+    }
+
+    public void setProductId(int productId) {
+        this.productId = productId;
     }
 
     public String getProductName() {
@@ -106,28 +134,68 @@ public class Orders implements Serializable {
         this.productName = productName;
     }
 
-    public double getProductPrice() {
-        return productPrice;
+    public String getCategory() {
+        return category;
     }
 
-    public void setProductPrice(double productPrice) {
-        this.productPrice = productPrice;
+    public void setCategory(String category) {
+        this.category = category;
     }
 
-    public String getProductImage() {
-        return productImage;
+    public int getQuantity() {
+        return quantity;
     }
 
-    public void setProductImage(String productImage) {
-        this.productImage = productImage;
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
     }
 
-    public String getProductDescription() {
-        return productDescription;
+    public double getPrice() {
+        return price;
     }
 
-    public void setProductDescription(String productDescription) {
-        this.productDescription = productDescription;
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
+    public double getShippingCost() {
+        return shippingCost;
+    }
+
+    public void setShippingCost(double shippingCost) {
+        this.shippingCost = shippingCost;
+    }
+
+    public double getDiscount() {
+        return discount;
+    }
+
+    public void setDiscount(double discount) {
+        this.discount = discount;
+    }
+
+    public double getTotalSales() {
+        return totalSales;
+    }
+
+    public void setTotalSales(double totalSales) {
+        this.totalSales = totalSales;
+    }
+
+    public int getStoreId() {
+        return storeId;
+    }
+
+    public void setStoreId(int storeId) {
+        this.storeId = storeId;
+    }
+
+    public String getStoreAddress() {
+        return storeAddress;
+    }
+
+    public void setStoreAddress(String storeAddress) {
+        this.storeAddress = storeAddress;
     }
 
     public String getDeliveryOption() {
@@ -138,11 +206,11 @@ public class Orders implements Serializable {
         this.deliveryOption = deliveryOption;
     }
 
-    public String getCustomerName() {
-        return customerName;
+    public String getDeliveryDate() {
+        return deliveryDate;
     }
 
-    public void setCustomerName(String customerName) {
-        this.customerName = customerName;
+    public void setDeliveryDate(String deliveryDate) {
+        this.deliveryDate = deliveryDate;
     }
 }

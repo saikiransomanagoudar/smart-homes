@@ -63,7 +63,7 @@ public class RegistrationServlet extends HttpServlet {
                 ps.executeUpdate();
 
                 // Log successful registration
-                System.out.println("User registered successfully: " + name);
+                System.out.println("SELECT * FROM users;SELECT * FROM users;SELECT * FROM users;SELECT * FROM users;SELECT * FROM users;stered successfully: " + name);
             }
         } catch (SQLException e) {
             e.printStackTrace();

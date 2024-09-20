@@ -74,7 +74,7 @@ public class OrderServlet extends HttpServlet {
             String requestData = request.getReader().lines().reduce("", (accumulator, actual) -> accumulator + actual);
             Orders order = new Gson().fromJson(requestData, Orders.class);
 
-            if (order == null || order.getProductName() == null || order.getProductPrice() <= 0) {
+            if (order == null || order.getProductName() == null || order.getPrice() <= 0) {
                 throw new IllegalArgumentException("Invalid order data");
             }
 
