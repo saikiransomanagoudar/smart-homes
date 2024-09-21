@@ -6,6 +6,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -33,13 +34,23 @@ public class CheckoutServlet extends HttpServlet {
             BufferedReader reader = request.getReader();
             Orders order = new Gson().fromJson(reader, Orders.class);
 
+            // Get the session and fetch userId
+            HttpSession session = request.getSession();
+            Integer userId = (Integer) session.getAttribute("userId");
+
+            // Ensure the userId is valid and not 0
+            if (userId == null || userId == 0) {
+                // Hardcode userId for testing (change to a valid userId)
+                userId = 1; // Replace with a valid user ID from customers table
+            }
+            order.setUserId(userId);
+
             // Log the received order
             System.out.println("Order received: " + new Gson().toJson(order));
 
-            // Validate numeric fields
-            if (order == null || order.getProductName() == null || order.getProductName().isEmpty() ||
-                    order.getPrice() <= 0 || order.getQuantity() <= 0) {
-                throw new IllegalArgumentException("Product name, price, or quantity is invalid");
+            // Validate the order data
+            if (order == null || order.getProductName() == null || order.getPrice() <= 0 || order.getCustomerAddress() == null) {
+                throw new IllegalArgumentException("Invalid product name, price, or customer address");
             }
 
             // Generate confirmation number and dates
@@ -48,7 +59,8 @@ public class CheckoutServlet extends HttpServlet {
             String shipDate = LocalDate.now().plusWeeks(2).toString(); // Adjust based on delivery option
 
             // Calculate the total sales and store details
-            double totalSales = (order.getPrice() * order.getQuantity()) - order.getDiscount() + order.getShippingCost();
+            double totalSales = (order.getPrice() * order.getQuantity()) - order.getDiscount()
+                    + order.getShippingCost();
             int storeId = order.getDeliveryOption().equalsIgnoreCase("pickup") ? 1 : 0;
             String storeAddress = (storeId == 1) ? "123 Store St, City, State, 12345" : "";
 

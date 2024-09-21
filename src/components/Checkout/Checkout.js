@@ -21,9 +21,6 @@ export default function Checkout() {
   const [cartItems, setCartItems] = useState([]); // For cart items or product
   const [totalPrice, setTotalPrice] = useState(0); // Track the total price
 
-  // Assuming you pass cartItems through navigation state
-  const { products = [] } = location.state || [];
-
   // Retrieve product details from location state (for Buy Now)
   const productDetails = location.state?.product || null;
 
@@ -103,29 +100,28 @@ export default function Checkout() {
       return;
     }
 
-    const productPrice = products[0]?.priceP ? parseFloat(products[0].priceP) : 0;
-    if (productPrice <= 0) {
+    const productPrice = parseFloat(cartItems[0]?.priceP);
+    if (isNaN(productPrice) || productPrice <= 0) {
       setError("Invalid product price.");
       return;
     }
 
     // Prepare order data
     const orderData = {
-      productId: products[0]?.id || "",
-      productName: products[0]?.nameP || "",
-      price: productPrice,  // Ensure this is a valid number
-      quantity: products[0]?.quantity || 1, // Validate quantity
-      category: products[0]?.category || "General",
-      userAddress: `${formData.address}, ${formData.city}, ${formData.state}, ${formData.zip}`,
+      productId: cartItems[0]?.id || "",  // Referencing cartItems instead of products
+      productName: cartItems[0]?.nameP || "",  // Referencing cartItems for the product name
+      price: parseFloat(cartItems[0]?.priceP) || 0,  // Ensuring price is coming from cartItems and parsing it to float
+      quantity: cartItems[0]?.quantity || 1,  // Quantity from cartItems
+      category: cartItems[0]?.category || "General",  // Category from cartItems
+      customerAddress: `${formData.address}, ${formData.city}, ${formData.state}, ${formData.zip}`,  // Full address
       creditCardNo: formData.creditCard,
       deliveryOption: formData.deliveryOption,
-      storeLocation: formData.storeLocation || null,
-      customerName: "test1@gmail.com", 
-      shippingCost: 5.0, 
-      discount: 0.0, 
-      totalPrice: totalPrice
-    };
-
+      customerName: formData.name,  // Customer name from form
+      shippingCost: 5.0,  // Example shipping cost
+      discount: 0.0,  // Example discount
+      totalSales: totalPrice  // Calculated total price
+  };
+  
     // Call backend to process the order
     fetch("http://localhost:8080/smarthomes/checkout", {
       method: "POST",
@@ -148,8 +144,9 @@ export default function Checkout() {
           deliveryDate: data.shipDate
         });
       })
-      .catch(() => {
-        setError("Error processing your order. Please try again.");
+      .catch((error) => {
+        console.error("Error:", error.message);
+        setError(error.message || "Error processing your order. Please try again.");
       });
   };
 
