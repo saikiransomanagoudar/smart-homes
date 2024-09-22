@@ -1,4 +1,4 @@
--- Create the orders table
+-- Create the orders table with an AUTO_INCREMENT starting from 1
 CREATE TABLE IF NOT EXISTS orders (
     order_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -18,5 +18,12 @@ CREATE TABLE IF NOT EXISTS orders (
     total_sales DOUBLE NOT NULL,
     store_id INT DEFAULT NULL,
     store_address VARCHAR(255) DEFAULT NULL,
-    FOREIGN KEY (user_id) REFERENCES customers(user_id)
-);
+    -- Setting the foreign key to CASCADE on delete
+    FOREIGN KEY (user_id) REFERENCES customers(user_id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- Set the starting value for the auto_increment field
+ALTER TABLE orders AUTO_INCREMENT = 1;
+
+-- Add an index on the foreign key column to improve performance
+CREATE INDEX idx_user_id ON orders(user_id);

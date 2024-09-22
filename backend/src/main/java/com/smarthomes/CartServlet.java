@@ -72,9 +72,11 @@ public class CartServlet extends HttpServlet {
                 Accessory accessory = new Gson().fromJson(reader, Accessory.class);
                 List<Accessory> accessories = loadAccessories(userId);
 
+                // Accessory IDs can be strings like "accessory-Cover Ring"
+                // Make sure we're using nameA as the unique identifier
                 boolean accessoryExists = false;
                 for (Accessory a : accessories) {
-                    if (a.getNameA().equals(accessory.getNameA())) {
+                    if (a.getNameA().equals(accessory.getNameA())) {  // Match by accessory name
                         a.setQuantity(a.getQuantity() + accessory.getQuantity());
                         accessoryExists = true;
                         break;

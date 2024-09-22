@@ -6,13 +6,10 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,6 +18,9 @@ import java.util.UUID;
 @WebServlet("/checkout")
 public class CheckoutServlet extends HttpServlet {
 
+    private static final String DB_INSERT_CUSTOMER = "INSERT INTO customers "
+            + "(customer_name, street, city, state, zip_code) VALUES (?, ?, ?, ?, ?)";
+    
     private static final String DB_INSERT_ORDER = "INSERT INTO orders "
             + "(user_id, customer_name, customer_address, credit_card_no, confirmation_number, purchase_date, ship_date, "
             + "product_id, product_name, category, quantity, price, shipping_cost, discount, total_sales, store_id, store_address) "
@@ -34,15 +34,10 @@ public class CheckoutServlet extends HttpServlet {
             BufferedReader reader = request.getReader();
             Orders order = new Gson().fromJson(reader, Orders.class);
 
-            // Get the session and fetch userId
-            HttpSession session = request.getSession();
-            Integer userId = (Integer) session.getAttribute("userId");
+            // Insert customer data into the customers table and get the generated user_id
+            int userId = insertCustomer(order);
 
-            // Ensure the userId is valid and not 0
-            if (userId == null || userId == 0) {
-                // Hardcode userId for testing (change to a valid userId)
-                userId = 1; // Replace with a valid user ID from customers table
-            }
+            // Set the userId in the order object
             order.setUserId(userId);
 
             // Log the received order
@@ -84,6 +79,36 @@ public class CheckoutServlet extends HttpServlet {
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("error", "Error processing your order: " + e.getMessage());
             response.getWriter().write(new Gson().toJson(errorResponse));
+        }
+    }
+
+    /**
+     * Insert customer data into the customers table and return the generated user_id
+     * 
+     * @param order The order object containing customer details
+     * @return The generated user_id from the customers table
+     * @throws SQLException If any SQL errors occur
+     */
+    private int insertCustomer(Orders order) throws SQLException {
+        Connection conn = MySQLDataStoreUtilities.getConnection();
+        try (PreparedStatement ps = conn.prepareStatement(DB_INSERT_CUSTOMER, PreparedStatement.RETURN_GENERATED_KEYS)) {
+            String[] addressParts = order.getCustomerAddress().split(", ");
+            ps.setString(1, order.getCustomerName());
+            ps.setString(2, addressParts[0]);  // Street
+            ps.setString(3, addressParts[1]);  // City
+            ps.setString(4, addressParts[2]);  // State
+            ps.setString(5, addressParts[3]);  // Zip code
+            ps.executeUpdate();
+            
+            // Get the generated customer_id (user_id)
+            ResultSet rs = ps.getGeneratedKeys();
+            if (rs.next()) {
+                return rs.getInt(1);  // Return the generated user_id
+            } else {
+                throw new SQLException("Failed to insert customer, no ID obtained.");
+            }
+        } finally {
+            MySQLDataStoreUtilities.closeConnection(conn);
         }
     }
 

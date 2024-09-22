@@ -51,7 +51,7 @@ export default function Checkout() {
     } else {
       navigate("/signin");
     }
-  }, [productDetails]);
+  }, [productDetails, isLoggedIn, navigate]);
 
   // Hardcoded store locations for pickup
   const storeLocations = [
@@ -108,20 +108,20 @@ export default function Checkout() {
 
     // Prepare order data
     const orderData = {
-      productId: cartItems[0]?.id || "",  // Referencing cartItems instead of products
-      productName: cartItems[0]?.nameP || "",  // Referencing cartItems for the product name
-      price: parseFloat(cartItems[0]?.priceP) || 0,  // Ensuring price is coming from cartItems and parsing it to float
-      quantity: cartItems[0]?.quantity || 1,  // Quantity from cartItems
-      category: cartItems[0]?.category || "General",  // Category from cartItems
-      customerAddress: `${formData.address}, ${formData.city}, ${formData.state}, ${formData.zip}`,  // Full address
+      customerName: formData.name,
+      customerAddress: `${formData.address}, ${formData.city}, ${formData.state}, ${formData.zip}`,
       creditCardNo: formData.creditCard,
       deliveryOption: formData.deliveryOption,
-      customerName: formData.name,  // Customer name from form
-      shippingCost: 5.0,  // Example shipping cost
-      discount: 0.0,  // Example discount
-      totalSales: totalPrice  // Calculated total price
-  };
-  
+      productId: cartItems[0]?.id || "",
+      productName: cartItems[0]?.nameP || "",
+      price: parseFloat(cartItems[0]?.priceP) || 0,
+      quantity: cartItems[0]?.quantity || 1,
+      category: cartItems[0]?.category || "General",
+      totalSales: totalPrice,
+      shippingCost: 5.0,
+      discount: 0.0
+    };
+    
     // Call backend to process the order
     fetch("http://localhost:8080/smarthomes/checkout", {
       method: "POST",

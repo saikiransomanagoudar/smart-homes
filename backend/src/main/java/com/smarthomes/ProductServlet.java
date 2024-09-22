@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @WebServlet("/getProducts")
@@ -16,21 +17,20 @@ public class ProductServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        // Enable CORS for GET requests
         enableCORS(request, response);
-
         response.setContentType("application/json");
         PrintWriter out = response.getWriter();
 
         try {
-            // Create SAXParser factory and instance
             SAXParserFactory factory = SAXParserFactory.newInstance();
             SAXParser saxParser = factory.newSAXParser();
-            ProductSAXHandler handler = new ProductSAXHandler();
 
-            // Load the XML file from the resources folder
-            InputStream inputFile = getClass().getClassLoader().getResourceAsStream("ProductCatalog.xml");
-            if (inputFile == null) {
+            // Use the same handler to parse both products and accessories
+            ProductSAXHandler productHandler = new ProductSAXHandler();
+
+            // Parse the single XML file that contains both products and accessories
+            InputStream xmlFile = getClass().getClassLoader().getResourceAsStream("ProductCatalog.xml");
+            if (xmlFile == null) {
                 System.out.println("ProductCatalog.xml not found in the resources folder.");
                 throw new IOException("Resource file not found");
             } else {
@@ -38,11 +38,20 @@ public class ProductServlet extends HttpServlet {
             }
 
             System.out.println("Starting to parse ProductCatalog.xml...");
-            saxParser.parse(inputFile, handler);
+            saxParser.parse(xmlFile, productHandler);
             System.out.println("XML parsing completed successfully.");
 
-            // Get the list of products from the handler
-            List<Product> products = handler.getProducts();
+            // Get the parsed products and accessories
+            List<Product> products = productHandler.getProducts();
+            Map<Integer, Accessory> accessoryMap = productHandler.getAccessoryMap();  // Create accessory map
+
+            // Map accessory references to actual accessories
+            for (Product product : products) {
+                List<Accessory> productAccessories = product.getAccessoryIds().stream()
+                        .map(accessoryMap::get)  // Map each ID to an accessory
+                        .collect(Collectors.toList());
+                product.setAccessories(productAccessories);
+            }
 
             // Filter products by category if the category parameter is provided
             String requestedCategory = request.getParameter("category");
@@ -53,8 +62,8 @@ public class ProductServlet extends HttpServlet {
                         .collect(Collectors.toList());
             }
 
-            // Convert the filtered products list to JSON
-            String jsonResponse = convertToJson(products);
+            // Convert products to JSON response
+            String jsonResponse = new com.google.gson.Gson().toJson(products);
             out.print(jsonResponse);
 
         } catch (Exception e) {
@@ -65,23 +74,10 @@ public class ProductServlet extends HttpServlet {
         }
     }
 
-    // Method to convert the list of products to JSON format
-    private String convertToJson(List<Product> products) {
-        return new com.google.gson.Gson().toJson(products);
-    }
-
-    // Enable CORS for all methods
     private void enableCORS(HttpServletRequest request, HttpServletResponse response) {
-        response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000"); // Allow frontend origin
-        response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS"); // Allow these methods
-        response.setHeader("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization"); // Allow these headers
-        response.setHeader("Access-Control-Allow-Credentials", "true"); // Allow credentials (cookies)
-    }
-
-    @Override
-    protected void doOptions(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        enableCORS(request, response);
-        response.setStatus(HttpServletResponse.SC_OK); // Set status to OK for preflight request
+        response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+        response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        response.setHeader("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization");
+        response.setHeader("Access-Control-Allow-Credentials", "true");
     }
 }

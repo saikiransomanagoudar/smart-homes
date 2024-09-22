@@ -45,7 +45,7 @@ export default function ProductsPage({ cart, setCart }) {
         priceP: product.priceP,
         description: product.description,
         imageP: product.imageP,
-        quantity: product.quantity || 1,
+        quantity: product.quantity || 1
       };
       navigate("/checkout", { state: { product: productWithoutAccessories } });
     } else {
@@ -53,19 +53,17 @@ export default function ProductsPage({ cart, setCart }) {
     }
   };
 
-  const handleUpdateCartCount = () => {
-    const newCartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-    localStorage.setItem("cartCount", newCartCount);
-  };
-
   useEffect(() => {
-    handleUpdateCartCount();
-  }, [cart]);
-
+    const storedCart = localStorage.getItem('cart');
+    if (storedCart) {
+      setCart(JSON.parse(storedCart)); // Set the cart from localStorage
+    }
+  }, []);
+  
   const handleAddProductToCart = (product) => {
     if (isLoggedIn) {
       const existingProduct = cart.find((item) => item.id === product.id);
-
+  
       if (existingProduct) {
         const updatedCart = cart.map((item) =>
           item.id === product.id
@@ -73,6 +71,7 @@ export default function ProductsPage({ cart, setCart }) {
             : item
         );
         setCart(updatedCart);
+        localStorage.setItem('cart', JSON.stringify(updatedCart)); // Save to localStorage
       } else {
         const productData = {
           id: product.id,
@@ -80,16 +79,16 @@ export default function ProductsPage({ cart, setCart }) {
           priceP: product.priceP,
           description: product.description,
           imageP: product.imageP,
-          quantity: 1,
+          quantity: 1
         };
-
+  
         fetch("http://localhost:8080/smarthomes/cart/product", {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type": "application/json"
           },
           credentials: "include",
-          body: JSON.stringify(productData),
+          body: JSON.stringify(productData)
         })
           .then((response) => {
             if (!response.ok) {
@@ -98,106 +97,63 @@ export default function ProductsPage({ cart, setCart }) {
             return response.json();
           })
           .then(() => {
-            setCart([...cart, { ...product, quantity: 1 }]);
-            handleUpdateCartCount();
+            const updatedCart = [...cart, { ...product, quantity: 1 }];
+            setCart(updatedCart);
+            localStorage.setItem('cart', JSON.stringify(updatedCart)); // Save to localStorage
           })
           .catch((error) => {
             console.error("Error adding product to cart:", error);
           });
       }
-
+  
       setQuantities((prevQuantities) => ({
         ...prevQuantities,
-        [product.id]: (prevQuantities[product.id] || 0) + 1,
+        [product.id]: (prevQuantities[product.id] || 0) + 1
       }));
-    } else {
-      navigate("/signin");
-    }
-  };
-
-  const handleAddAccessoryToCart = (accessory) => {
-    const accessoryCartId = `accessory-${accessory.nameA}`;
-    const accessoryInCart = cart.find((item) => item.id === accessoryCartId);
-  
-    if (isLoggedIn) {
-      if (accessoryInCart) {
-        setCart(
-          cart.map((item) =>
-            item.id === accessoryCartId
-              ? { ...item, quantity: item.quantity + 1 }
-              : item
-          )
-        );
-      } else {
-        const accessoryData = {
-          id: accessoryCartId,
-          nameA: accessory.nameA,
-          priceA: accessory.priceA, // Check price formatting
-          imageA: accessory.imageA,
-          quantity: 1,
-        };
-  
-        // Log the accessory data before sending it
-        console.log("Accessory data being sent:", accessoryData);
-  
-        fetch("http://localhost:8080/smarthomes/cart/accessory", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify(accessoryData),
-        })
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error("Failed to add accessory to cart.");
-            }
-            return response.json();
-          })
-          .then(() => {
-            setCart([...cart, accessoryData]);
-          })
-          .catch((error) => {
-            console.error("Error adding accessory to cart:", error);
-          });
-      }
     } else {
       navigate("/signin");
     }
   };  
 
   const handleIncreaseQuantity = (id) => {
-    setCart(
-      cart.map((item) =>
-        item.id === id ? { ...item, quantity: item.quantity + 1 } : item
-      )
+    const updatedCart = cart.map((item) =>
+      item.id === id ? { ...item, quantity: item.quantity + 1 } : item
     );
+    setCart(updatedCart);
+    localStorage.setItem('cart', JSON.stringify(updatedCart)); // Save to localStorage
 
     setQuantities((prevQuantities) => ({
       ...prevQuantities,
-      [id]: (prevQuantities[id] || 0) + 1,
+      [id]: (prevQuantities[id] || 0) + 1
     }));
   };
 
   const handleDecreaseQuantity = (id) => {
     const product = cart.find((item) => item.id === id);
 
-    if (product.quantity > 1) {
-      setCart(
-        cart.map((item) =>
-          item.id === id ? { ...item, quantity: item.quantity - 1 } : item
-        )
+    if (product && product.quantity > 1) {
+      const updatedCart = cart.map((item) =>
+        item.id === id ? { ...item, quantity: item.quantity - 1 } : item
       );
+      setCart(updatedCart);
+      localStorage.setItem('cart', JSON.stringify(updatedCart)); // Save to localStorage
 
       setQuantities((prevQuantities) => ({
         ...prevQuantities,
-        [id]: prevQuantities[id] - 1,
+        [id]: prevQuantities[id] - 1
       }));
-    } else {
-      setCart(cart.filter((item) => item.id !== id));
+    } else if (product && product.quantity === 1) {
+      const updatedCart = cart.filter((item) => item.id !== id);
+      setCart(updatedCart);
+      localStorage.setItem('cart', JSON.stringify(updatedCart)); // Save to localStorage
+
       const updatedQuantities = { ...quantities };
       delete updatedQuantities[id];
       setQuantities(updatedQuantities);
+    } else {
+      console.error(
+        "Error: Product or accessory is missing or has no quantity."
+      );
     }
   };
 
@@ -391,7 +347,7 @@ export default function ProductsPage({ cart, setCart }) {
                     </h4>
                     <ul className="flex flex-wrap gap-4">
                       {selectedProduct.accessories.map((accessory, index) => {
-                        const accessoryCartId = `accessory-${accessory.nameA}`;
+                        const accessoryCartId = accessory.id; // Ensure numeric ID is used
                         const accessoryQuantity =
                           quantities[accessoryCartId] || 0;
 
@@ -437,7 +393,13 @@ export default function ProductsPage({ cart, setCart }) {
                               <button
                                 className="bg-green-500 text-white px-2 py-2 mt-2 rounded"
                                 onClick={() =>
-                                  handleAddAccessoryToCart(accessory)
+                                  handleAddProductToCart({
+                                    id: accessoryCartId,
+                                    nameP: accessory.nameA,
+                                    priceP: accessory.priceA,
+                                    imageP: accessory.imageA,
+                                    quantity: 1
+                                  })
                                 }
                               >
                                 Add to Cart
@@ -449,7 +411,7 @@ export default function ProductsPage({ cart, setCart }) {
                     </ul>
                   </div>
                 )}
-
+                console.log(selectedProduct.accessories);
               <button
                 className="bg-blue-500 text-white px-4 py-2 mt-4 rounded w-full"
                 onClick={() => handleBuyNow(selectedProduct)}

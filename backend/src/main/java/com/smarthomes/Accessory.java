@@ -4,17 +4,35 @@ import java.io.Serializable;
 
 public class Accessory implements Serializable {
 
+    private static final long serialVersionUID = 1L; // Serial version UID
+
+    private int id; // Accessory ID
     private String nameA;
     private double priceA;
     private String imageA;
-    private int quantity; // New quantity field
+    private int quantity; // Quantity of the accessory
 
-    // Constructor
-    public Accessory(String nameA, double priceA, String imageA, int quantity) {
+    // No-argument constructor
+    public Accessory() {
+        this.quantity = 1; // Set default quantity to 1
+    }
+
+    // Constructor with parameters
+    public Accessory(int id, String nameA, double priceA, String imageA, int quantity) {
+        this.id = id;
         this.nameA = nameA;
         this.priceA = priceA;
         this.imageA = imageA;
-        this.quantity = quantity;
+        this.quantity = quantity > 0 ? quantity : 1; // Ensure positive quantity, default to 1
+    }
+
+    // Getter and Setter methods for id
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     // Getter and Setter methods for nameA
@@ -50,14 +68,17 @@ public class Accessory implements Serializable {
     }
 
     public void setQuantity(int quantity) {
-        this.quantity = quantity;
+        // Ensure the quantity is always at least 1
+        this.quantity = quantity > 0 ? quantity : 1;
     }
 
+    // Override toString to return a formatted string representation of Accessory
     @Override
     public String toString() {
         return "Accessory{" +
-                "nameA='" + nameA + '\'' +
-                ", priceA='" + priceA + '\'' +
+                "id=" + id +  // Include id in toString
+                ", nameA='" + nameA + '\'' +
+                ", priceA=" + priceA +
                 ", imageA='" + imageA + '\'' +
                 ", quantity=" + quantity +
                 '}';
