@@ -1,153 +1,117 @@
 package com.smarthomes;
 
-import com.google.gson.Gson;
-import jakarta.servlet.ServletException;
+import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.*;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
-import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.sql.*;
-import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.UUID;
 
 @WebServlet("/checkout")
 public class CheckoutServlet extends HttpServlet {
 
-    private static final String DB_INSERT_CUSTOMER = "INSERT INTO customers "
-            + "(customer_name, street, city, state, zip_code) VALUES (?, ?, ?, ?, ?)";
-    
-    private static final String DB_INSERT_ORDER = "INSERT INTO orders "
-            + "(user_id, customer_name, customer_address, credit_card_no, confirmation_number, purchase_date, ship_date, "
-            + "product_id, product_name, category, quantity, price, shipping_cost, discount, total_sales, store_id, store_address) "
-            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        enableCORS(request, response);
+        response.setContentType("application/json");
+        PrintWriter out = response.getWriter();
+        Gson gson = new Gson();
+
         try {
-            // Read the incoming order JSON data
-            BufferedReader reader = request.getReader();
-            Orders order = new Gson().fromJson(reader, Orders.class);
+            // Parse the incoming data as a single Orders object, including cartItems
+            Orders order = gson.fromJson(request.getReader(), Orders.class);
 
-            // Insert customer data into the customers table and get the generated user_id
-            int userId = insertCustomer(order);
+            // DEBUG: Print incoming order to inspect the data
+            System.out.println("Received order data: " + gson.toJson(order));
 
-            // Set the userId in the order object
-            order.setUserId(userId);
+            String confirmationNumber = generateConfirmationNumber();
+            String shipDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date(System.currentTimeMillis() + 3 * 24 * 60 * 60 * 1000)); // Example: 3 days later
 
-            // Log the received order
-            System.out.println("Order received: " + new Gson().toJson(order));
-
-            // Validate the order data
-            if (order == null || order.getProductName() == null || order.getPrice() <= 0 || order.getCustomerAddress() == null) {
-                throw new IllegalArgumentException("Invalid product name, price, or customer address");
+            // Check if cart items are not null or empty
+            if (order.getCartItems() == null || order.getCartItems().isEmpty()) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.print("{\"error\": \"Cart items are missing.\"}");
+                return;
             }
 
-            // Generate confirmation number and dates
-            String confirmationNumber = UUID.randomUUID().toString();
-            String purchaseDate = LocalDate.now().toString();
-            String shipDate = LocalDate.now().plusWeeks(2).toString(); // Adjust based on delivery option
+            // Loop through cart items and save each item as part of the order
+            for (CartItem item : order.getCartItems()) {
+                // DEBUG: Print each item
+                System.out.println("Processing cart item: " + gson.toJson(item));
 
-            // Calculate the total sales and store details
-            double totalSales = (order.getPrice() * order.getQuantity()) - order.getDiscount()
-                    + order.getShippingCost();
-            int storeId = order.getDeliveryOption().equalsIgnoreCase("pickup") ? 1 : 0;
-            String storeAddress = (storeId == 1) ? "123 Store St, City, State, 12345" : "";
+                // Set confirmation number and ship date for the order
+                order.setConfirmationNumber(confirmationNumber);
+                order.setShipDate(shipDate);
+                order.setProductId(item.getProductId());  // Ensure the CartItem has getId()
+                order.setProductName(item.getProductName());  // Ensure the CartItem has getName()
+                order.setCategory(item.getCategory()); // Ensure the CartItem has getCategory()
+                order.setPrice(item.getPrice());
+                order.setQuantity(item.getQuantity());
 
-            // Save the order to the database
-            saveOrderToDatabase(order, confirmationNumber, purchaseDate, shipDate, totalSales, storeId, storeAddress);
-
-            // Prepare the success response
-            Map<String, String> responseData = new HashMap<>();
-            responseData.put("confirmationNumber", confirmationNumber);
-            responseData.put("shipDate", shipDate);
-
-            response.setContentType("application/json");
-            response.setStatus(HttpServletResponse.SC_OK);
-            response.getWriter().write(new Gson().toJson(responseData));
+                // Save each item in the database
+                saveOrderToDatabase(order);
+            }
+            // Send back the confirmation response
+            JsonObject jsonResponse = new JsonObject();
+            jsonResponse.addProperty("confirmationNumber", confirmationNumber);
+            jsonResponse.addProperty("shipDate", shipDate);
+            out.print(jsonResponse);
 
         } catch (Exception e) {
-            // Log the error and send a 500 error response
             e.printStackTrace();
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.setContentType("application/json");
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Error processing your order: " + e.getMessage());
-            response.getWriter().write(new Gson().toJson(errorResponse));
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            out.print("{\"error\": \"Failed to process the order.\"}");
+        }
+
+        out.flush();
+    }
+
+    private String generateConfirmationNumber() {
+        return UUID.randomUUID().toString(); // Generate a random confirmation number
+    }
+
+    private void saveOrderToDatabase(Orders order) {
+        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/smarthomes", "user", "password");
+             PreparedStatement stmt = connection.prepareStatement(
+                     "INSERT INTO orders (userId, customerName, customerAddress, creditCardNo, confirmationNumber, purchaseDate, shipDate, productId, productName, category, quantity, price, shippingCost, discount, totalSales, storeId, storeAddress, deliveryOption, deliveryDate) " +
+                             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+
+            stmt.setInt(1, order.getUserId());
+            stmt.setString(2, order.getCustomerName());
+            stmt.setString(3, order.getCustomerAddress());
+            stmt.setString(4, order.getCreditCardNo());
+            stmt.setString(5, order.getConfirmationNumber());
+            stmt.setString(6, new SimpleDateFormat("yyyy-MM-dd").format(new Date())); // Purchase date is current date
+            stmt.setString(7, order.getShipDate());
+            stmt.setInt(8, order.getProductId());
+            stmt.setString(9, order.getProductName());
+            stmt.setString(10, order.getCategory());
+            stmt.setInt(11, order.getQuantity());
+            stmt.setDouble(12, order.getPrice());
+            stmt.setDouble(13, order.getShippingCost());
+            stmt.setDouble(14, order.getDiscount());
+            stmt.setDouble(15, order.getTotalSales());
+            stmt.setInt(16, order.getStoreId());
+            stmt.setString(17, order.getStoreAddress());
+            stmt.setString(18, order.getDeliveryOption());
+            stmt.setString(19, order.getDeliveryDate());
+
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
-    /**
-     * Insert customer data into the customers table and return the generated user_id
-     * 
-     * @param order The order object containing customer details
-     * @return The generated user_id from the customers table
-     * @throws SQLException If any SQL errors occur
-     */
-    private int insertCustomer(Orders order) throws SQLException {
-        Connection conn = MySQLDataStoreUtilities.getConnection();
-        try (PreparedStatement ps = conn.prepareStatement(DB_INSERT_CUSTOMER, PreparedStatement.RETURN_GENERATED_KEYS)) {
-            String[] addressParts = order.getCustomerAddress().split(", ");
-            ps.setString(1, order.getCustomerName());
-            ps.setString(2, addressParts[0]);  // Street
-            ps.setString(3, addressParts[1]);  // City
-            ps.setString(4, addressParts[2]);  // State
-            ps.setString(5, addressParts[3]);  // Zip code
-            ps.executeUpdate();
-            
-            // Get the generated customer_id (user_id)
-            ResultSet rs = ps.getGeneratedKeys();
-            if (rs.next()) {
-                return rs.getInt(1);  // Return the generated user_id
-            } else {
-                throw new SQLException("Failed to insert customer, no ID obtained.");
-            }
-        } finally {
-            MySQLDataStoreUtilities.closeConnection(conn);
-        }
-    }
-
-    /**
-     * Save the order data to the MySQL database
-     *
-     * @param order             The order object
-     * @param confirmationNumber Generated confirmation number
-     * @param purchaseDate      The date of purchase
-     * @param shipDate          The shipping date
-     * @param totalSales        Calculated total sales for the order
-     * @param storeId           ID for the pickup store
-     * @param storeAddress      Address of the pickup store
-     * @throws SQLException If any SQL errors occur
-     */
-    private void saveOrderToDatabase(Orders order, String confirmationNumber, String purchaseDate, String shipDate,
-                                     double totalSales, int storeId, String storeAddress) throws SQLException {
-        Connection conn = MySQLDataStoreUtilities.getConnection();
-        try (PreparedStatement ps = conn.prepareStatement(DB_INSERT_ORDER)) {
-            ps.setInt(1, order.getUserId());
-            ps.setString(2, order.getCustomerName());
-            ps.setString(3, order.getCustomerAddress());
-            ps.setString(4, order.getCreditCardNo());
-            ps.setString(5, confirmationNumber);
-            ps.setString(6, purchaseDate);
-            ps.setString(7, shipDate);
-            ps.setInt(8, order.getProductId());
-            ps.setString(9, order.getProductName());
-            ps.setString(10, order.getCategory());
-            ps.setInt(11, order.getQuantity());
-            ps.setDouble(12, order.getPrice());
-            ps.setDouble(13, order.getShippingCost());
-            ps.setDouble(14, order.getDiscount());
-            ps.setDouble(15, totalSales);
-            ps.setInt(16, storeId);
-            ps.setString(17, storeAddress);
-            ps.executeUpdate();
-        } finally {
-            MySQLDataStoreUtilities.closeConnection(conn);
-        }
+    private void enableCORS(HttpServletRequest request, HttpServletResponse response) {
+        response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+        response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        response.setHeader("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization");
+        response.setHeader("Access-Control-Allow-Credentials", "true");
     }
 }

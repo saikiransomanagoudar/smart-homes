@@ -30,6 +30,10 @@ export default function Cart() {
             if (!response.ok) {
               throw new Error(`HTTP error! status: ${response.status}`);
             }
+            if (response.status === 204) {
+              // No content returned, meaning an empty cart
+              return { products: [], accessories: [] };
+            }
             return response.json();
           })
           .then((data) => {
@@ -69,7 +73,11 @@ export default function Cart() {
     );
     setItems(updatedItems);
     localStorage.setItem('cart', JSON.stringify(updatedItems));
-    updateCartBackend({ products: updatedItems });
+    const updatedCart = {
+      products: updatedItems.filter(item => item.type === "product"),
+      accessories: updatedItems.filter(item => item.type === "accessory")
+    };
+    updateCartBackend(updatedCart);
   };
 
   const handleRemoveItem = (id) => {
@@ -86,11 +94,15 @@ export default function Cart() {
     
     setItems(updatedItems);
     localStorage.setItem('cart', JSON.stringify(updatedItems));
-    updateCartBackend({ products: updatedItems });
+    const updatedCart = {
+      products: updatedItems.filter(item => item.type === "product"),
+      accessories: updatedItems.filter(item => item.type === "accessory")
+    };
+    updateCartBackend(updatedCart);
   };
 
   const calculateTotal = () => {
-    return items.reduce((total, item) => total + (item.priceP || item.priceA) * item.quantity, 0);
+    return items.reduce((total, item) => total + item.price * item.quantity, 0); // Simplified price calculation
   };
 
   const handleCheckout = () => {
@@ -114,13 +126,13 @@ export default function Cart() {
             {items.map((item, index) => (
               <div key={`${item.id}-${index}`} className="flex items-center bg-white p-4 shadow">
                 <Img
-                  src={item.imageP || item.imageA}
-                  alt={item.nameP || item.nameA}
+                  src={item.image}
+                  alt={item.name}
                   className="w-20 h-20 object-cover mr-4"
                 />
                 <div className="flex-grow">
-                  <h3 className="text-lg font-bold">{item.nameP || item.nameA}</h3>
-                  <p>${(item.priceP || item.priceA).toFixed(2)}</p>
+                  <h3 className="text-lg font-bold">{item.name}</h3>
+                  <p>${item.price.toFixed(2)}</p>
                   <p>Quantity: {item.quantity}</p>
                 </div>
                 <div className="flex flex-col items-center">

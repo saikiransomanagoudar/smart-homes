@@ -35,10 +35,9 @@ export default function Checkout() {
         })
           .then((response) => response.json())
           .then((data) => {
-            const products = data.products || [];
-            const accessories = data.accessories || [];
-            setCartItems([...products, ...accessories]); // Add accessories to cart items
-            calculateTotalPrice(products, accessories); // Update price calculation
+            const products = data || [];
+            setCartItems(products); // Add accessories to cart items
+            calculateTotalPrice(products); // Update price calculation
           })
           .catch((error) => {
             console.error("Error fetching cart items:", error);
@@ -46,7 +45,7 @@ export default function Checkout() {
       } else {
         // If it's a Buy Now, set the product as the only item in cartItems
         setCartItems([{ ...productDetails, quantity: 1 }]);
-        setTotalPrice(productDetails.priceP); // Set initial price for Buy Now
+        setTotalPrice(productDetails.price); // Set initial price for Buy Now
       }
     } else {
       navigate("/signin");
@@ -72,14 +71,12 @@ export default function Checkout() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Calculate total price based on cart items and accessories
-  const calculateTotalPrice = (products, accessories) => {
-    const total =
-      products.reduce((sum, item) => sum + item.priceP * item.quantity, 0) +
-      accessories.reduce(
-        (accSum, acc) => accSum + acc.priceA * acc.quantity,
-        0
-      );
+  // Calculate total price based on cart items
+  const calculateTotalPrice = (products) => {
+    const total = products.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
     setTotalPrice(total);
   };
 
@@ -87,7 +84,7 @@ export default function Checkout() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Input validation
+    // Validate inputs
     if (
       !formData.name ||
       !formData.address ||
@@ -100,29 +97,21 @@ export default function Checkout() {
       return;
     }
 
-    const productPrice = parseFloat(cartItems[0]?.priceP);
-    if (isNaN(productPrice) || productPrice <= 0) {
-      setError("Invalid product price.");
-      return;
-    }
-
     // Prepare order data
     const orderData = {
       customerName: formData.name,
       customerAddress: `${formData.address}, ${formData.city}, ${formData.state}, ${formData.zip}`,
       creditCardNo: formData.creditCard,
       deliveryOption: formData.deliveryOption,
-      productId: cartItems[0]?.id || "",
-      productName: cartItems[0]?.nameP || "",
-      price: parseFloat(cartItems[0]?.priceP) || 0,
-      quantity: cartItems[0]?.quantity || 1,
-      category: cartItems[0]?.category || "General",
+      cartItems: cartItems, // Include cart items here
       totalSales: totalPrice,
       shippingCost: 5.0,
-      discount: 0.0
+      discount: 0.0,
+      storeId: formData.deliveryOption === "pickup" ? 1 : null,
+      storeAddress: formData.storeLocation || ""
     };
-    
-    // Call backend to process the order
+
+    // Send order data to the backend
     fetch("http://localhost:8080/smarthomes/checkout", {
       method: "POST",
       credentials: "include",
@@ -141,12 +130,14 @@ export default function Checkout() {
       .then((data) => {
         setConfirmation({
           confirmationNumber: data.confirmationNumber,
-          deliveryDate: data.shipDate
+          deliveryDate: data.deliveryDate
         });
       })
       .catch((error) => {
         console.error("Error:", error.message);
-        setError(error.message || "Error processing your order. Please try again.");
+        setError(
+          error.message || "Error processing your order. Please try again."
+        );
       });
   };
 
@@ -178,17 +169,16 @@ export default function Checkout() {
           {cartItems.map((item, index) => (
             <div key={index} className="flex items-center mb-4">
               <img
-                src={item.imageP}
-                alt={item.nameP}
-                className="w-40 h-40 object-contain mr-4"
+                src={item.image}
+                alt={item.name}
+                className="w-20 h-20 object-contain mr-4"
               />
               <div>
                 <p>
-                  <strong>{item.nameP}</strong>
+                  <strong>{item.name}</strong>
                 </p>
-                <p>Price: ${item.priceP}</p>
-                <p>{item.description}</p>
-                <p>Quantity: {item.quantity}</p>
+                <p>Price: ${item.price ? item.price.toFixed(2) : "N/A"}</p>
+                <p>Quantity: {item.quantity || 1}</p>
               </div>
             </div>
           ))}
@@ -296,7 +286,9 @@ export default function Checkout() {
 
         {formData.deliveryOption === "pickup" && (
           <div className="mb-4">
-            <label className="block text-gray-700">Select Store Location:</label>
+            <label className="block text-gray-700">
+              Select Store Location:
+            </label>
             <select
               name="storeLocation"
               value={formData.storeLocation}
@@ -330,15 +322,15 @@ export default function Checkout() {
           {cartItems.map((item, index) => (
             <div key={index} className="flex items-center mb-4">
               <img
-                src={item.imageP || item.imageA}
-                alt={item.nameP || item.nameA}
+                src={item.image}
+                alt={item.name}
                 className="w-20 h-20 object-contain mr-4"
               />
               <div>
                 <p>
-                  <strong>{item.nameP || item.nameA}</strong>
+                  <strong>{item.name}</strong>
                 </p>
-                <p>Price: ${item.priceP || item.priceA}</p>
+                <p>Price: ${item.price}</p>
                 <p>Quantity: {item.quantity || 1}</p>
               </div>
             </div>

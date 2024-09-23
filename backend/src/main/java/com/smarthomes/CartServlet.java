@@ -10,23 +10,18 @@ import jakarta.servlet.http.HttpSession;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-@WebServlet(urlPatterns = {"/cart", "/cart/product", "/cart/accessory"})
+@WebServlet(urlPatterns = { "/cart", "/cart/product" })
 public class CartServlet extends HttpServlet {
-
-    private static final String CART_DIRECTORY = "C:/Users/saiki/smarthomes_data/";
-
-    // List to store products loaded from ProductCatalog.xml
-    private List<Product> productCatalog = new ArrayList<>();
-
-    @Override
-    public void init() throws ServletException {
-        // Load the products from ProductCatalog.xml during servlet initialization
-        productCatalog = loadProductCatalog();
-    }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -34,64 +29,43 @@ public class CartServlet extends HttpServlet {
 
         enableCORS(request, response);
         HttpSession session = request.getSession();
-        String userId = session.getId();
+        int userId = getUserIdFromSession(session); // Get user_id from session
+
         BufferedReader reader = request.getReader();
 
-        String path = request.getRequestURI();
-
         try {
-            if (path.contains("/product")) {
-                Product product = new Gson().fromJson(reader, Product.class);
-                List<Product> cart = loadCart(userId);
+            // Parse incoming product from request body
+            Product incomingProduct = new Gson().fromJson(reader, Product.class);
 
-                // Ensure the product exists in the catalog
-                if (!isProductInCatalog(product.getId())) {
-                    sendErrorResponse(response, "Product does not exist in the catalog.");
-                    return;
-                }
-
-                boolean productExists = false;
-                for (Product p : cart) {
-                    if (p.getId() == product.getId()) {
-                        p.setQuantity(p.getQuantity() + product.getQuantity());
-                        productExists = true;
-                        break;
-                    }
-                }
-
-                if (!productExists) {
-                    cart.add(product);
-                }
-
-                saveCart(userId, cart);
-
-                // Return the updated cart
-                sendJsonResponse(response, cart);
-
-            } else if (path.contains("/accessory")) {
-                Accessory accessory = new Gson().fromJson(reader, Accessory.class);
-                List<Accessory> accessories = loadAccessories(userId);
-
-                // Accessory IDs can be strings like "accessory-Cover Ring"
-                // Make sure we're using nameA as the unique identifier
-                boolean accessoryExists = false;
-                for (Accessory a : accessories) {
-                    if (a.getNameA().equals(accessory.getNameA())) {  // Match by accessory name
-                        a.setQuantity(a.getQuantity() + accessory.getQuantity());
-                        accessoryExists = true;
-                        break;
-                    }
-                }
-
-                if (!accessoryExists) {
-                    accessories.add(accessory);
-                }
-
-                saveAccessories(userId, accessories);
-
-                // Return the updated accessories
-                sendJsonResponse(response, accessories);
+            // Load the full product details from ProductCatalog.xml using the product ID
+            Product fullProduct = getProductById(incomingProduct.getId());
+            if (fullProduct == null) {
+                sendErrorResponse(response, "Product not found in catalog.");
+                return;
             }
+
+            // Add the selected product to the cart
+            List<Product> cart = getCartFromDB(userId);
+            boolean productExists = false;
+
+            // Check if the product already exists in the cart
+            for (Product p : cart) {
+                if (p.getId() == fullProduct.getId()) {
+                    p.setQuantity(p.getQuantity() + incomingProduct.getQuantity());
+                    updateCartItem(userId, p); // Update the cart item quantity in the database
+                    productExists = true;
+                    break;
+                }
+            }
+
+            // If the product does not exist in the cart, insert it into the cart
+            if (!productExists) {
+                insertCartItem(userId, fullProduct); // Insert the product into the cart table
+                cart.add(fullProduct);
+            }
+
+            sendJsonResponse(response, cart); // Send the updated cart as JSON
+
         } catch (Exception e) {
             e.printStackTrace();
             sendErrorResponse(response, "Failed to add item to cart.");
@@ -104,116 +78,141 @@ public class CartServlet extends HttpServlet {
 
         enableCORS(request, response);
         HttpSession session = request.getSession();
-        String userId = session.getId();
+        int userId = getUserIdFromSession(session);
 
-        // Load the user's cart and accessories
-        List<Product> cart = loadCart(userId);
-        List<Accessory> accessories = loadAccessories(userId);
+        // Retrieve the user's cart from the database
+        List<Product> cart = getCartFromDB(userId);
 
-        CartResponse cartResponse = new CartResponse(
-                cart != null ? cart : new ArrayList<>(),
-                accessories != null ? accessories : new ArrayList<>());
-
-        sendJsonResponse(response, cartResponse);
+        // Return the cart as a list of products (details will be pulled from
+        // ProductCatalog.xml)
+        sendJsonResponse(response, cart != null ? cart : new ArrayList<>());
     }
 
     @Override
     protected void doPut(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        enableCORS(request, response);  // Enable CORS headers for the request
-        HttpSession session = request.getSession();  // Get user session
-        String userId = session.getId();  // Get session ID as user ID
-        BufferedReader reader = request.getReader();  // Read request data
-        String path = request.getRequestURI();  // Extract the path to distinguish between products and accessories
+        enableCORS(request, response);
+        HttpSession session = request.getSession();
+        int userId = getUserIdFromSession(session); // Get user ID from session
+
+        BufferedReader reader = request.getReader();
 
         try {
-            // Handle product update
-            if (path.contains("/product")) {
-                Product updatedProduct = new Gson().fromJson(reader, Product.class);  // Parse product from the request
-                List<Product> cart = loadCart(userId);  // Load the user's cart
+            // Parse the incoming product details
+            Product incomingProduct = new Gson().fromJson(reader, Product.class);
 
-                boolean productUpdated = false;
-                for (Product p : cart) {
-                    if (p.getId() == updatedProduct.getId()) {
-                        p.setQuantity(updatedProduct.getQuantity());  // Update the quantity of the product
-                        productUpdated = true;
-                        break;
-                    }
-                }
+            // Update the cart item quantity
+            updateCartItem(userId, incomingProduct); // Update the product in the cart
 
-                if (!productUpdated) {
-                    cart.add(updatedProduct);  // If the product does not exist in the cart, add it
-                }
+            // Fetch the updated cart and return as response
+            List<Product> cart = getCartFromDB(userId);
+            sendJsonResponse(response, cart);
+        } catch (Exception e) {
+            e.printStackTrace();
+            sendErrorResponse(response, "Failed to update cart item.");
+        }
+    }
 
-                saveCart(userId, cart);  // Save the updated cart to the file
-                response.setContentType("application/json");
-                response.setCharacterEncoding("UTF-8");
-                response.getWriter().write(new Gson().toJson(cart));  // Send updated cart as JSON response
+    // Helper methods
+
+    private int getUserIdFromSession(HttpSession session) {
+        // Get the user ID from the session attribute
+        Object userIdAttr = session.getAttribute("userId");
+        if (userIdAttr != null && userIdAttr instanceof Integer) {
+            return (int) userIdAttr;
+        }
+        return -1; // Return -1 if user ID is not found or invalid
+    }
+
+    // Load product data from the XML file using ProductSAXHandler
+    private Product getProductById(int productId) {
+        try {
+            // Initialize SAX parser to parse the ProductCatalog.xml
+            SAXParserFactory factory = SAXParserFactory.newInstance();
+            SAXParser saxParser = factory.newSAXParser();
+            ProductSAXHandler handler = new ProductSAXHandler();
+
+            // Load the ProductCatalog.xml from the resources
+            InputStream xmlFile = getClass().getClassLoader().getResourceAsStream("ProductCatalog.xml");
+            if (xmlFile == null) {
+                System.out.println("ProductCatalog.xml not found in resources.");
+                return null;
             }
 
-            // Handle accessory update
-            else if (path.contains("/accessory")) {
-                Accessory updatedAccessory = new Gson().fromJson(reader, Accessory.class);  // Parse accessory from the request
-                List<Accessory> accessories = loadAccessories(userId);  // Load the user's accessories
+            // Parse the XML file using the ProductSAXHandler
+            saxParser.parse(xmlFile, handler);
+            List<Product> products = handler.getProducts();
 
-                boolean accessoryUpdated = false;
-                for (Accessory a : accessories) {
-                    if (a.getNameA().equals(updatedAccessory.getNameA())) {
-                        a.setQuantity(updatedAccessory.getQuantity());  // Update the quantity of the accessory
-                        accessoryUpdated = true;
-                        break;
-                    }
+            // Search for the product by productId
+            for (Product product : products) {
+                if (product.getId() == productId) {
+                    return product; // Return the matched product
                 }
-
-                if (!accessoryUpdated) {
-                    accessories.add(updatedAccessory);  // If the accessory does not exist, add it
-                }
-
-                saveAccessories(userId, accessories);  // Save the updated accessories to the file
-                response.setContentType("application/json");
-                response.setCharacterEncoding("UTF-8");
-                response.getWriter().write(new Gson().toJson(accessories));  // Send updated accessories as JSON response
             }
         } catch (Exception e) {
             e.printStackTrace();
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.setContentType("application/json");
-            response.setCharacterEncoding("UTF-8");
-            response.getWriter().write("{\"error\": \"Failed to update the cart.\"}");
+        }
+        return null; // Return null if the product is not found
+    }
+
+    // Fetch the user's cart from the database
+    private List<Product> getCartFromDB(int userId) {
+        List<Product> cartItems = new ArrayList<>();
+        String query = "SELECT c.product_id, c.quantity FROM cart c WHERE c.user_id = ?";
+
+        try (Connection conn = MySQLDataStoreUtilities.getConnection();
+                PreparedStatement ps = conn.prepareStatement(query)) {
+            ps.setInt(1, userId);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                int productId = rs.getInt("product_id");
+                int quantity = rs.getInt("quantity");
+
+                // Load product details from ProductCatalog.xml
+                Product product = getProductById(productId);
+                if (product != null) {
+                    product.setQuantity(quantity); // Set the cart quantity
+                    cartItems.add(product);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return cartItems;
+    }
+
+    // Insert a product into the cart table
+    private void insertCartItem(int userId, Product product) {
+        String query = "INSERT INTO cart (user_id, product_id, quantity) VALUES (?, ?, ?)";
+
+        try (Connection conn = MySQLDataStoreUtilities.getConnection();
+                PreparedStatement ps = conn.prepareStatement(query)) {
+            ps.setInt(1, userId);
+            ps.setInt(2, product.getId());
+            ps.setInt(3, product.getQuantity());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
-    @Override
-    protected void doDelete(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    // Update the quantity of an existing cart item in the database
+    private void updateCartItem(int userId, Product product) {
+        String query = "UPDATE cart SET quantity = ? WHERE user_id = ? AND product_id = ?";
 
-        enableCORS(request, response);
-        HttpSession session = request.getSession();
-        String userId = session.getId();
-        BufferedReader reader = request.getReader();
-
-        String path = request.getRequestURI();
-
-        if (path.contains("/product")) {
-            Product productToRemove = new Gson().fromJson(reader, Product.class);
-            List<Product> cart = loadCart(userId);
-
-            cart.removeIf(p -> p.getId() == productToRemove.getId());
-            saveCart(userId, cart);
-            sendJsonResponse(response, cart);
-
-        } else if (path.contains("/accessory")) {
-            Accessory accessoryToRemove = new Gson().fromJson(reader, Accessory.class);
-            List<Accessory> accessories = loadAccessories(userId);
-
-            accessories.removeIf(a -> a.getNameA().equals(accessoryToRemove.getNameA()));
-            saveAccessories(userId, accessories);
-            sendJsonResponse(response, accessories);
+        try (Connection conn = MySQLDataStoreUtilities.getConnection();
+                PreparedStatement ps = conn.prepareStatement(query)) {
+            ps.setInt(1, product.getQuantity());
+            ps.setInt(2, userId);
+            ps.setInt(3, product.getId());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
-    // Utility methods to send responses
     private void sendJsonResponse(HttpServletResponse response, Object data) throws IOException {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
@@ -228,118 +227,14 @@ public class CartServlet extends HttpServlet {
         response.getWriter().flush();
     }
 
-    // Helper method to add CORS headers
     private void enableCORS(HttpServletRequest request, HttpServletResponse response) {
-        response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000"); // Allow frontend origin
-        response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS"); // Allow these methods
+        response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+        response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
         response.setHeader("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization");
-        response.setHeader("Access-Control-Allow-Credentials", "true"); // Allow credentials (cookies)
+        response.setHeader("Access-Control-Allow-Credentials", "true");
 
-        // Handle preflight (OPTIONS) requests
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             response.setStatus(HttpServletResponse.SC_OK);
-        }
-    }
-
-    @Override
-    protected void doOptions(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        enableCORS(request, response);
-        response.setStatus(HttpServletResponse.SC_OK);
-    }
-
-    private boolean isProductInCatalog(int productId) {
-        for (Product p : productCatalog) {
-            if (p.getId() == (productId)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private List<Product> loadProductCatalog() {
-        List<Product> catalog = new ArrayList<>();
-        try {
-            SAXParserFactory factory = SAXParserFactory.newInstance();
-            SAXParser saxParser = factory.newSAXParser();
-            ProductSAXHandler handler = new ProductSAXHandler();
-
-            InputStream inputFile = getClass().getClassLoader().getResourceAsStream("ProductCatalog.xml");
-            if (inputFile == null) {
-                throw new FileNotFoundException("ProductCatalog.xml file not found in resources folder.");
-            }
-            saxParser.parse(inputFile, handler);
-
-            catalog = handler.getProducts();
-            System.out.println("Loaded product catalog with " + catalog.size() + " products.");
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return catalog;
-    }
-
-    @SuppressWarnings("unchecked")
-    private List<Product> loadCart(String userId) {
-        File cartFile = new File(CART_DIRECTORY + "cart_" + userId + ".txt");
-        if (!cartFile.exists()) {
-            return new ArrayList<>();
-        }
-
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(cartFile))) {
-            return (List<Product>) ois.readObject();
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-            return new ArrayList<>();
-        }
-    }
-
-    private void saveCart(String userId, List<Product> cart) {
-        File directory = new File(CART_DIRECTORY);
-
-        if (!directory.exists()) {
-            boolean dirCreated = directory.mkdirs();
-            if (!dirCreated) {
-                return;
-            }
-        }
-
-        File cartFile = new File(CART_DIRECTORY + "cart_" + userId + ".txt");
-
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(cartFile))) {
-            oos.writeObject(cart);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private List<Accessory> loadAccessories(String userId) {
-        File accessoryFile = new File(CART_DIRECTORY + "accessories_" + userId + ".txt");
-        if (!accessoryFile.exists()) {
-            return new ArrayList<>();
-        }
-
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(accessoryFile))) {
-            return (List<Accessory>) ois.readObject();
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-            return new ArrayList<>();
-        }
-    }
-
-    private void saveAccessories(String userId, List<Accessory> accessories) {
-        File directory = new File(CART_DIRECTORY);
-        if (!directory.exists()) {
-            directory.mkdirs();
-        }
-
-        File accessoryFile = new File(CART_DIRECTORY + "accessories_" + userId + ".txt");
-
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(accessoryFile))) {
-            oos.writeObject(accessories);
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 }

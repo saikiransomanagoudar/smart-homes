@@ -1,6 +1,7 @@
 package com.smarthomes;
 
 import java.io.Serializable;
+import java.util.List;
 
 public class Orders implements Serializable {
     private int orderId;
@@ -25,6 +26,7 @@ public class Orders implements Serializable {
     private String storeAddress; // In-store pickup address
     private String deliveryOption; // pickup or delivery
     private String deliveryDate; // Delivery date
+    private List<CartItem> cartItems;
 
     // Constructors, getters, and setters for all fields
     public Orders(int orderId, int userId, String customerName, String customerAddress, String creditCardNo,
@@ -51,6 +53,14 @@ public class Orders implements Serializable {
         this.storeAddress = storeAddress;
         this.deliveryOption = deliveryOption;
         this.deliveryDate = deliveryDate;
+    }
+
+    public List<CartItem> getCartItems() {
+        return cartItems;
+    }
+
+    public void setCartItems(List<CartItem> cartItems) {
+        this.cartItems = cartItems;
     }
 
     // Add getter and setter methods for all fields.

@@ -8,14 +8,15 @@ public class Product implements Serializable {
     private static final long serialVersionUID = 1L;
     private int id;
     private String retailer;
-    private String category;
-    private String nameP;
-    private double priceP;
-    private String description;
-    private String imageP;
-    private List<Integer> accessoryIds;  // List of accessory IDs
-    private List<Accessory> accessories; // List of Accessory objects
-    private int quantity;  // Quantity of the product
+    private String category;  // Use this to differentiate between products and accessories
+    private String name;      // Unified name for both products and accessories (nameP or nameA)
+    private double price;     // Unified price for both products and accessories (priceP or priceA)
+    private String description;  // Optional: Products have description, accessories don't
+    private String image;     // Unified image for both products and accessories (imageP or imageA)
+    private List<Integer> accessoryIds;  // List of accessory IDs (if applicable)
+    private List<Product> accessories;   // List of Product objects for accessories
+    private int quantity;  // Quantity of the product or accessory
+    private String type;  // Type of product or accessory (product or accessory)
 
     // No-argument constructor
     public Product() {
@@ -24,29 +25,30 @@ public class Product implements Serializable {
     }
 
     // Parameterized constructor
-    public Product(int id, String retailer, String category, String nameP, double priceP, String description, String imageP, List<Integer> accessoryIds, int quantity) {
+    public Product(int id, String retailer, String category, String name, double price, String description, String image, List<Integer> accessoryIds, int quantity, String type) {
         this.id = id;
         this.retailer = retailer;
         this.category = category;
-        this.nameP = nameP;
-        this.priceP = priceP;
-        this.description = description;
-        this.imageP = imageP;
+        this.name = name;
+        this.price = price;
+        this.description = description;  // Products will have a description, accessories may leave it null
+        this.image = image;
         this.accessoryIds = accessoryIds != null ? accessoryIds : new ArrayList<>();
         this.quantity = quantity;
         this.accessories = new ArrayList<>(); // Initialize an empty accessories list
+        this.type = type;
     }
 
-    // Getter and setter for accessories
-    public List<Accessory> getAccessories() {
+    // Getters and setters for accessories
+    public List<Product> getAccessories() {
         return accessories;
     }
 
-    public void setAccessories(List<Accessory> accessories) {
+    public void setAccessories(List<Product> accessories) {
         this.accessories = accessories;
     }
 
-    // Getter and setter for accessory IDs
+    // Getters and setters for accessory IDs
     public List<Integer> getAccessoryIds() {
         return accessoryIds;
     }
@@ -87,20 +89,20 @@ public class Product implements Serializable {
         this.category = category;
     }
 
-    public String getNameP() {
-        return nameP;
+    public String getName() {
+        return name;
     }
 
-    public void setNameP(String nameP) {
-        this.nameP = nameP;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public double getPriceP() {
-        return priceP;
+    public double getPrice() {
+        return price;
     }
 
-    public void setPriceP(double priceP) {
-        this.priceP = priceP;
+    public void setPrice(double price) {
+        this.price = price;
     }
 
     public String getDescription() {
@@ -111,12 +113,12 @@ public class Product implements Serializable {
         this.description = description;
     }
 
-    public String getImageP() {
-        return imageP;
+    public String getImage() {
+        return image;
     }
 
-    public void setImageP(String imageP) {
-        this.imageP = imageP;
+    public void setImage(String image) {
+        this.image = image;
     }
 
     public int getQuantity() {
@@ -127,6 +129,14 @@ public class Product implements Serializable {
         this.quantity = quantity;
     }
 
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
     // Override toString to return a formatted string representation of Product
     @Override
     public String toString() {
@@ -134,13 +144,14 @@ public class Product implements Serializable {
                 "id=" + id +
                 ", retailer='" + retailer + '\'' +
                 ", category='" + category + '\'' +
-                ", nameP='" + nameP + '\'' +
-                ", priceP=" + priceP +
+                ", name='" + name + '\'' +
+                ", price=" + price +
                 ", description='" + description + '\'' +
-                ", imageP='" + imageP + '\'' +
+                ", image='" + image + '\'' +
                 ", accessoryIds=" + accessoryIds +
                 ", accessories=" + accessories +
                 ", quantity=" + quantity +
+                ", type='" + type + '\'' +
                 '}';
     }
 }

@@ -5,17 +5,13 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ProductSAXHandler extends DefaultHandler {
 
     private List<Product> products = null;
-    private Map<Integer, Accessory> accessories = null; // Store accessories
-    private Product product = null;
-    private Accessory accessory = null;  // For accessory parsing
+    private Product product = null;  // Common product object for both products and accessories
     private StringBuilder data = null;
 
     // Getters
@@ -23,46 +19,39 @@ public class ProductSAXHandler extends DefaultHandler {
         return products;
     }
 
-    public Map<Integer, Accessory> getAccessoryMap() {
-        return accessories;
-    }
-
     @Override
     public void startDocument() throws SAXException {
         products = new ArrayList<>();
-        accessories = new HashMap<>();
     }
 
     @Override
     public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-        // Handle accessory elements
-        if (qName.equalsIgnoreCase("accessory")) {
-            accessory = new Accessory();
-            String idValue = attributes.getValue("id");
-            if (idValue != null && !idValue.isEmpty()) {
-                try {
-                    accessory.setId(Integer.parseInt(idValue));  // Set accessory ID
-                    System.out.println("Accessory ID: " + idValue);  // Debugging
-                } catch (NumberFormatException e) {
-                    System.err.println("Invalid accessory ID: " + idValue);
-                }
-            }
-        }
 
-        // Handle product elements (doorbell, doorlock, lighting, speaker, thermostat)
-        if (qName.equalsIgnoreCase("doorbell") || qName.equalsIgnoreCase("doorlock") || qName.equalsIgnoreCase("lighting") || qName.equalsIgnoreCase("speaker") || qName.equalsIgnoreCase("thermostat")) {
+        // Handle product elements (doorbell, doorlock, lighting, speaker, thermostat, accessory)
+        if (qName.equalsIgnoreCase("doorbell") || qName.equalsIgnoreCase("doorlock") ||
+            qName.equalsIgnoreCase("lighting") || qName.equalsIgnoreCase("speaker") ||
+            qName.equalsIgnoreCase("thermostat") || qName.equalsIgnoreCase("accessory")) {
+
             product = new Product();
             String idValue = attributes.getValue("id");
             if (idValue != null && !idValue.isEmpty()) {
                 try {
-                    product.setId(Integer.parseInt(idValue));  // Set product ID
-                    System.out.println("Product ID: " + idValue);  // Debugging
+                    product.setId(Integer.parseInt(idValue));  // Set product/accessory ID
+                    System.out.println("Product/Accessory ID: " + idValue);  // Debugging
                 } catch (NumberFormatException e) {
-                    System.err.println("Invalid product ID: " + idValue);
+                    System.err.println("Invalid product/accessory ID: " + idValue);
                 }
             }
+
             product.setCategory(attributes.getValue("category"));
             product.setRetailer(attributes.getValue("retailer"));
+
+            // Set type as accessory or product based on the XML element name
+            if (qName.equalsIgnoreCase("accessory")) {
+                product.setType("accessory");  // Set type as accessory
+            } else {
+                product.setType("product");  // Set type as product
+            }
         }
 
         // Handle accessoryRef by extracting the id attribute
@@ -83,61 +72,41 @@ public class ProductSAXHandler extends DefaultHandler {
 
     @Override
     public void endElement(String uri, String localName, String qName) throws SAXException {
-        if (accessory != null) {
-            switch (qName) {
-                case "nameA":
-                    accessory.setNameA(data.toString());
-                    break;
-                case "priceA":
-                    if (!data.toString().isEmpty()) {
-                        try {
-                            accessory.setPriceA(Double.parseDouble(data.toString()));
-                        } catch (NumberFormatException e) {
-                            System.err.println("Invalid priceA: " + data.toString());
-                        }
-                    }
-                    break;
-                case "imageA":
-                    accessory.setImageA(data.toString());
-                    break;
-                case "accessory":
-                    // Add accessory to the map
-                    accessories.put(accessory.getId(), accessory);
-                    System.out.println("Accessory added: " + accessory);  // Debugging
-                    accessory = null;
-                    break;
-            }
-        }
-
         if (product != null) {
             switch (qName) {
-                case "nameP":
-                    product.setNameP(data.toString());
+                case "nameP":  // For product names
+                case "nameA":  // For accessory names
+                    product.setName(data.toString());
                     break;
-                case "priceP":
+                case "priceP":  // For product prices
+                case "priceA":  // For accessory prices
                     if (!data.toString().isEmpty()) {
                         try {
-                            product.setPriceP(Double.parseDouble(data.toString()));
+                            product.setPrice(Double.parseDouble(data.toString()));
                         } catch (NumberFormatException e) {
-                            System.err.println("Invalid priceP: " + data.toString());
+                            System.err.println("Invalid price: " + data.toString());
                         }
                     }
                     break;
-                case "description":
+                case "description":  // For product descriptions (accessories don't have descriptions)
                     product.setDescription(data.toString());
                     break;
-                case "imageP":
-                    product.setImageP(data.toString());
+                case "imageP":  // For product images
+                case "imageA":  // For accessory images
+                    product.setImage(data.toString());
                     break;
                 case "doorbell":
                 case "doorlock":
                 case "lighting":
                 case "speaker":
                 case "thermostat":
-                    // Now map accessory IDs to actual Accessory objects and add them to the product
-                    List<Accessory> productAccessories = product.getAccessoryIds().stream()
-                        .map(accessories::get)  // Map IDs to Accessory objects
-                        .filter(accessory -> accessory != null) // Avoid nulls in case of missing references
+                case "accessory":
+                    // Now map accessory IDs to actual accessories if any
+                    List<Product> productAccessories = product.getAccessoryIds().stream()
+                        .map(id -> products.stream()
+                            .filter(p -> p.getId() == id && p.getType().equals("accessory"))
+                            .findFirst().orElse(null))
+                        .filter(p -> p != null)  // Remove nulls
                         .collect(Collectors.toList());
                     product.setAccessories(productAccessories);  // Set accessories for the product
                     System.out.println("Product accessories mapped for Product ID " + product.getId() + ": " + productAccessories);  // Debugging
