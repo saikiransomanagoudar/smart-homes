@@ -102,15 +102,68 @@ public class CartServlet extends HttpServlet {
             // Parse the incoming product details
             Product incomingProduct = new Gson().fromJson(reader, Product.class);
 
-            // Update the cart item quantity
-            updateCartItem(userId, incomingProduct); // Update the product in the cart
+            // Get the current quantity from the database
+            int currentQuantity = getCartItemQuantity(userId, incomingProduct.getId());
 
-            // Fetch the updated cart and return as response
+            if (currentQuantity > 1) {
+                // Decrease the quantity by 1 if it's greater than 1
+                updateCartItemQuantity(userId, incomingProduct.getId(), currentQuantity - 1);
+            } else if (currentQuantity == 1) {
+                // If only one item is left, delete the item from the cart
+                deleteCartItem(userId, incomingProduct.getId());
+            }
+
+            // Fetch the updated cart and return it as a response
             List<Product> cart = getCartFromDB(userId);
             sendJsonResponse(response, cart);
+
         } catch (Exception e) {
             e.printStackTrace();
             sendErrorResponse(response, "Failed to update cart item.");
+        }
+    }
+
+    // Helper method to get the current quantity of a cart item
+    private int getCartItemQuantity(int userId, int productId) {
+        String query = "SELECT quantity FROM cart WHERE user_id = ? AND product_id = ?";
+        try (Connection conn = MySQLDataStoreUtilities.getConnection();
+                PreparedStatement ps = conn.prepareStatement(query)) {
+            ps.setInt(1, userId);
+            ps.setInt(2, productId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("quantity");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0; // Default to 0 if no quantity found
+    }
+
+    // Helper method to update the quantity of an item in the cart
+    private void updateCartItemQuantity(int userId, int productId, int newQuantity) {
+        String query = "UPDATE cart SET quantity = ? WHERE user_id = ? AND product_id = ?";
+        try (Connection conn = MySQLDataStoreUtilities.getConnection();
+                PreparedStatement ps = conn.prepareStatement(query)) {
+            ps.setInt(1, newQuantity);
+            ps.setInt(2, userId);
+            ps.setInt(3, productId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Helper method to delete a cart item
+    private void deleteCartItem(int userId, int productId) {
+        String query = "DELETE FROM cart WHERE user_id = ? AND product_id = ?";
+        try (Connection conn = MySQLDataStoreUtilities.getConnection();
+                PreparedStatement ps = conn.prepareStatement(query)) {
+            ps.setInt(1, userId);
+            ps.setInt(2, productId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 

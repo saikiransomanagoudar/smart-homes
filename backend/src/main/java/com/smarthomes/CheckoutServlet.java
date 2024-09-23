@@ -77,7 +77,7 @@ public class CheckoutServlet extends HttpServlet {
     }
 
     private void saveOrderToDatabase(Orders order) {
-        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/smarthomes", "user", "password");
+        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/smarthomes", "root", "root");
              PreparedStatement stmt = connection.prepareStatement(
                      "INSERT INTO orders (userId, customerName, customerAddress, creditCardNo, confirmationNumber, purchaseDate, shipDate, productId, productName, category, quantity, price, shippingCost, discount, totalSales, storeId, storeAddress, deliveryOption, deliveryDate) " +
                              "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {

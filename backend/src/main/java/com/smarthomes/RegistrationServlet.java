@@ -56,14 +56,34 @@ public class RegistrationServlet extends HttpServlet {
             } else {
                 // Insert new user into the database
                 String insertQuery = "INSERT INTO users (name, email, password) VALUES (?, ?, ?)";
-                ps = conn.prepareStatement(insertQuery);
+                ps = conn.prepareStatement(insertQuery, PreparedStatement.RETURN_GENERATED_KEYS);
                 ps.setString(1, name);
                 ps.setString(2, email);
                 ps.setString(3, password);
                 ps.executeUpdate();
 
-                // Log successful registration
-                System.out.println("SELECT * FROM users;SELECT * FROM users;SELECT * FROM users;SELECT * FROM users;SELECT * FROM users;stered successfully: " + name);
+                // Retrieve the generated user_id
+                ResultSet generatedKeys = ps.getGeneratedKeys();
+                int userId = -1;
+                if (generatedKeys.next()) {
+                    userId = generatedKeys.getInt(1);  // Get the generated user_id
+                    System.out.println("User registered successfully with user_id: " + userId);
+                }
+
+                // Insert the user into customers table with the generated user_id
+                if (userId != -1) {
+                    String customerInsertQuery = "INSERT INTO customers (user_id, customer_name, street, city, state, zip_code) VALUES (?, ?, ?, ?, ?, ?)";
+                    PreparedStatement psCustomers = conn.prepareStatement(customerInsertQuery);
+                    psCustomers.setInt(1, userId);
+                    psCustomers.setString(2, name);  // Use the user's name as customer name
+                    psCustomers.setString(3, "Default Street");  // You can replace with actual input for street
+                    psCustomers.setString(4, "Default City");    // Same for city, state, zip code
+                    psCustomers.setString(5, "Default State");
+                    psCustomers.setString(6, "12345");
+                    psCustomers.executeUpdate();
+
+                    System.out.println("Customer entry created for user_id: " + userId);
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -81,7 +101,7 @@ public class RegistrationServlet extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_CONFLICT);
             out.print(error_msg);
         }
-        
+
         out.flush();
     }
 }

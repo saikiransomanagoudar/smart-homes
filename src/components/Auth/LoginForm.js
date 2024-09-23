@@ -36,16 +36,21 @@ const LoginForm = () => {
           "Content-Type": "application/x-www-form-urlencoded",
         },
       });
-      console.log(response);
-      console.log(formData.toString());
+
       if (response.ok) {
-        const data = await response.text(); // Read the response body to set body used
+        const data = await response.json(); // Parse the response as JSON
         console.log(data);
-        localStorage.setItem("isLoggedIn", "true"); // Set the logged-in status in local storage
+
+        // Store userId and email in localStorage after successful login
+        localStorage.setItem("userId", data.userId); 
+        localStorage.setItem("email", data.email);
+        localStorage.setItem("isLoggedIn", "true"); 
+
+        // Redirect to home or dashboard
         navigate("/");
       } else {
-        const data = await response.text();
-        setError(data || "Login failed.");
+        const data = await response.json(); // Parse error message
+        setError(data.error || "Login failed.");
       }
     } catch (error) {
       console.error("Error during login:", error);

@@ -95,7 +95,7 @@ public class OrderServlet extends HttpServlet {
                 "shipping_cost, discount, total_sales, store_id, store_address, delivery_option, delivery_date) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/smarthomes", "user", "password");
+        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/smarthomes", "root", "root");
              PreparedStatement stmt = connection.prepareStatement(insertOrderSQL)) {
 
             stmt.setInt(1, order.getUserId());

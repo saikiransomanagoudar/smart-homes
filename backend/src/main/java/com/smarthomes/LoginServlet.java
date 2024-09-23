@@ -43,7 +43,7 @@ public class LoginServlet extends HttpServlet {
             conn = MySQLDataStoreUtilities.getConnection();
 
             // Query to check if the user exists with the provided email and password
-            String query = "SELECT * FROM users WHERE email = ? AND password = ?";
+            String query = "SELECT id, email FROM users WHERE email = ? AND password = ?";
             ps = conn.prepareStatement(query);
             ps.setString(1, email);
             ps.setString(2, password);
@@ -51,13 +51,19 @@ public class LoginServlet extends HttpServlet {
 
             if (rs.next()) {
                 // User exists and password matches, login successful
-                response.setStatus(HttpServletResponse.SC_OK);
-                out.print("{ \"message\": \"Login successful\", \"email\": \"" + email + "\" }");
+                int userId = rs.getInt("id");  // Get the user ID from the result set
 
                 // Set user in session
                 HttpSession session = request.getSession(true);
-                session.setAttribute("username", email);
-                System.out.println("Username set in session: " + session.getAttribute("username"));
+                session.setAttribute("userId", userId);  // Store the userId in session for later use
+                session.setAttribute("email", email);  // Store the email for session use if needed
+
+                System.out.println("User ID set in session: " + session.getAttribute("userId"));
+
+                // Send success response with userId
+                response.setStatus(HttpServletResponse.SC_OK);
+                out.print("{ \"message\": \"Login successful\", \"userId\": \"" + userId + "\", \"email\": \"" + email + "\" }");
+
             } else {
                 // Invalid email or password
                 error_msg = "Invalid email or password!";
