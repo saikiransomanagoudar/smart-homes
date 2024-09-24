@@ -40,6 +40,9 @@ public class CheckoutServlet extends HttpServlet {
                 return;
             }
 
+            // Calculate totalSales as total quantity of items
+            int totalQuantity = order.getCartItems().stream().mapToInt(CartItem::getQuantity).sum();
+
             // Loop through cart items and save each item as part of the order
             for (CartItem item : order.getCartItems()) {
                 // DEBUG: Print each item
@@ -49,10 +52,12 @@ public class CheckoutServlet extends HttpServlet {
                 order.setConfirmationNumber(confirmationNumber);
                 order.setShipDate(shipDate);
                 order.setProductId(item.getProductId());  // Ensure the CartItem has getId()
-                order.setProductName(item.getProductName());  // Ensure the CartItem has getName()
                 order.setCategory(item.getCategory()); // Ensure the CartItem has getCategory()
                 order.setPrice(item.getPrice());
                 order.setQuantity(item.getQuantity());
+
+                // Set total_sales as total quantity instead of total amount
+                order.setTotalSales(totalQuantity);
 
                 // Save each item in the database
                 saveOrderToDatabase(order);
@@ -79,7 +84,7 @@ public class CheckoutServlet extends HttpServlet {
     private void saveOrderToDatabase(Orders order) {
         try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/smarthomes", "root", "root");
              PreparedStatement stmt = connection.prepareStatement(
-                     "INSERT INTO orders (userId, customerName, customerAddress, creditCardNo, confirmationNumber, purchaseDate, shipDate, productId, productName, category, quantity, price, shippingCost, discount, totalSales, storeId, storeAddress, deliveryOption, deliveryDate) " +
+                     "INSERT INTO orders (user_id, customer_name, customer_address, credit_card_no, confirmation_number, purchase_date, ship_date, product_id, category, quantity, price, shipping_cost, discount, total_sales, store_id, store_address, deliveryDate, deliveryOption) " +
                              "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
 
             stmt.setInt(1, order.getUserId());
@@ -90,18 +95,16 @@ public class CheckoutServlet extends HttpServlet {
             stmt.setString(6, new SimpleDateFormat("yyyy-MM-dd").format(new Date())); // Purchase date is current date
             stmt.setString(7, order.getShipDate());
             stmt.setInt(8, order.getProductId());
-            stmt.setString(9, order.getProductName());
-            stmt.setString(10, order.getCategory());
-            stmt.setInt(11, order.getQuantity());
-            stmt.setDouble(12, order.getPrice());
-            stmt.setDouble(13, order.getShippingCost());
-            stmt.setDouble(14, order.getDiscount());
-            stmt.setDouble(15, order.getTotalSales());
-            stmt.setInt(16, order.getStoreId());
-            stmt.setString(17, order.getStoreAddress());
+            stmt.setString(9, order.getCategory());
+            stmt.setInt(10, order.getQuantity());
+            stmt.setDouble(11, order.getPrice());
+            stmt.setDouble(12, order.getShippingCost());
+            stmt.setDouble(13, order.getDiscount());
+            stmt.setInt(14, order.getTotalSales());  // total quantity
+            stmt.setInt(15, order.getStoreId());
+            stmt.setString(16, order.getStoreAddress());
+            stmt.setString(17, order.getDeliveryDate());
             stmt.setString(18, order.getDeliveryOption());
-            stmt.setString(19, order.getDeliveryDate());
-
             stmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();

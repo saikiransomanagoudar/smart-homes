@@ -20,7 +20,7 @@ public class Orders implements Serializable {
     private double price;
     private double shippingCost;
     private double discount;
-    private double totalSales;
+    private int totalSales;
 
     private int storeId;
     private String storeAddress; // In-store pickup address
@@ -31,7 +31,7 @@ public class Orders implements Serializable {
     // Constructors, getters, and setters for all fields
     public Orders(int orderId, int userId, String customerName, String customerAddress, String creditCardNo,
                   String confirmationNumber, String purchaseDate, String shipDate, int productId, String productName,
-                  String category, int quantity, double price, double shippingCost, double discount, double totalSales,
+                  String category, int quantity, double price, double shippingCost, double discount, int totalSales,
                   int storeId, String storeAddress, String deliveryOption, String deliveryDate) {
         this.orderId = orderId;
         this.userId = userId;
@@ -184,11 +184,11 @@ public class Orders implements Serializable {
         this.discount = discount;
     }
 
-    public double getTotalSales() {
+    public int getTotalSales() {
         return totalSales;
     }
 
-    public void setTotalSales(double totalSales) {
+    public void setTotalSales(int totalSales) {
         this.totalSales = totalSales;
     }
 

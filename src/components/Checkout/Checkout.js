@@ -80,6 +80,12 @@ export default function Checkout() {
     setTotalPrice(total);
   };
 
+  const calculateTotalSales = (products) => {
+    const totalSales = products.reduce((sum, item) => sum + item.quantity, 0);
+    return totalSales;
+  };
+  
+
   // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -97,14 +103,21 @@ export default function Checkout() {
       return;
     }
 
+    // Ensure each cart item contains product_name (name field)
+    const updatedCartItems = cartItems.map((item) => ({
+      ...item,
+      product_name: item.name // Assign 'name' to 'product_name' for each cart item
+    }));
+
     // Prepare order data
     const orderData = {
+      userId: parseInt(localStorage.getItem("userId")), // Ensure the user ID is passed correctly
       customerName: formData.name,
       customerAddress: `${formData.address}, ${formData.city}, ${formData.state}, ${formData.zip}`,
       creditCardNo: formData.creditCard,
       deliveryOption: formData.deliveryOption,
-      cartItems: cartItems, // Include cart items here
-      totalSales: totalPrice,
+      cartItems: updatedCartItems, // Ensure cart items now contain 'product_name'
+      totalSales: calculateTotalSales(cartItems),
       shippingCost: 5.0,
       discount: 0.0,
       storeId: formData.deliveryOption === "pickup" ? 1 : null,
