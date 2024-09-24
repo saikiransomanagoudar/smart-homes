@@ -14,12 +14,10 @@ export default function ProductsPage({ cart, setCart }) {
   const isLoggedIn = localStorage.getItem("isLoggedIn");
   const userId = localStorage.getItem("userId");
 
-  // Fetch products based on category
   useEffect(() => {
     fetch(`http://localhost:8080/smarthomes/getProducts?category=${category}`)
       .then((response) => response.json())
       .then((data) => {
-        console.log("Fetched data:", data); // Log the data
         if (Array.isArray(data)) {
           setProducts(data);
         } else {
@@ -31,21 +29,45 @@ export default function ProductsPage({ cart, setCart }) {
       });
   }, [category]);
 
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetch("http://localhost:8080/smarthomes/cart", {
+        method: "GET",
+        credentials: "include",
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          setCart(data); // Update the cart state with the fetched data
+          localStorage.setItem("cart", JSON.stringify(data)); // Store cart in localStorage
+        })
+        .catch((error) => {
+          console.error("Error fetching cart:", error);
+        });
+    }
+  }, [isLoggedIn, setCart]);
+
+  useEffect(() => {
+    const storedCart = localStorage.getItem("cart");
+    if (storedCart) {
+      setCart(JSON.parse(storedCart));
+    }
+  }, [setCart]);
+
   const handleProductClick = (product) => {
-    setSelectedProduct(product); // Set selected product for modal display
+    setSelectedProduct(product);
   };
 
   const handleCloseModal = () => {
-    setSelectedProduct(null); // Close the modal
+    setSelectedProduct(null);
   };
 
   const handleBuyNow = (product) => {
     if (isLoggedIn) {
       const productData = {
         id: product.id,
-        name: product.name, // Handle both products and accessories using 'name'
+        name: product.name,
         price: product.price,
-        description: product.description || "", // Products have descriptions, accessories may not
+        description: product.description || "",
         image: product.image,
         quantity: product.quantity || 1
       };
@@ -55,22 +77,17 @@ export default function ProductsPage({ cart, setCart }) {
     }
   };
 
-  useEffect(() => {
-    const storedCart = localStorage.getItem("cart");
-    if (storedCart) {
-      setCart(JSON.parse(storedCart)); // Set the cart from localStorage
-    }
-  }, [setCart]);
-
   const handleAddProductToCart = (item, isAccessory = false) => {
     if (!userId) {
       navigate("/signin");  // Redirect to sign-in if the user is not logged in
       return;
     }
   
-    // Separate logic for accessories and products
+    // Check if the item (product or accessory) already exists in the cart
     const existingItem = cart.find(
-      (cartItem) => cartItem.id === item.id && cartItem.type === (isAccessory ? "accessory" : "product")
+      (cartItem) =>
+        cartItem.id === item.id && 
+        cartItem.type === (isAccessory ? "accessory" : "product") // Check type
     );
   
     if (existingItem) {
@@ -85,30 +102,26 @@ export default function ProductsPage({ cart, setCart }) {
   
       // Update the item quantity on the server
       fetch("http://localhost:8080/smarthomes/cart/product", {
-        method: "PUT",  // Use PUT for updating existing cart item
+        method: "PUT", // Use PUT for updating existing cart item
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         credentials: "include",
         body: JSON.stringify({
           id: existingItem.id,
-          quantity: existingItem.quantity + 1,  // Increment quantity by 1
-          type: existingItem.type,
-          userId  // Ensure you send the userId to the backend
-        })
+          quantity: existingItem.quantity + 1, // Increment quantity
+          type: isAccessory ? "accessory" : "product", // Pass the correct type
+          userId,
+        }),
       })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Failed to update item quantity in cart.");
-          }
-          return response.json();
-        })
-        .then((data) => {
-          console.log("Cart updated successfully:", data);
-        })
-        .catch((error) => {
-          console.error("Error updating item in cart:", error);
-        });
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to update item in the cart.");
+        }
+      })
+      .catch((error) => {
+        console.error("Error updating item in cart:", error);
+      });
     } else {
       // If the item is not in the cart, add it
       const newItem = {
@@ -116,120 +129,134 @@ export default function ProductsPage({ cart, setCart }) {
         name: item.name,
         price: item.price,
         image: item.image,
-        quantity: existingItem ? existingItem.quantity + 1 : 1,
-        type: isAccessory ? "accessory" : "product",
-        userId  // Pass the userId
+        quantity: 1, // Set initial quantity
+        type: isAccessory ? "accessory" : "product", // Set the correct type
+        userId,
       };
-
-      const method = existingItem ? "PUT" : "POST";  // Use POST for new items and PUT for existing items
   
       fetch("http://localhost:8080/smarthomes/cart/product", {
-        method: method,  // Use POST for adding new cart item
+        method: "POST", // Use POST for adding new cart item
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(newItem),
+      })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to add item to cart.");
+        }
+        const updatedCart = [...cart, newItem];
+        setCart(updatedCart);
+        localStorage.setItem("cart", JSON.stringify(updatedCart));
+      })
+      .catch((error) => {
+        console.error("Error adding item to cart:", error);
+      });
+    }
+  
+    // Update the UI quantities state
+    setQuantities((prevQuantities) => ({
+      ...prevQuantities,
+      [item.id]: (prevQuantities[item.id] || 0) + 1, // Increment quantity
+    }));
+  };    
+
+  const handleIncreaseQuantity = (id) => {
+    const product = cart.find((item) => item.id === id);
+
+    if (product) {
+      fetch("http://localhost:8080/smarthomes/cart/product", {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json"
         },
         credentials: "include",
-        body: JSON.stringify(newItem)
+        body: JSON.stringify({
+          id: product.id,
+          userId,
+          quantity: product.quantity + 1 // Increase quantity
+        })
       })
         .then((response) => {
           if (!response.ok) {
-            throw new Error("Failed to add item to cart.");
-          }
-          return response.json();
-        })
-        .then(() => {
-          const updatedCart = [...cart, newItem];
-          setCart(updatedCart);
-          localStorage.setItem("cart", JSON.stringify(updatedCart));
-        })
-        .catch((error) => {
-          console.error("Error adding item to cart:", error);
-        });
-    }
-  
-    // Update the quantities state for the UI
-    setQuantities((prevQuantities) => ({
-      ...prevQuantities,
-      [item.id]: (prevQuantities[item.id] || 0) + 1  // Increment the quantity for the item
-    }));
-  };
-  
-
-  const handleIncreaseQuantity = (id) => {
-    const updatedCart = cart.map((item) =>
-      item.id === id ? { ...item, quantity: item.quantity + 1 } : item
-    );
-    setCart(updatedCart);
-    localStorage.setItem("cart", JSON.stringify(updatedCart)); // Save to localStorage
-
-    setQuantities((prevQuantities) => ({
-      ...prevQuantities,
-      [id]: (prevQuantities[id] || 0) + 1
-    }));
-  };
-
-  const handleDecreaseQuantity = (id) => {
-    const product = cart.find((item) => item.id === id);
-  
-    if (product) {
-      if (product.quantity > 1) {
-        // Decrease quantity
-        fetch("http://localhost:8080/smarthomes/cart/product", {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({
-            id: product.id,
-            userId,
-            quantity: product.quantity - 1, // Decrease quantity
-          }),
-        })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Failed to decrease item quantity.");
+            throw new Error("Failed to increase item quantity.");
           }
           return response.json();
         })
         .then(() => {
           const updatedCart = cart.map((item) =>
-            item.id === id ? { ...item, quantity: item.quantity - 1 } : item
+            item.id === id ? { ...item, quantity: item.quantity + 1 } : item
           );
           setCart(updatedCart);
-          localStorage.setItem("cart", JSON.stringify(updatedCart));
+          localStorage.setItem("cart", JSON.stringify(updatedCart)); // Save to localStorage
         })
         .catch((error) => {
-          console.error("Error decreasing item quantity:", error);
+          console.error("Error increasing item quantity:", error);
         });
+    }
+    // Update the UI quantity
+    setQuantities((prevQuantities) => ({
+      ...prevQuantities,
+      [id]: (prevQuantities[id] || 0) + 1 // Increase quantity
+    }));
+  };
+
+  const handleDecreaseQuantity = (id) => {
+    const product = cart.find((item) => item.id === id);
+
+    if (product) {
+      if (product.quantity > 1) {
+        fetch("http://localhost:8080/smarthomes/cart/product", {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            id: product.id,
+            userId,
+            quantity: product.quantity - 1
+          })
+        })
+          .then(() => {
+            const updatedCart = cart.map((item) =>
+              item.id === id ? { ...item, quantity: item.quantity - 1 } : item
+            );
+            setCart(updatedCart);
+            localStorage.setItem("cart", JSON.stringify(updatedCart));
+            setQuantities((prevQuantities) => ({
+              ...prevQuantities,
+              [id]: prevQuantities[id] - 1 // Decrease quantity
+            }));
+          })
+          .catch((error) => {
+            console.error("Error decreasing item quantity:", error);
+          });
       } else if (product.quantity === 1) {
-        // Delete item from cart if quantity is 1
         fetch("http://localhost:8080/smarthomes/cart/product", {
           method: "DELETE",
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type": "application/json"
           },
           credentials: "include",
-          body: JSON.stringify({ id: product.id, userId }),
+          body: JSON.stringify({ id: product.id, userId })
         })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Failed to delete item from cart.");
-          }
-          return response.json();
-        })
-        .then(() => {
-          const updatedCart = cart.filter((item) => item.id !== id);
-          setCart(updatedCart);
-          localStorage.setItem("cart", JSON.stringify(updatedCart));
-        })
-        .catch((error) => {
-          console.error("Error deleting item from cart:", error);
-        });
+          .then(() => {
+            const updatedCart = cart.filter((item) => item.id !== id);
+            setCart(updatedCart);
+            localStorage.setItem("cart", JSON.stringify(updatedCart));
+            const updatedQuantities = { ...quantities };
+            delete updatedQuantities[id]; // Remove quantity from UI tracking
+            setQuantities(updatedQuantities);
+          })
+          .catch((error) => {
+            console.error("Error deleting item from cart:", error);
+          });
       }
     }
   };
-  
+
   return (
     <div className="bg-[#f5f5f5] min-h-screen overflow-x-hidden">
       <header className="bg-[#550403] text-white p-4">
@@ -449,12 +476,6 @@ export default function ProductsPage({ cart, setCart }) {
                             loader={<div>Loading...</div>}
                             unloader={<div>Image not found</div>}
                           />
-                          <p className="text-sm font-bold">
-                            Quantity:{" "}
-                            {accessory.quantity > 0
-                              ? accessory.quantity
-                              : "Not added"}
-                          </p>
                           {/* Fix here: Prevent event propagation */}
                           <button
                             className="bg-green-500 text-white px-2 py-2 mt-2 rounded"

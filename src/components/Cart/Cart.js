@@ -18,7 +18,7 @@ export default function Cart() {
 
   useEffect(() => {
     if (isLoggedIn === "true") {
-      const storedCart = localStorage.getItem('cart');
+      const storedCart = localStorage.getItem("cart");
       if (storedCart) {
         setItems(JSON.parse(storedCart));
       } else {
@@ -39,7 +39,7 @@ export default function Cart() {
           .then((data) => {
             const allItems = [...data.products, ...data.accessories];
             setItems(allItems);
-            localStorage.setItem('cart', JSON.stringify(allItems));
+            localStorage.setItem("cart", JSON.stringify(allItems));
             handleUpdateCartCount();
           })
           .catch((error) => console.error("Error fetching cart:", error));
@@ -49,37 +49,38 @@ export default function Cart() {
     }
   }, [isLoggedIn, navigate]);
 
-  const updateCartBackend = (updatedCart) => {
-    fetch("http://localhost:8080/smarthomes/cart", {
-      method: "PUT",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(updatedCart)
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .catch((error) => console.error("Error updating cart:", error));
-  };
-
   const handleAddItem = (id) => {
     const updatedItems = items.map((item) =>
       item.id === id ? { ...item, quantity: item.quantity + 1 } : item
     );
     setItems(updatedItems);
-    localStorage.setItem('cart', JSON.stringify(updatedItems));
-    const updatedCart = {
-      products: updatedItems.filter(item => item.type === "product"),
-      accessories: updatedItems.filter(item => item.type === "accessory")
-    };
-    updateCartBackend(updatedCart);
+    localStorage.setItem("cart", JSON.stringify(updatedItems));
+  
+    const updatedItem = updatedItems.find((item) => item.id === id);
+    // Send updated item to the backend to increase quantity
+    fetch("http://localhost:8080/smarthomes/cart/product", {
+      method: "PUT", // Use PUT to increase the item quantity in the backend
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        id: updatedItem.id,
+        quantity: updatedItem.quantity,
+        type: updatedItem.type, // Ensure type is sent (accessory or product)
+        userId: localStorage.getItem("userId"), // Ensure the userId is sent to backend
+      }),
+    })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Failed to update item quantity.");
+      }
+    })
+    .catch((error) => {
+      console.error("Error updating cart:", error);
+    });
   };
-
+  
   const handleRemoveItem = (id) => {
     const updatedItems = items
       .map((item) => {
@@ -91,15 +92,53 @@ export default function Cart() {
         return item;
       })
       .filter((item) => item !== null);
-    
+  
     setItems(updatedItems);
-    localStorage.setItem('cart', JSON.stringify(updatedItems));
-    const updatedCart = {
-      products: updatedItems.filter(item => item.type === "product"),
-      accessories: updatedItems.filter(item => item.type === "accessory")
-    };
-    updateCartBackend(updatedCart);
-  };
+    localStorage.setItem("cart", JSON.stringify(updatedItems));
+  
+    const removedItem = items.find((item) => item.id === id);
+    if (removedItem.quantity === 1) {
+      // Send DELETE request if quantity is 1 and removed
+      fetch("http://localhost:8080/smarthomes/cart/product", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          id: removedItem.id,
+          type: removedItem.type,
+          userId: localStorage.getItem("userId"),
+        }),
+      })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to remove item from cart.");
+        }
+      })
+      .catch((error) => {
+        console.error("Error deleting item from cart:", error);
+      });
+    } else {
+      // Update backend when quantity is reduced
+      fetch("http://localhost:8080/smarthomes/cart/product", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          id: removedItem.id,
+          quantity: removedItem.quantity,
+          type: removedItem.type,
+          userId: localStorage.getItem("userId"),
+        }),
+      })
+      .catch((error) => {
+        console.error("Error updating cart:", error);
+      });
+    }
+  };  
 
   const calculateTotal = () => {
     return items.reduce((total, item) => total + item.price * item.quantity, 0); // Simplified price calculation
