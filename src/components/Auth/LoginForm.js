@@ -42,7 +42,8 @@ const LoginForm = () => {
         console.log(data);
 
         // Store userId and email in localStorage after successful login
-        localStorage.setItem("userId", data.userId); 
+        localStorage.setItem("userId", data.userId);
+        // localStorage.setItem("name", name);
         localStorage.setItem("email", data.email);
         localStorage.setItem("isLoggedIn", "true"); 
 

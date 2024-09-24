@@ -11,14 +11,12 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDate;
 import java.util.*;
 
 @WebServlet("/orders")
 public class OrderServlet extends HttpServlet {
-
-    private Map<String, Orders> orders = new HashMap<>();
 
     // Helper method to add CORS headers to the response
     private void enableCORS(HttpServletRequest request, HttpServletResponse response) {
@@ -29,22 +27,22 @@ public class OrderServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        enableCORS(request, response); // Enable CORS for POST request
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        enableCORS(request, response);
         response.setContentType("application/json");
 
         HttpSession session = request.getSession(false);
-        System.out.println("Username in session (OrderServlet): " + session.getAttribute("username"));
+        
+        // Fix: Use email instead of username
+        System.out.println("Email in session (OrderServlet): " + session.getAttribute("email"));
 
-        // Ensure the user is logged in
-        if (session == null || session.getAttribute("username") == null) {
+        if (session == null || session.getAttribute("email") == null) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("User not logged in");
             return;
         }
 
-        String customerName = (String) session.getAttribute("username");
-        Integer userId = (Integer) session.getAttribute("userId"); // Fetch user_id from the session
+        Integer userId = (Integer) session.getAttribute("userId"); // Fetch user_id from session
 
         if (userId == null) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -52,122 +50,116 @@ public class OrderServlet extends HttpServlet {
             return;
         }
 
-        try {
-            // Read and parse the request body to get the order data
-            String requestData = request.getReader().lines().reduce("", (accumulator, actual) -> accumulator + actual);
-            Orders order = new Gson().fromJson(requestData, Orders.class);
+        // Fetch the user's orders from the database
+        List<Orders> userOrders = getUserOrdersFromDatabase(userId);
 
-            if (order == null || order.getProductName() == null || order.getPrice() <= 0) {
-                throw new IllegalArgumentException("Invalid order data");
-            }
-
-            // Set the customer name and user ID in the order
-            order.setCustomerName(customerName);
-            order.setUserId(userId);
-
-            // Generate a confirmation number and ship date
-            String confirmationNumber = UUID.randomUUID().toString();
-            order.setConfirmationNumber(confirmationNumber);
-            order.setPurchaseDate(LocalDate.now().toString()); // Set today's date as purchase date
-            LocalDate shipDate = LocalDate.now().plusDays("pickup".equals(order.getDeliveryOption()) ? 1 : 3);
-            order.setShipDate(shipDate.toString());
-
-            // Save the order in the database
-            saveOrderToDatabase(order);
-
-            // Send the response with confirmation number and delivery date
-            Map<String, String> responseMap = new HashMap<>();
-            responseMap.put("confirmationNumber", confirmationNumber);
-            responseMap.put("deliveryDate", shipDate.toString());
-
-            response.setStatus(HttpServletResponse.SC_OK);
-            response.getWriter().write(new Gson().toJson(responseMap));
-        } catch (Exception e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().write("Error processing order: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-    private void saveOrderToDatabase(Orders order) throws SQLException {
-        String insertOrderSQL = "INSERT INTO orders (user_id, customer_name, customer_address, credit_card_no, " +
-                "confirmation_number, purchase_date, ship_date, product_id, product_name, category, quantity, price, " +
-                "shipping_cost, discount, total_sales, store_id, store_address, delivery_option, delivery_date) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/smarthomes", "root", "root");
-             PreparedStatement stmt = connection.prepareStatement(insertOrderSQL)) {
-
-            stmt.setInt(1, order.getUserId());
-            stmt.setString(2, order.getCustomerName());
-            stmt.setString(3, order.getCustomerAddress());
-            stmt.setString(4, order.getCreditCardNo());
-            stmt.setString(5, order.getConfirmationNumber());
-            stmt.setString(6, order.getPurchaseDate());
-            stmt.setString(7, order.getShipDate());
-            stmt.setInt(8, order.getProductId());
-            stmt.setString(9, order.getProductName());
-            stmt.setString(10, order.getCategory());
-            stmt.setInt(11, order.getQuantity());
-            stmt.setDouble(12, order.getPrice());
-            stmt.setDouble(13, order.getShippingCost());
-            stmt.setDouble(14, order.getDiscount());
-            stmt.setDouble(15, order.getTotalSales());
-            stmt.setInt(16, order.getStoreId());
-            stmt.setString(17, order.getStoreAddress());
-            stmt.setString(18, order.getDeliveryOption());
-            stmt.setString(19, order.getDeliveryDate());
-
-            stmt.executeUpdate();
-        }
-    }
-
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        enableCORS(request, response); // Enable CORS for GET request
-        response.setContentType("application/json");
-
-        HttpSession session = request.getSession(false);
-        System.out.println("Username in session (OrderServlet): " + session.getAttribute("username"));
-
-        // Check if the user is logged in
-        if (session == null || session.getAttribute("username") == null) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("User not logged in");
-            return;
-        }
-
-        String username = (String) session.getAttribute("username");
-
-        // Fetch orders for the logged-in user
-        List<Orders> userOrders = new ArrayList<>();
-        for (Orders order : orders.values()) {
-            if (order.getCustomerName().equals(username)) {
-                userOrders.add(order);
-            }
-        }
-
+        // Convert the list of orders to JSON and send as response
         String jsonResponse = new Gson().toJson(Map.of("orders", userOrders));
         response.getWriter().write(jsonResponse);
     }
 
+    // Fetch orders from the database for the specified user
+    private List<Orders> getUserOrdersFromDatabase(int userId) throws IOException {
+        List<Orders> ordersList = new ArrayList<>();
+
+        String selectOrdersSQL = "SELECT * FROM orders WHERE user_id = ? ORDER BY purchase_date DESC";
+
+        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/smarthomes", "root",
+                "root");
+                PreparedStatement stmt = connection.prepareStatement(selectOrdersSQL)) {
+
+            stmt.setInt(1, userId);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                Orders order = new Orders();
+                // Populate the order object with data from the result set
+                order.setOrderId(rs.getInt("order_id"));
+                order.setUserId(rs.getInt("user_id"));
+                order.setCustomerName(rs.getString("customer_name"));
+                order.setCustomerAddress(rs.getString("customer_address"));
+                order.setCreditCardNo(rs.getString("credit_card_no"));
+                order.setConfirmationNumber(rs.getString("confirmation_number"));
+                order.setPurchaseDate(rs.getString("purchase_date"));
+                order.setShipDate(rs.getString("ship_date"));
+                order.setProductId(rs.getInt("product_id"));
+                order.setProductName(rs.getString("product_name"));
+                order.setCategory(rs.getString("category"));
+                order.setQuantity(rs.getInt("quantity"));
+                order.setPrice(rs.getDouble("price"));
+                order.setShippingCost(rs.getDouble("shipping_cost"));
+                order.setDiscount(rs.getDouble("discount"));
+                order.setTotalSales(rs.getInt("total_sales"));
+                order.setStoreId(rs.getInt("store_id"));
+                order.setStoreAddress(rs.getString("store_address"));
+                order.setDeliveryDate(rs.getString("deliveryDate"));
+                order.setDeliveryOption(rs.getString("deliveryOption"));
+                order.setStatus(rs.getString("status"));
+                ordersList.add(order);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new IOException("Error fetching orders from the database.", e);
+        }
+
+        return ordersList;
+    }
+
     @Override
     protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        enableCORS(request, response); // Enable CORS for DELETE request
+        enableCORS(request, response);
         HttpSession session = request.getSession(false);
-        System.out.println("Username in session (OrderServlet): " + session.getAttribute("username"));
 
-        if (session == null || session.getAttribute("username") == null) {
+        if (session == null || session.getAttribute("email") == null) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("User not logged in");
             return;
         }
 
-        String orderId = request.getPathInfo().substring(1);
-        if (orders.remove(orderId) != null) {
-            response.setStatus(HttpServletResponse.SC_OK);
-        } else {
-            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        // Get the order ID from the URL path
+        String pathInfo = request.getPathInfo();
+        if (pathInfo == null || pathInfo.length() <= 1) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.getWriter().write("Invalid order ID.");
+            return;
+        }
+
+        String orderIdStr = pathInfo.substring(1);
+        try {
+            int orderId = Integer.parseInt(orderIdStr);
+
+            // Update the order status to 'Cancelled' in the database
+            boolean success = cancelOrderInDatabase(orderId);
+
+            if (success) {
+                response.setStatus(HttpServletResponse.SC_OK);
+                response.getWriter().write("Order cancelled successfully.");
+            } else {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                response.getWriter().write("Failed to cancel order.");
+            }
+
+        } catch (NumberFormatException e) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.getWriter().write("Invalid order ID format.");
+        }
+    }
+
+    private boolean cancelOrderInDatabase(int orderId) throws IOException {
+        String updateOrderSQL = "UPDATE orders SET status = 'Cancelled' WHERE order_id = ? AND status = 'Processing'";
+
+        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/smarthomes", "root",
+                "root");
+                PreparedStatement stmt = connection.prepareStatement(updateOrderSQL)) {
+
+            stmt.setInt(1, orderId);
+            int rowsUpdated = stmt.executeUpdate();
+
+            return rowsUpdated > 0; // Return true if any row was updated
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new IOException("Error cancelling the order in the database.", e);
         }
     }
 }

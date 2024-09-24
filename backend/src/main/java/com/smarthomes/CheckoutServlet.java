@@ -49,14 +49,14 @@ public class CheckoutServlet extends HttpServlet {
             for (CartItem item : order.getCartItems()) {
                 // DEBUG: Print each item
                 System.out.println("Processing cart item: " + gson.toJson(item));
-
-                // Set confirmation number and ship date for the order
-                order.setConfirmationNumber(confirmationNumber);
-                order.setShipDate(shipDate);
-                order.setProductId(item.getProductId()); // Ensure the CartItem has getId()
-                order.setCategory(item.getCategory()); // Ensure the CartItem has getCategory()
+                
+                order.setProductId(item.getProductId());
+                order.setProductName(item.getProductName());
+                order.setCategory(item.getCategory());
                 order.setPrice(item.getPrice());
                 order.setQuantity(item.getQuantity());
+                order.setConfirmationNumber(confirmationNumber);
+                order.setShipDate(shipDate);
 
                 // Set total_sales as total quantity instead of total amount
                 order.setTotalSales(totalQuantity);
@@ -68,6 +68,7 @@ public class CheckoutServlet extends HttpServlet {
             JsonObject jsonResponse = new JsonObject();
             jsonResponse.addProperty("confirmationNumber", confirmationNumber);
             jsonResponse.addProperty("shipDate", shipDate);
+            jsonResponse.addProperty("deliveryDate", order.getDeliveryDate()); 
             out.print(jsonResponse);
 
         } catch (Exception e) {
@@ -87,9 +88,9 @@ public class CheckoutServlet extends HttpServlet {
         try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/smarthomes", "root",
                 "root");
                 PreparedStatement stmt = connection.prepareStatement(
-                        "INSERT INTO orders (user_id, customer_name, customer_address, credit_card_no, confirmation_number, purchase_date, ship_date, product_id, category, quantity, price, shipping_cost, discount, total_sales, store_id, store_address, deliveryDate, deliveryOption) "
+                        "INSERT INTO orders (user_id, customer_name, customer_address, credit_card_no, confirmation_number, purchase_date, ship_date, product_id, product_name, category, quantity, price, shipping_cost, discount, total_sales, store_id, store_address, deliveryDate, deliveryOption, status) "
                                 +
-                                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+                                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
             // Purchase date and ship date (3 days from now)
             String purchaseDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date()); // Current date
             String shipDate = new SimpleDateFormat("yyyy-MM-dd")
@@ -105,16 +106,18 @@ public class CheckoutServlet extends HttpServlet {
             stmt.setString(6, purchaseDate);
             stmt.setString(7, shipDate);
             stmt.setInt(8, order.getProductId());
-            stmt.setString(9, order.getCategory());
-            stmt.setInt(10, order.getQuantity());
-            stmt.setDouble(11, order.getPrice());
-            stmt.setDouble(12, order.getShippingCost());
-            stmt.setDouble(13, order.getDiscount());
-            stmt.setInt(14, order.getTotalSales()); // total quantity
-            stmt.setInt(15, order.getStoreId());
-            stmt.setString(16, order.getStoreAddress());
-            stmt.setString(17, deliveryDate);
-            stmt.setString(18, order.getDeliveryOption());
+            stmt.setString(9, order.getProductName());
+            stmt.setString(10, order.getCategory());
+            stmt.setInt(11, order.getQuantity());
+            stmt.setDouble(12, order.getPrice());
+            stmt.setDouble(13, order.getShippingCost());
+            stmt.setDouble(14, order.getDiscount());
+            stmt.setInt(15, order.getTotalSales()); // total quantity
+            stmt.setInt(16, order.getStoreId());
+            stmt.setString(17, order.getStoreAddress());
+            stmt.setString(18, deliveryDate);
+            stmt.setString(19, order.getDeliveryOption());
+            stmt.setString(20, "Processing");
             stmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();

@@ -42,6 +42,7 @@ const RegisterForm = () => {
 
       if (response.ok) {
         // Registration successful, show a success message and redirect to login
+        localStorage.setItem("name", name);
         setSuccess("Registration successful! Redirecting to login...");
         setTimeout(() => {
           navigate("/signin");

@@ -102,11 +102,6 @@ export default function Checkout() {
       return;
     }
 
-    // Ensure each cart item contains product_name (name field)
-    const updatedCartItems = cartItems.map((item) => ({
-      ...item,
-      product_name: item.name // Assign 'name' to 'product_name' for each cart item
-    }));
 
     const shippingCost = formData.deliveryOption === "home" ? 5.0 : 0.0;
 
@@ -117,7 +112,14 @@ export default function Checkout() {
       customerAddress: `${formData.address}, ${formData.city}, ${formData.state}, ${formData.zip}`,
       creditCardNo: formData.creditCard,
       deliveryOption: formData.deliveryOption,
-      cartItems: updatedCartItems, // Ensure cart items now contain 'product_name'
+      cartItems: cartItems.map((item) => ({
+        productId: item.id,
+        productName: item.name,
+        category: item.category,
+        image: item.image,
+        price: item.price,
+        quantity: item.quantity,
+      })),
       totalSales: calculateTotalSales(cartItems),
       shippingCost: shippingCost,
       discount: 0.0,

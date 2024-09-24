@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Orders() {
   const navigate = useNavigate();
@@ -10,7 +10,7 @@ export default function Orders() {
   useEffect(() => {
     fetch("http://localhost:8080/smarthomes/orders", {
       method: "GET",
-      credentials: "include", // Include credentials (cookies) in request
+      credentials: "include" // Include credentials (cookies) in request
     })
       .then((response) => response.json())
       .then((data) => {
@@ -27,7 +27,7 @@ export default function Orders() {
     if (window.confirm("Are you sure you want to cancel the order?")) {
       fetch(`http://localhost:8080/smarthomes/orders/${orderId}`, {
         method: "DELETE",
-        credentials: "include",
+        credentials: "include"
       })
         .then((response) => {
           if (response.ok) {
@@ -52,27 +52,45 @@ export default function Orders() {
 
       {orders.length > 0 ? (
         orders.map((order, index) => (
-          <div key={index} className="order mb-8 p-4 border rounded bg-gray-100">
-            <h3 className="text-xl font-semibold mb-2">Order for {order.customerName}</h3>
+          <div
+            key={index}
+            className="order mb-8 p-4 border rounded bg-gray-100"
+          >
+            <h3 className="text-xl font-semibold mb-2">
+              Order for {order.customerName}
+            </h3>
             <p>Address: {order.customerAddress}</p>
-            <p>Delivery Option: {order.deliveryOption === 'pickup' ? 'In-store Pickup' : 'Home Delivery'}</p>
-            {order.deliveryOption === 'pickup' && <p>Store Location: {order.storeAddress}</p>}
+            <p>
+              Delivery Option:{" "}
+              {order.deliveryOption === "pickup"
+                ? "In-store Pickup"
+                : "Home Delivery"}
+            </p>
+            {order.deliveryOption === "pickup" && (
+              <p>Store Location: {order.storeAddress}</p>
+            )}
 
             <div className="mt-4">
-              <h4 className="font-semibold">Items Purchased:</h4>
+              <h4 className="font-semibold">
+                {order.quantity === 1 ? "Item Purchased:" : "Items Purchased:"}
+              </h4>
               <p>Product Name: {order.productName}</p>
               <p>Category: {order.category}</p>
               <p>Quantity: {order.quantity}</p>
               <p>Total Price: ${order.totalSales.toFixed(2)}</p>
+              <p>Status: {order.status || "Processing"}</p>{" "}
+              {/* Show order status */}
             </div>
 
             {/* Cancel order button */}
-            <button
-              onClick={() => cancelOrder(order.orderId)}
-              className="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-            >
-              Cancel Order
-            </button>
+            {order.status === "Processing" && (
+              <button
+                onClick={() => cancelOrder(order.orderId)}
+                className="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+              >
+                Cancel Order
+              </button>
+            )}
           </div>
         ))
       ) : (
@@ -80,7 +98,10 @@ export default function Orders() {
       )}
 
       {/* Button to go back to homepage */}
-      <button onClick={() => navigate('/')} className="mt-8 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+      <button
+        onClick={() => navigate("/")}
+        className="mt-8 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+      >
         Go back to homepage
       </button>
     </div>

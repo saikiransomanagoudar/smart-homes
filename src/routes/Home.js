@@ -6,13 +6,18 @@ export default function Home() {
   const navigate = useNavigate();
   // State for login status
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // eslint-disable-next-line
+  const [storedName, setStoredName] = useState("");
 
-  // On mount, check if the user is logged in
   useEffect(() => {
+    const storedName = localStorage.getItem("name");
+    if (storedName) {
+      setStoredName(storedName);
+    }
     const loggedInStatus = localStorage.getItem("isLoggedIn");
     setIsLoggedIn(loggedInStatus === "true");
   }, []);
-  
+
   // Handle Shop Now navigation without the sign-in check
   const handleShopNow = (category) => {
     navigate(`/products/${category}`);
@@ -51,6 +56,10 @@ export default function Home() {
             </Link>
             {isLoggedIn ? (
               <>
+                {/* <span className="text-sm sm:text-base">Welcome, user!</span> */}
+                <Link to="/orders" className="text-sm sm:text-base">
+                  View Orders
+                </Link>
                 <button
                   onClick={handleSignOut}
                   className="bg-red-500 text-white px-4 py-2 rounded text-sm sm:text-base"

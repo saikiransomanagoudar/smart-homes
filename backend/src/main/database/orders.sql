@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS orders (
     purchase_date DATE NOT NULL,
     ship_date DATE NOT NULL,
     product_id INT NOT NULL,
+    product_name VARCHAR(255) NOT NULL,
     category VARCHAR(100),
     quantity INT NOT NULL,
     price DOUBLE NOT NULL,
@@ -19,6 +20,7 @@ CREATE TABLE IF NOT EXISTS orders (
     store_address VARCHAR(255) DEFAULT NULL,
     deliveryDate DATE DEFAULT NULL,
     deliverOption VARCHAR(50) DEFAULT 'home',
+    status VARCHAR(20) DEFAULT 'Processing',
     -- Setting the foreign key to CASCADE on delete
     FOREIGN KEY (user_id) REFERENCES customers(user_id) ON DELETE CASCADE
 ) ENGINE=InnoDB;

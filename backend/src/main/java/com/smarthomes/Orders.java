@@ -26,13 +26,14 @@ public class Orders implements Serializable {
     private String storeAddress; // In-store pickup address
     private String deliveryOption; // pickup or delivery
     private String deliveryDate; // Delivery date
+    private String status; // Order status
     private List<CartItem> cartItems;
 
     // Constructors, getters, and setters for all fields
     public Orders(int orderId, int userId, String customerName, String customerAddress, String creditCardNo,
                   String confirmationNumber, String purchaseDate, String shipDate, int productId, String productName,
                   String category, int quantity, double price, double shippingCost, double discount, int totalSales,
-                  int storeId, String storeAddress, String deliveryOption, String deliveryDate) {
+                  int storeId, String storeAddress, String deliveryOption, String deliveryDate, String status) {
         this.orderId = orderId;
         this.userId = userId;
         this.customerName = customerName;
@@ -53,6 +54,10 @@ public class Orders implements Serializable {
         this.storeAddress = storeAddress;
         this.deliveryOption = deliveryOption;
         this.deliveryDate = deliveryDate;
+        this.status = status;
+    }
+
+    public Orders() {
     }
 
     public List<CartItem> getCartItems() {
@@ -222,5 +227,13 @@ public class Orders implements Serializable {
 
     public void setDeliveryDate(String deliveryDate) {
         this.deliveryDate = deliveryDate;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }
