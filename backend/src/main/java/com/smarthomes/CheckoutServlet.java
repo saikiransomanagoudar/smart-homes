@@ -17,7 +17,8 @@ import java.util.UUID;
 public class CheckoutServlet extends HttpServlet {
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         enableCORS(request, response);
         response.setContentType("application/json");
         PrintWriter out = response.getWriter();
@@ -31,7 +32,8 @@ public class CheckoutServlet extends HttpServlet {
             System.out.println("Received order data: " + gson.toJson(order));
 
             String confirmationNumber = generateConfirmationNumber();
-            String shipDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date(System.currentTimeMillis() + 3 * 24 * 60 * 60 * 1000)); // Example: 3 days later
+            String shipDate = new SimpleDateFormat("yyyy-MM-dd")
+                    .format(new Date(System.currentTimeMillis() + 3 * 24 * 60 * 60 * 1000)); // Example: 3 days later
 
             // Check if cart items are not null or empty
             if (order.getCartItems() == null || order.getCartItems().isEmpty()) {
@@ -51,7 +53,7 @@ public class CheckoutServlet extends HttpServlet {
                 // Set confirmation number and ship date for the order
                 order.setConfirmationNumber(confirmationNumber);
                 order.setShipDate(shipDate);
-                order.setProductId(item.getProductId());  // Ensure the CartItem has getId()
+                order.setProductId(item.getProductId()); // Ensure the CartItem has getId()
                 order.setCategory(item.getCategory()); // Ensure the CartItem has getCategory()
                 order.setPrice(item.getPrice());
                 order.setQuantity(item.getQuantity());
@@ -82,28 +84,36 @@ public class CheckoutServlet extends HttpServlet {
     }
 
     private void saveOrderToDatabase(Orders order) {
-        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/smarthomes", "root", "root");
-             PreparedStatement stmt = connection.prepareStatement(
-                     "INSERT INTO orders (user_id, customer_name, customer_address, credit_card_no, confirmation_number, purchase_date, ship_date, product_id, category, quantity, price, shipping_cost, discount, total_sales, store_id, store_address, deliveryDate, deliveryOption) " +
-                             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
-
+        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/smarthomes", "root",
+                "root");
+                PreparedStatement stmt = connection.prepareStatement(
+                        "INSERT INTO orders (user_id, customer_name, customer_address, credit_card_no, confirmation_number, purchase_date, ship_date, product_id, category, quantity, price, shipping_cost, discount, total_sales, store_id, store_address, deliveryDate, deliveryOption) "
+                                +
+                                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+            // Purchase date and ship date (3 days from now)
+            String purchaseDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date()); // Current date
+            String shipDate = new SimpleDateFormat("yyyy-MM-dd")
+                    .format(new Date(System.currentTimeMillis() + 3L * 24 * 60 * 60 * 1000)); // 3 days from now
+            String deliveryDate = new SimpleDateFormat("yyyy-MM-dd")
+                    .format(new Date(System.currentTimeMillis() + 15L * 24 * 60 * 60 * 1000)); // 15 days from now
+            order.setDeliveryDate(deliveryDate);
             stmt.setInt(1, order.getUserId());
             stmt.setString(2, order.getCustomerName());
             stmt.setString(3, order.getCustomerAddress());
             stmt.setString(4, order.getCreditCardNo());
             stmt.setString(5, order.getConfirmationNumber());
-            stmt.setString(6, new SimpleDateFormat("yyyy-MM-dd").format(new Date())); // Purchase date is current date
-            stmt.setString(7, order.getShipDate());
+            stmt.setString(6, purchaseDate);
+            stmt.setString(7, shipDate);
             stmt.setInt(8, order.getProductId());
             stmt.setString(9, order.getCategory());
             stmt.setInt(10, order.getQuantity());
             stmt.setDouble(11, order.getPrice());
             stmt.setDouble(12, order.getShippingCost());
             stmt.setDouble(13, order.getDiscount());
-            stmt.setInt(14, order.getTotalSales());  // total quantity
+            stmt.setInt(14, order.getTotalSales()); // total quantity
             stmt.setInt(15, order.getStoreId());
             stmt.setString(16, order.getStoreAddress());
-            stmt.setString(17, order.getDeliveryDate());
+            stmt.setString(17, deliveryDate);
             stmt.setString(18, order.getDeliveryOption());
             stmt.executeUpdate();
         } catch (SQLException e) {

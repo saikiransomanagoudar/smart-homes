@@ -83,8 +83,7 @@ export default function Checkout() {
   const calculateTotalSales = (products) => {
     const totalSales = products.reduce((sum, item) => sum + item.quantity, 0);
     return totalSales;
-  };
-  
+  };  
 
   // Handle form submission
   const handleSubmit = (e) => {
@@ -109,6 +108,8 @@ export default function Checkout() {
       product_name: item.name // Assign 'name' to 'product_name' for each cart item
     }));
 
+    const shippingCost = formData.deliveryOption === "home" ? 5.0 : 0.0;
+
     // Prepare order data
     const orderData = {
       userId: parseInt(localStorage.getItem("userId")), // Ensure the user ID is passed correctly
@@ -118,7 +119,7 @@ export default function Checkout() {
       deliveryOption: formData.deliveryOption,
       cartItems: updatedCartItems, // Ensure cart items now contain 'product_name'
       totalSales: calculateTotalSales(cartItems),
-      shippingCost: 5.0,
+      shippingCost: shippingCost,
       discount: 0.0,
       storeId: formData.deliveryOption === "pickup" ? 1 : null,
       storeAddress: formData.storeLocation || ""
