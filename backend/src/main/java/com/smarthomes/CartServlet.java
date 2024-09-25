@@ -8,11 +8,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -26,40 +23,32 @@ public class CartServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
         enableCORS(request, response);
         HttpSession session = request.getSession();
-        int userId = getUserIdFromSession(session); // Get user_id from session
+        int userId = getUserIdFromSession(session);
 
         BufferedReader reader = request.getReader();
 
         try {
-            // Parse incoming product from request body
-            Product incomingProduct = new Gson().fromJson(reader, Product.class);
+            // Parse incoming CartItem from request body
+            CartItem incomingItem = new Gson().fromJson(reader, CartItem.class);
+            System.out.println("Product ID: " + incomingItem.getId());
+            System.out.println("Received Type: " + incomingItem.getType());
 
-            // Load the full product details from ProductCatalog.xml using the product ID
-            Product fullProduct = getProductById(incomingProduct.getId());
-            if (fullProduct == null) {
-                sendErrorResponse(response, "Product not found in catalog.");
-                return;
-            }
-
-            // Add the selected product to the cart
-            int currentQuantity = getCartItemQuantity(userId, fullProduct.getId());
+            // Check if the cart already has the product or accessory
+            int currentQuantity = getCartItemQuantity(userId, incomingItem.getId(), incomingItem.getType());
 
             if (currentQuantity > 0) {
                 // Update the cart item quantity
-                updateCartItemQuantity(userId, fullProduct.getId(), currentQuantity + 1);
-                System.out.println(
-                        "Updated quantity for product " + fullProduct.getId() + " to " + (currentQuantity + 1));
+                updateCartItemQuantity(userId, incomingItem.getId(),
+                        currentQuantity + incomingItem.getQuantity(), incomingItem.getType());
             } else {
                 // Insert new item into the cart
-                insertCartItem(userId, fullProduct, incomingProduct.getQuantity());
-                System.out.println("Inserted new item into cart: " + fullProduct.getId());
+                insertCartItem(userId, incomingItem.getId(), incomingItem.getType(), incomingItem.getQuantity(), incomingItem.getImage());
             }
 
             // Send updated cart as JSON response
-            List<Product> cart = getCartFromDB(userId);
+            List<CartItem> cart = getCartFromDB(userId);
             sendJsonResponse(response, cart);
 
         } catch (Exception e) {
@@ -79,21 +68,16 @@ public class CartServlet extends HttpServlet {
         BufferedReader reader = request.getReader();
 
         try {
-            Product incomingProduct = new Gson().fromJson(reader, Product.class);
+            CartItem incomingItem = new Gson().fromJson(reader, CartItem.class);
 
-            // Update the cart item quantity with the incoming quantity
-            if (incomingProduct.getQuantity() > 0) {
-                updateCartItemQuantity(userId, incomingProduct.getId(), incomingProduct.getQuantity());
-                System.out.println("Updated quantity for product " + incomingProduct.getId() + " to "
-                        + incomingProduct.getQuantity());
-            } else if (incomingProduct.getQuantity() == 0) {
-                // Remove the item from the cart if the quantity becomes 0
-                deleteCartItem(userId, incomingProduct.getId());
-                System.out.println("Removed product " + incomingProduct.getId() + " from the cart.");
+            if (incomingItem.getQuantity() > 0) {
+                updateCartItemQuantity(userId, incomingItem.getId(), incomingItem.getQuantity(),
+                        incomingItem.getType());
+            } else if (incomingItem.getQuantity() == 0) {
+                deleteCartItem(userId, incomingItem.getId(), incomingItem.getType());
             }
 
-            // Fetch the updated cart and return it as a response
-            List<Product> cart = getCartFromDB(userId);
+            List<CartItem> cart = getCartFromDB(userId);
             sendJsonResponse(response, cart);
 
         } catch (Exception e) {
@@ -107,10 +91,10 @@ public class CartServlet extends HttpServlet {
             throws ServletException, IOException {
         enableCORS(request, response);
         HttpSession session = request.getSession();
-        int userId = getUserIdFromSession(session); // Ensure userId is fetched correctly
+        int userId = getUserIdFromSession(session);
 
         // Retrieve the user's cart from the database
-        List<Product> cart = getCartFromDB(userId);
+        List<CartItem> cart = getCartFromDB(userId);
 
         // Return the cart as JSON response
         sendJsonResponse(response, cart != null ? cart : new ArrayList<>());
@@ -127,14 +111,10 @@ public class CartServlet extends HttpServlet {
         BufferedReader reader = request.getReader();
 
         try {
-            Product incomingProduct = new Gson().fromJson(reader, Product.class);
+            CartItem incomingItem = new Gson().fromJson(reader, CartItem.class);
+            deleteCartItem(userId, incomingItem.getId(), incomingItem.getType());
 
-            // Delete the item from the cart
-            deleteCartItem(userId, incomingProduct.getId());
-            System.out.println("Removed product " + incomingProduct.getId() + " from the cart.");
-
-            // Fetch the updated cart and return it as a response
-            List<Product> cart = getCartFromDB(userId);
+            List<CartItem> cart = getCartFromDB(userId);
             sendJsonResponse(response, cart);
 
         } catch (Exception e) {
@@ -150,15 +130,16 @@ public class CartServlet extends HttpServlet {
         if (userIdAttr != null && userIdAttr instanceof Integer) {
             return (int) userIdAttr;
         }
-        return -1; // Return -1 if user ID is not found
+        return -1;
     }
 
-    private int getCartItemQuantity(int userId, int productId) {
-        String query = "SELECT quantity FROM cart WHERE user_id = ? AND product_id = ?";
+    private int getCartItemQuantity(int userId, int productId, String type) {
+        String query = "SELECT quantity FROM cart WHERE user_id = ? AND product_id = ? AND type = ?";
         try (Connection conn = MySQLDataStoreUtilities.getConnection();
                 PreparedStatement ps = conn.prepareStatement(query)) {
             ps.setInt(1, userId);
             ps.setInt(2, productId);
+            ps.setString(3, type);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 return rs.getInt("quantity");
@@ -166,97 +147,92 @@ public class CartServlet extends HttpServlet {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return 0; // Return 0 if no quantity found
+        return 0;
     }
 
-    private void updateCartItemQuantity(int userId, int productId, int newQuantity) {
-        String query = "UPDATE cart SET quantity = ? WHERE user_id = ? AND product_id = ?";
+    private void updateCartItemQuantity(int userId, int productId, int newQuantity, String type) {
+        String query = "UPDATE cart SET quantity = ? WHERE user_id = ? AND product_id = ? AND type = ?";
         try (Connection conn = MySQLDataStoreUtilities.getConnection();
                 PreparedStatement ps = conn.prepareStatement(query)) {
             ps.setInt(1, newQuantity);
             ps.setInt(2, userId);
             ps.setInt(3, productId);
+            ps.setString(4, type);
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    private void deleteCartItem(int userId, int productId) {
-        String query = "DELETE FROM cart WHERE user_id = ? AND product_id = ?";
+    private void deleteCartItem(int userId, int productId, String type) {
+        String query = "DELETE FROM cart WHERE user_id = ? AND product_id = ? AND type = ?";
         try (Connection conn = MySQLDataStoreUtilities.getConnection();
                 PreparedStatement ps = conn.prepareStatement(query)) {
             ps.setInt(1, userId);
             ps.setInt(2, productId);
+            ps.setString(3, type);
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    private void insertCartItem(int userId, Product product, int quantity) {
-        String query = "INSERT INTO cart (user_id, product_id, quantity) VALUES (?, ?, ?)";
+    private void insertCartItem(int userId, int productId, String type, int quantity, String image) {
+        String query = "INSERT INTO cart (user_id, product_id, type, quantity, image) VALUES (?, ?, ?, ?, ?)";
+
         try (Connection conn = MySQLDataStoreUtilities.getConnection();
                 PreparedStatement ps = conn.prepareStatement(query)) {
-            ps.setInt(1, userId);
-            ps.setInt(2, product.getId());
-            ps.setInt(3, quantity); // Use the quantity from incoming product
+            ps.setInt(1, userId); // Set user_id
+            ps.setInt(2, productId); // Set product_id (or accessory_id, depending on type)
+            ps.setString(3, type); // Set type ('product' or 'accessory')
+            ps.setInt(4, quantity); // Set the quantity
+            ps.setString(5, image); // Set the image
+
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    private List<Product> getCartFromDB(int userId) {
-        List<Product> cartItems = new ArrayList<>();
-        String query = "SELECT product_id, quantity FROM cart WHERE user_id = ?";
-
+    private List<CartItem> getCartFromDB(int userId) {
+        List<CartItem> cartItems = new ArrayList<>();
+    
+        // Use UNION to combine results for both products and accessories, including the image field
+        String query = "SELECT c.product_id AS id, p.name AS name, p.price AS price, c.quantity AS quantity, 'product' AS type, p.image AS image "
+                     + "FROM cart c "
+                     + "JOIN Products p ON c.product_id = p.id "
+                     + "WHERE c.user_id = ? AND c.type = 'product' "
+                     + "UNION "
+                     + "SELECT c.product_id AS id, a.name AS name, a.price AS price, c.quantity AS quantity, 'accessory' AS type, a.image AS image "
+                     + "FROM cart c "
+                     + "JOIN Accessories a ON c.product_id = a.id "
+                     + "WHERE c.user_id = ? AND c.type = 'accessory'";
+    
         try (Connection conn = MySQLDataStoreUtilities.getConnection();
-                PreparedStatement ps = conn.prepareStatement(query)) {
-            ps.setInt(1, userId);
+             PreparedStatement ps = conn.prepareStatement(query)) {
+            ps.setInt(1, userId); // Set the user_id for the first query
+            ps.setInt(2, userId); // Set the user_id for the second query in UNION
+    
             ResultSet rs = ps.executeQuery();
-
+    
             while (rs.next()) {
-                int productId = rs.getInt("product_id");
-                int quantity = rs.getInt("quantity");
-
-                Product product = getProductById(productId);
-                if (product != null) {
-                    product.setQuantity(quantity); // Update the quantity in the product object
-                    cartItems.add(product);
-                }
+                CartItem cartItem = new CartItem();
+                cartItem.setId(rs.getInt("id"));
+                cartItem.setName(rs.getString("name"));
+                cartItem.setPrice(rs.getDouble("price"));
+                cartItem.setQuantity(rs.getInt("quantity"));
+                cartItem.setType(rs.getString("type"));
+                cartItem.setImage(rs.getString("image")); // Set the image field
+    
+                cartItems.add(cartItem); // Add the item to the list
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    
         return cartItems;
     }
-
-    private Product getProductById(int productId) {
-        try {
-            SAXParserFactory factory = SAXParserFactory.newInstance();
-            SAXParser saxParser = factory.newSAXParser();
-            ProductSAXHandler handler = new ProductSAXHandler();
-
-            InputStream xmlFile = getClass().getClassLoader().getResourceAsStream("ProductCatalog.xml");
-            if (xmlFile == null) {
-                System.out.println("ProductCatalog.xml not found.");
-                return null;
-            }
-
-            saxParser.parse(xmlFile, handler);
-            List<Product> products = handler.getProducts();
-
-            for (Product product : products) {
-                if (product.getId() == productId) {
-                    return product;
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
+    
 
     private void sendJsonResponse(HttpServletResponse response, Object data) throws IOException {
         response.setContentType("application/json");

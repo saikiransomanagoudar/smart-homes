@@ -60,7 +60,6 @@ public class ProductServlet extends HttpServlet {
                 product.setDescription(rs.getString("description"));
                 product.setImage(rs.getString("image"));
                 product.setCategory(rs.getString("category"));
-                product.setRetailer(rs.getString("retailer"));
 
                 // Fetch accessories for this product
                 List<Product> accessories = fetchAccessoriesForProduct(product.getId());

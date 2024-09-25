@@ -1,10 +1,10 @@
 package com.smarthomes;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -49,9 +49,11 @@ public class CheckoutServlet extends HttpServlet {
             for (CartItem item : order.getCartItems()) {
                 // DEBUG: Print each item
                 System.out.println("Processing cart item: " + gson.toJson(item));
+                System.out.println("Item name: " + item.getName());
 
-                order.setProductId(item.getProductId());
-                order.setProductName(item.getProductName());
+                // Set product or accessory details in the order
+                order.setId(item.getId());
+                order.setName(item.getName());
                 order.setCategory(item.getCategory());
                 order.setPrice(item.getPrice());
                 order.setQuantity(item.getQuantity());
@@ -61,9 +63,17 @@ public class CheckoutServlet extends HttpServlet {
                 // Set total_sales as total quantity instead of total amount
                 order.setTotalSales(totalQuantity);
 
+                // If accessory, fetch the associated product info
+                if ("accessory".equalsIgnoreCase(item.getType())) {
+                    int productId = getAssociatedProductId(item.getId());
+                    order.setId(productId); // Set the associated product ID
+                    order.setName(item.getName()); // Keep accessory name in product name field
+                }
+
                 // Save each item in the database
                 saveOrderToDatabase(order);
             }
+
             // Send back the confirmation response
             JsonObject jsonResponse = new JsonObject();
             jsonResponse.addProperty("confirmationNumber", confirmationNumber);
@@ -85,13 +95,11 @@ public class CheckoutServlet extends HttpServlet {
     }
 
     private void saveOrderToDatabase(Orders order) {
-        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/smarthomes", "root",
-                "root");
+        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/smarthomes", "root", "root");
              PreparedStatement stmt = connection.prepareStatement(
                      "INSERT INTO orders (user_id, customer_name, customer_address, credit_card_no, confirmation_number, purchase_date, ship_date, product_id, product_name, category, quantity, price, shipping_cost, discount, total_sales, store_id, store_address, deliveryDate, deliveryOption, status) "
-                             +
-                             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
-    
+                             + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+
             // Purchase date and ship date (3 days from now)
             String purchaseDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date()); // Current date
             String shipDate = new SimpleDateFormat("yyyy-MM-dd")
@@ -99,21 +107,15 @@ public class CheckoutServlet extends HttpServlet {
             String deliveryDate = new SimpleDateFormat("yyyy-MM-dd")
                     .format(new Date(System.currentTimeMillis() + 15L * 24 * 60 * 60 * 1000)); // 15 days from now
             order.setDeliveryDate(deliveryDate);
-    
-            // Handle accessories: get the associated product for an accessory
-            if (order.getCategory().equalsIgnoreCase("accessory")) {
-                int productId = getAssociatedProductId(order.getProductId());
-                order.setProductId(productId); // Set the product ID instead of accessory ID
-            }
-    
-            // Handle store pickup or home delivery
+
+            // Handle store pickup
             Integer storeId = null;
             String storeAddress = null;
             if ("pickup".equalsIgnoreCase(order.getDeliveryOption()) && order.getStoreLocation() != null) {
                 storeId = order.getStoreLocation().getStoreId();
                 storeAddress = order.getStoreLocation().getStoreAddress();
             }
-    
+
             // Set values for the prepared statement
             stmt.setInt(1, order.getUserId());
             stmt.setString(2, order.getCustomerName());
@@ -122,26 +124,25 @@ public class CheckoutServlet extends HttpServlet {
             stmt.setString(5, order.getConfirmationNumber());
             stmt.setString(6, purchaseDate);
             stmt.setString(7, shipDate);
-            stmt.setInt(8, order.getProductId());
-            stmt.setString(9, order.getProductName());
+            stmt.setInt(8, order.getId());
+            stmt.setString(9, order.getName());
             stmt.setString(10, order.getCategory());
             stmt.setInt(11, order.getQuantity());
             stmt.setDouble(12, order.getPrice());
             stmt.setDouble(13, order.getShippingCost());
             stmt.setDouble(14, order.getDiscount());
             stmt.setInt(15, order.getTotalSales());
-            stmt.setObject(16, storeId); // Use setObject to allow null for home delivery
+            stmt.setObject(16, storeId); // Use setObject to allow null
             stmt.setString(17, storeAddress);
             stmt.setString(18, deliveryDate);
             stmt.setString(19, order.getDeliveryOption());
             stmt.setString(20, "Processing");
-    
+
             stmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
-    
 
     // Helper function to get the associated product_id for an accessory
     private int getAssociatedProductId(int accessoryId) {

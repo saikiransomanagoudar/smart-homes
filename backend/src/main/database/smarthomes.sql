@@ -97,3 +97,12 @@ ALTER TABLE orders AUTO_INCREMENT = 1;
 
 -- Add an index on the foreign key column to improve performance
 CREATE INDEX idx_user_id ON orders(user_id);
+
+SELECT Products.id AS product_id, Products.name AS product_name, 
+       Accessories.id AS accessory_id, Accessories.name AS accessory_name,
+       Accessories.price AS accessory_price
+FROM ProductAccessories
+JOIN Products ON ProductAccessories.product_id = Products.id
+JOIN Accessories ON ProductAccessories.accessory_id = Accessories.id
+WHERE Accessories.id = ?; -- the accessory_id you're searching for
+

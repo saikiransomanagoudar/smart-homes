@@ -7,7 +7,6 @@ import java.util.List;
 public class Product implements Serializable {
     private static final long serialVersionUID = 1L;
     private int id;
-    private String retailer;
     private String category;  // Use this to differentiate between products and accessories
     private String name;      // Unified name for both products and accessories (nameP or nameA)
     private double price;     // Unified price for both products and accessories (priceP or priceA)
@@ -25,9 +24,8 @@ public class Product implements Serializable {
     }
 
     // Parameterized constructor
-    public Product(int id, String retailer, String category, String name, double price, String description, String image, List<Integer> accessoryIds, int quantity, String type) {
+    public Product(int id, String category, String name, double price, String description, String image, List<Integer> accessoryIds, int quantity, String type) {
         this.id = id;
-        this.retailer = retailer;
         this.category = category;
         this.name = name;
         this.price = price;
@@ -71,14 +69,6 @@ public class Product implements Serializable {
 
     public void setId(int id) {
         this.id = id;
-    }
-
-    public String getRetailer() {
-        return retailer;
-    }
-
-    public void setRetailer(String retailer) {
-        this.retailer = retailer;
     }
 
     public String getCategory() {
@@ -142,7 +132,6 @@ public class Product implements Serializable {
     public String toString() {
         return "Product{" +
                 "id=" + id +
-                ", retailer='" + retailer + '\'' +
                 ", category='" + category + '\'' +
                 ", name='" + name + '\'' +
                 ", price=" + price +

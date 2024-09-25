@@ -15,8 +15,8 @@ public class Orders implements Serializable {
     private String purchaseDate;
     private String shipDate;
 
-    private int productId;
-    private String productName;
+    private int id;
+    private String name;
     private String category;
     private int quantity;
     private double price;
@@ -31,7 +31,7 @@ public class Orders implements Serializable {
 
     // Constructors, getters, and setters for all fields
     public Orders(int orderId, int userId, String customerName, String customerAddress, String creditCardNo,
-            String confirmationNumber, String purchaseDate, String shipDate, int productId, String productName,
+            String confirmationNumber, String purchaseDate, String shipDate, int id, String name,
             String category, int quantity, double price, double shippingCost, double discount, int totalSales,
             StoreLocation storeLocation, String deliveryOption, String deliveryDate, String status) {
         this.orderId = orderId;
@@ -42,8 +42,8 @@ public class Orders implements Serializable {
         this.confirmationNumber = confirmationNumber;
         this.purchaseDate = purchaseDate;
         this.shipDate = shipDate;
-        this.productId = productId;
-        this.productName = productName;
+        this.id = id;
+        this.name = name;
         this.category = category;
         this.quantity = quantity;
         this.price = price;
@@ -155,20 +155,20 @@ public class Orders implements Serializable {
         this.shipDate = shipDate;
     }
 
-    public int getProductId() {
-        return productId;
+    public int getId() {
+        return id;
     }
 
-    public void setProductId(int productId) {
-        this.productId = productId;
+    public void setId(int id) {
+        this.id = id;
     }
 
-    public String getProductName() {
-        return productName;
+    public String getName() {
+        return name;
     }
 
-    public void setProductName(String productName) {
-        this.productName = productName;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getCategory() {

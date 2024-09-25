@@ -67,31 +67,40 @@ export default function ProductsPage({ cart, setCart }) {
   const handleBuyNow = (product) => {
     if (isLoggedIn) {
       const productData = {
-        id: product.id,
+        id: product.id, // This will be product_id or accessory_id
         name: product.name,
         price: product.price,
         description: product.description || "",
         image: product.image,
-        quantity: product.quantity || 1
+        type: product.type, // Type will either be 'product' or 'accessory'
+        quantity: quantities[product.id] || 1 // Default to 1 if not specified
       };
-      navigate("/checkout", { state: { product: productData } });
+  
+      // Direct the user to the checkout page with the selected product
+      navigate("/checkout", {
+        state: {
+          product: productData,
+        },
+      });
     } else {
       navigate("/signin");
     }
-  };
+  };  
 
   const handleAddProductToCart = (item, isAccessory = false) => {
+    console.log('Adding item to cart:', item);
+  
     if (!userId) {
       navigate("/signin");
       return;
     }
-
+  
     const existingItem = cart.find(
       (cartItem) =>
         cartItem.id === item.id &&
         cartItem.type === (isAccessory ? "accessory" : "product")
     );
-
+  
     if (existingItem) {
       const updatedCart = cart.map((cartItem) =>
         cartItem.id === item.id &&
@@ -101,7 +110,7 @@ export default function ProductsPage({ cart, setCart }) {
       );
       setCart(updatedCart);
       localStorage.setItem("cart", JSON.stringify(updatedCart));
-
+  
       fetch("http://localhost:8080/smarthomes/cart/product", {
         method: "PUT",
         headers: {
@@ -127,7 +136,7 @@ export default function ProductsPage({ cart, setCart }) {
         type: isAccessory ? "accessory" : "product",
         userId
       };
-
+  
       fetch("http://localhost:8080/smarthomes/cart/product", {
         method: "POST",
         headers: {
@@ -145,12 +154,12 @@ export default function ProductsPage({ cart, setCart }) {
           console.error("Error adding item to cart:", error);
         });
     }
-
+  
     setQuantities((prevQuantities) => ({
       ...prevQuantities,
       [item.id]: (prevQuantities[item.id] || 0) + 1
     }));
-  };
+  };  
 
   const handleIncreaseQuantity = (id) => {
     const product = cart.find((item) => item.id === id);

@@ -78,8 +78,8 @@ public class OrderServlet extends HttpServlet {
                 order.setConfirmationNumber(rs.getString("confirmation_number"));
                 order.setPurchaseDate(rs.getString("purchase_date"));
                 order.setShipDate(rs.getString("ship_date"));
-                order.setProductId(rs.getInt("product_id"));
-                order.setProductName(rs.getString("product_name"));
+                order.setId(rs.getInt("product_id"));
+                order.setName(rs.getString("product_name"));
                 order.setCategory(rs.getString("category"));
                 order.setQuantity(rs.getInt("quantity"));
                 order.setPrice(rs.getDouble("price"));

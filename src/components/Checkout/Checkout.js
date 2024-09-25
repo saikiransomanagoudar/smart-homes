@@ -113,8 +113,8 @@ export default function Checkout() {
       creditCardNo: formData.creditCard,
       deliveryOption: formData.deliveryOption,
       cartItems: cartItems.map((item) => ({
-        productId: item.id,
-        productName: item.name,
+        id: item.id,
+        name: item.name,
         category: item.category,
         image: item.image,
         price: item.price,

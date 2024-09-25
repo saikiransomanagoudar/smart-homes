@@ -49,55 +49,94 @@ export default function Cart() {
     }
   }, [isLoggedIn, navigate]);
 
-  const handleAddItem = (id) => {
-    const updatedItems = items.map((item) =>
-      item.id === id ? { ...item, quantity: item.quantity + 1 } : item
-    );
-    setItems(updatedItems);
-    localStorage.setItem("cart", JSON.stringify(updatedItems));
-  
-    const updatedItem = updatedItems.find((item) => item.id === id);
-    // Send updated item to the backend to increase quantity
-    fetch("http://localhost:8080/smarthomes/cart/product", {
-      method: "PUT", // Use PUT to increase the item quantity in the backend
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        id: updatedItem.id,
-        quantity: updatedItem.quantity,
-        type: updatedItem.type, // Ensure type is sent (accessory or product)
-        userId: localStorage.getItem("userId"), // Ensure the userId is sent to backend
-      }),
-    })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Failed to update item quantity.");
-      }
-    })
-    .catch((error) => {
-      console.error("Error updating cart:", error);
-    });
+  // Handle adding a new item to the cart
+  const handleAddItem = (id, type) => {
+    const existingItem = items.find((item) => item.id === id && item.type === type);
+    
+    if (existingItem) {
+      // If the item is already in the cart, increase its quantity
+      const updatedItems = items.map((item) =>
+        item.id === id && item.type === type ? { ...item, quantity: item.quantity + 1 } : item
+      );
+      setItems(updatedItems);
+      localStorage.setItem("cart", JSON.stringify(updatedItems));
+
+      const updatedItem = updatedItems.find((item) => item.id === id && item.type === type);
+
+      // Send PUT request to update the quantity
+      fetch("http://localhost:8080/smarthomes/cart/product", {
+        method: "PUT", // Use PUT to increase the item quantity in the backend
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          id: updatedItem.id,
+          quantity: updatedItem.quantity,
+          type: updatedItem.type, // Ensure type is sent (accessory or product)
+          userId: localStorage.getItem("userId"), // Ensure the userId is sent to backend
+        }),
+      })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to update item quantity.");
+        }
+      })
+      .catch((error) => {
+        console.error("Error updating cart:", error);
+      });
+    } else {
+      // If the item is not in the cart, add it
+      const newItem = { id, type, quantity: 1 };
+
+      // Send POST request to add a new item
+      fetch("http://localhost:8080/smarthomes/cart", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          ...newItem,
+          userId: localStorage.getItem("userId"),
+        }),
+      })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to add item to cart.");
+        }
+        return response.json();
+      })
+      .then(() => {
+        // Update local state and storage with the newly added item
+        const updatedItems = [...items, newItem];
+        setItems(updatedItems);
+        localStorage.setItem("cart", JSON.stringify(updatedItems));
+      })
+      .catch((error) => {
+        console.error("Error adding item to cart:", error);
+      });
+    }
   };
-  
-  const handleRemoveItem = (id) => {
+
+  // Handle removing an item from the cart
+  const handleRemoveItem = (id, type) => {
     const updatedItems = items
       .map((item) => {
-        if (item.id === id && item.quantity > 1) {
+        if (item.id === id && item.quantity > 1 && item.type === type) {
           return { ...item, quantity: item.quantity - 1 }; // Decrease quantity
-        } else if (item.id === id && item.quantity === 1) {
+        } else if (item.id === id && item.quantity === 1 && item.type === type) {
           return null; // Remove the item if the quantity is 1
         }
         return item;
       })
       .filter((item) => item !== null); // Filter out items where quantity is 0
-  
+
     setItems(updatedItems);
     localStorage.setItem("cart", JSON.stringify(updatedItems));
-  
-    const removedItem = items.find((item) => item.id === id);
-    
+
+    const removedItem = items.find((item) => item.id === id && item.type === type);
+
     if (removedItem && removedItem.quantity === 1) {
       // Send DELETE request if quantity is 1 and removed
       fetch("http://localhost:8080/smarthomes/cart/product", {
@@ -139,7 +178,7 @@ export default function Cart() {
         console.error("Error updating cart:", error);
       });
     }
-  };  
+  };
 
   const calculateTotal = () => {
     return items.reduce((total, item) => total + item.price * item.quantity, 0); // Simplified price calculation
@@ -147,8 +186,19 @@ export default function Cart() {
 
   const handleCheckout = () => {
     if (items.length > 0) {
+      // Separate products and accessories if necessary
+      const products = items.filter((item) => item.type === "product");
+      const accessories = items.filter((item) => item.type === "accessory");
+  
+      console.log("Products being sent to checkout:", products);
+      console.log("Accessories being sent to checkout:", accessories);
+  
+      // Navigate to checkout with both products and accessories
       navigate("/checkout", {
-        state: { products: items }
+        state: {
+          products: products,
+          accessories: accessories, // Send accessories to the checkout page
+        },
       });
     } else {
       alert("Your cart is empty!");
@@ -164,7 +214,10 @@ export default function Cart() {
           <h2 className="text-lg font-semibold mb-2">Items:</h2>
           <div className="grid grid-cols-1 gap-4">
             {items.map((item, index) => (
-              <div key={`${item.id}-${index}`} className="flex items-center bg-white p-4 shadow">
+              <div
+                key={`${item.id}-${index}`}
+                className="flex items-center bg-white p-4 shadow"
+              >
                 <Img
                   src={item.image}
                   alt={item.name}
@@ -178,13 +231,13 @@ export default function Cart() {
                 <div className="flex flex-col items-center">
                   <button
                     className="bg-green-500 text-white px-2 py-1 rounded mb-1"
-                    onClick={() => handleAddItem(item.id)}
+                    onClick={() => handleAddItem(item.id, item.type)}
                   >
                     Add
                   </button>
                   <button
                     className="bg-red-500 text-white px-2 py-1 rounded"
-                    onClick={() => handleRemoveItem(item.id)}
+                    onClick={() => handleRemoveItem(item.id, item.type)}
                   >
                     Remove
                   </button>
@@ -197,8 +250,14 @@ export default function Cart() {
 
       {items.length > 0 && (
         <div className="mt-4">
-          <p>Subtotal ({items.reduce((sum, item) => sum + item.quantity, 0)} items): ${calculateTotal().toFixed(2)}</p>
-          <button className="bg-blue-500 text-white px-4 py-2 mt-4" onClick={handleCheckout}>
+          <p>
+            Subtotal ({items.reduce((sum, item) => sum + item.quantity, 0)}{" "}
+            items): ${calculateTotal().toFixed(2)}
+          </p>
+          <button
+            className="bg-blue-500 text-white px-4 py-2 mt-4"
+            onClick={handleCheckout}
+          >
             Checkout
           </button>
         </div>

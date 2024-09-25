@@ -50,7 +50,6 @@ public class ProductSAXHandler extends DefaultHandler {
             }
 
             product.setCategory(attributes.getValue("category"));
-            product.setRetailer(attributes.getValue("retailer"));
 
             // Debugging: Print category being processed
             System.out.println("Processing product with category: " + product.getCategory());
@@ -151,7 +150,6 @@ public class ProductSAXHandler extends DefaultHandler {
             ps.setString(4, product.getDescription());
             ps.setString(5, product.getImage());
             ps.setString(6, product.getCategory());
-            ps.setString(7, product.getRetailer());
 
             ps.executeUpdate();
 
