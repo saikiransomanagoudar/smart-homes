@@ -54,16 +54,16 @@ export default function Checkout() {
 
   // Hardcoded store locations for pickup
   const storeLocations = [
-    "Store 1: 1001 Main St, ZIP: 12345",
-    "Store 2: 1501 Maple Ave, ZIP: 12346",
-    "Store 3: 2001 Oak St, ZIP: 12347",
-    "Store 4: 2501 Pine St, ZIP: 12348",
-    "Store 5: 3001 Elm St, ZIP: 12349",
-    "Store 6: 3501 Cedar St, ZIP: 12350",
-    "Store 7: 4001 Birch St, ZIP: 12351",
-    "Store 8: 4501 Walnut St, ZIP: 12352",
-    "Store 9: 5001 Chestnut St, ZIP: 12353",
-    "Store 10: 5501 Spruce St, ZIP: 12354"
+    { id: 1, address: "1001 Main St, ZIP: 12345" },
+    { id: 2, address: "1501 Maple Ave, ZIP: 12346" },
+    { id: 3, address: "2001 Oak St, ZIP: 12347" },
+    { id: 4, address: "2501 Pine St, ZIP: 12348" },
+    { id: 5, address: "3001 Elm St, ZIP: 12349" },
+    { id: 6, address: "3501 Cedar St, ZIP: 12350" },
+    { id: 7, address: "4001 Birch St, ZIP: 12351" },
+    { id: 8, address: "4501 Walnut St, ZIP: 12352" },
+    { id: 9, address: "5001 Chestnut St, ZIP: 12353" },
+    { id: 10, address: "5501 Spruce St, ZIP: 12354" }
   ];
 
   // Handle form input changes
@@ -83,13 +83,12 @@ export default function Checkout() {
   const calculateTotalSales = (products) => {
     const totalSales = products.reduce((sum, item) => sum + item.quantity, 0);
     return totalSales;
-  };  
+  };
 
   // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Validate inputs
     if (
       !formData.name ||
       !formData.address ||
@@ -102,12 +101,13 @@ export default function Checkout() {
       return;
     }
 
-
-    const shippingCost = formData.deliveryOption === "home" ? 5.0 : 0.0;
+    const selectedStore = storeLocations.find(
+      (store) => store.id === parseInt(formData.storeLocation)
+    );
 
     // Prepare order data
     const orderData = {
-      userId: parseInt(localStorage.getItem("userId")), // Ensure the user ID is passed correctly
+      userId: parseInt(localStorage.getItem("userId")),
       customerName: formData.name,
       customerAddress: `${formData.address}, ${formData.city}, ${formData.state}, ${formData.zip}`,
       creditCardNo: formData.creditCard,
@@ -118,13 +118,15 @@ export default function Checkout() {
         category: item.category,
         image: item.image,
         price: item.price,
-        quantity: item.quantity,
+        quantity: item.quantity
       })),
       totalSales: calculateTotalSales(cartItems),
-      shippingCost: shippingCost,
+      shippingCost: formData.deliveryOption === "home" ? 5.0 : 0.0,
       discount: 0.0,
-      storeId: formData.deliveryOption === "pickup" ? 1 : null,
-      storeAddress: formData.storeLocation || ""
+      storeLocation:
+        formData.deliveryOption === "pickup" && selectedStore
+          ? { storeId: selectedStore.id, storeAddress: selectedStore.address }
+          : null
     };
 
     // Send order data to the backend
@@ -177,7 +179,7 @@ export default function Checkout() {
           <span className="font-bold">
             {formData.deliveryOption === "home"
               ? "Home Delivery"
-              : `Store Pickup at: ${formData.storeLocation}`}
+              : `Store Pickup at: ${formData.storeLocation.address}`}
           </span>
         </p>
         <div className="mt-6">
@@ -307,14 +309,23 @@ export default function Checkout() {
             </label>
             <select
               name="storeLocation"
-              value={formData.storeLocation}
-              onChange={handleChange}
+              value={formData.storeLocation.id || ""} // set store id as value
+              onChange={(e) => {
+                const selectedStore = storeLocations.find(
+                  (location) => location.id === parseInt(e.target.value)
+                );
+                setFormData({
+                  ...formData,
+                  storeLocation: selectedStore // store the entire selected store object
+                });
+              }}
               required
               className="w-full mt-2 p-2 border border-gray-300 rounded"
             >
-              {storeLocations.map((location, index) => (
-                <option key={index} value={location}>
-                  {location}
+              <option value="">Select Store</option>
+              {storeLocations.map((location) => (
+                <option key={location.id} value={location.id}>
+                  {location.address}
                 </option>
               ))}
             </select>

@@ -49,7 +49,7 @@ public class CheckoutServlet extends HttpServlet {
             for (CartItem item : order.getCartItems()) {
                 // DEBUG: Print each item
                 System.out.println("Processing cart item: " + gson.toJson(item));
-                
+
                 order.setProductId(item.getProductId());
                 order.setProductName(item.getProductName());
                 order.setCategory(item.getCategory());
@@ -68,7 +68,7 @@ public class CheckoutServlet extends HttpServlet {
             JsonObject jsonResponse = new JsonObject();
             jsonResponse.addProperty("confirmationNumber", confirmationNumber);
             jsonResponse.addProperty("shipDate", shipDate);
-            jsonResponse.addProperty("deliveryDate", order.getDeliveryDate()); 
+            jsonResponse.addProperty("deliveryDate", order.getDeliveryDate());
             out.print(jsonResponse);
 
         } catch (Exception e) {
@@ -87,10 +87,11 @@ public class CheckoutServlet extends HttpServlet {
     private void saveOrderToDatabase(Orders order) {
         try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/smarthomes", "root",
                 "root");
-                PreparedStatement stmt = connection.prepareStatement(
-                        "INSERT INTO orders (user_id, customer_name, customer_address, credit_card_no, confirmation_number, purchase_date, ship_date, product_id, product_name, category, quantity, price, shipping_cost, discount, total_sales, store_id, store_address, deliveryDate, deliveryOption, status) "
-                                +
-                                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+             PreparedStatement stmt = connection.prepareStatement(
+                     "INSERT INTO orders (user_id, customer_name, customer_address, credit_card_no, confirmation_number, purchase_date, ship_date, product_id, product_name, category, quantity, price, shipping_cost, discount, total_sales, store_id, store_address, deliveryDate, deliveryOption, status) "
+                             +
+                             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+    
             // Purchase date and ship date (3 days from now)
             String purchaseDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date()); // Current date
             String shipDate = new SimpleDateFormat("yyyy-MM-dd")
@@ -98,6 +99,22 @@ public class CheckoutServlet extends HttpServlet {
             String deliveryDate = new SimpleDateFormat("yyyy-MM-dd")
                     .format(new Date(System.currentTimeMillis() + 15L * 24 * 60 * 60 * 1000)); // 15 days from now
             order.setDeliveryDate(deliveryDate);
+    
+            // Handle accessories: get the associated product for an accessory
+            if (order.getCategory().equalsIgnoreCase("accessory")) {
+                int productId = getAssociatedProductId(order.getProductId());
+                order.setProductId(productId); // Set the product ID instead of accessory ID
+            }
+    
+            // Handle store pickup or home delivery
+            Integer storeId = null;
+            String storeAddress = null;
+            if ("pickup".equalsIgnoreCase(order.getDeliveryOption()) && order.getStoreLocation() != null) {
+                storeId = order.getStoreLocation().getStoreId();
+                storeAddress = order.getStoreLocation().getStoreAddress();
+            }
+    
+            // Set values for the prepared statement
             stmt.setInt(1, order.getUserId());
             stmt.setString(2, order.getCustomerName());
             stmt.setString(3, order.getCustomerAddress());
@@ -112,16 +129,34 @@ public class CheckoutServlet extends HttpServlet {
             stmt.setDouble(12, order.getPrice());
             stmt.setDouble(13, order.getShippingCost());
             stmt.setDouble(14, order.getDiscount());
-            stmt.setInt(15, order.getTotalSales()); // total quantity
-            stmt.setInt(16, order.getStoreId());
-            stmt.setString(17, order.getStoreAddress());
+            stmt.setInt(15, order.getTotalSales());
+            stmt.setObject(16, storeId); // Use setObject to allow null for home delivery
+            stmt.setString(17, storeAddress);
             stmt.setString(18, deliveryDate);
             stmt.setString(19, order.getDeliveryOption());
             stmt.setString(20, "Processing");
+    
             stmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+    
+
+    // Helper function to get the associated product_id for an accessory
+    private int getAssociatedProductId(int accessoryId) {
+        String query = "SELECT product_id FROM ProductAccessories WHERE accessory_id = ?";
+        try (Connection conn = MySQLDataStoreUtilities.getConnection();
+             PreparedStatement ps = conn.prepareStatement(query)) {
+            ps.setInt(1, accessoryId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("product_id");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1; // Return -1 if no product found
     }
 
     private void enableCORS(HttpServletRequest request, HttpServletResponse response) {

@@ -3,6 +3,7 @@ com\smarthomes\Orders.class
 com\smarthomes\Product.class
 com\smarthomes\ProductSAXHandler.class
 com\smarthomes\CartServlet.class
+com\smarthomes\Orders$StoreLocation.class
 com\smarthomes\MySQLDataStoreUtilities.class
 com\smarthomes\ProductServlet.class
 com\smarthomes\RegistrationServlet.class

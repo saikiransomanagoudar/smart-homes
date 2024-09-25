@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.List;
 
 public class Orders implements Serializable {
+    // Modify the Orders class to handle storeLocation as an object
+    private StoreLocation storeLocation;
     private int orderId;
     private int userId;
     private String customerName;
@@ -22,8 +24,6 @@ public class Orders implements Serializable {
     private double discount;
     private int totalSales;
 
-    private int storeId;
-    private String storeAddress; // In-store pickup address
     private String deliveryOption; // pickup or delivery
     private String deliveryDate; // Delivery date
     private String status; // Order status
@@ -31,9 +31,9 @@ public class Orders implements Serializable {
 
     // Constructors, getters, and setters for all fields
     public Orders(int orderId, int userId, String customerName, String customerAddress, String creditCardNo,
-                  String confirmationNumber, String purchaseDate, String shipDate, int productId, String productName,
-                  String category, int quantity, double price, double shippingCost, double discount, int totalSales,
-                  int storeId, String storeAddress, String deliveryOption, String deliveryDate, String status) {
+            String confirmationNumber, String purchaseDate, String shipDate, int productId, String productName,
+            String category, int quantity, double price, double shippingCost, double discount, int totalSales,
+            StoreLocation storeLocation, String deliveryOption, String deliveryDate, String status) {
         this.orderId = orderId;
         this.userId = userId;
         this.customerName = customerName;
@@ -50,11 +50,33 @@ public class Orders implements Serializable {
         this.shippingCost = shippingCost;
         this.discount = discount;
         this.totalSales = totalSales;
-        this.storeId = storeId;
-        this.storeAddress = storeAddress;
+        this.storeLocation = storeLocation;
         this.deliveryOption = deliveryOption;
         this.deliveryDate = deliveryDate;
         this.status = status;
+    }
+
+    // Inside the Orders class, define the StoreLocation class
+    public static class StoreLocation {
+        private int storeId;
+        private String storeAddress;
+
+        // Getters and setters
+        public int getStoreId() {
+            return storeId;
+        }
+
+        public void setStoreId(int storeId) {
+            this.storeId = storeId;
+        }
+
+        public String getStoreAddress() {
+            return storeAddress;
+        }
+
+        public void setStoreAddress(String storeAddress) {
+            this.storeAddress = storeAddress;
+        }
     }
 
     public Orders() {
@@ -96,7 +118,7 @@ public class Orders implements Serializable {
     public String getCustomerAddress() {
         return customerAddress;
     }
-    
+
     public void setCustomerAddress(String customerAddress) {
         this.customerAddress = customerAddress;
     }
@@ -197,20 +219,12 @@ public class Orders implements Serializable {
         this.totalSales = totalSales;
     }
 
-    public int getStoreId() {
-        return storeId;
+    public StoreLocation getStoreLocation() {
+        return storeLocation;
     }
 
-    public void setStoreId(int storeId) {
-        this.storeId = storeId;
-    }
-
-    public String getStoreAddress() {
-        return storeAddress;
-    }
-
-    public void setStoreAddress(String storeAddress) {
-        this.storeAddress = storeAddress;
+    public void setStoreLocation(StoreLocation storeLocation) {
+        this.storeLocation = storeLocation;
     }
 
     public String getDeliveryOption() {

@@ -14,6 +14,7 @@ export default function ProductsPage({ cart, setCart }) {
   const isLoggedIn = localStorage.getItem("isLoggedIn");
   const userId = localStorage.getItem("userId");
 
+  // Fetch products by category from the backend
   useEffect(() => {
     fetch(`http://localhost:8080/smarthomes/getProducts?category=${category}`)
       .then((response) => response.json())
@@ -29,16 +30,17 @@ export default function ProductsPage({ cart, setCart }) {
       });
   }, [category]);
 
+  // Fetch cart data when the user is logged in
   useEffect(() => {
     if (isLoggedIn) {
       fetch("http://localhost:8080/smarthomes/cart", {
         method: "GET",
-        credentials: "include",
+        credentials: "include"
       })
         .then((response) => response.json())
         .then((data) => {
-          setCart(data); // Update the cart state with the fetched data
-          localStorage.setItem("cart", JSON.stringify(data)); // Store cart in localStorage
+          setCart(data);
+          localStorage.setItem("cart", JSON.stringify(data));
         })
         .catch((error) => {
           console.error("Error fetching cart:", error);
@@ -46,6 +48,7 @@ export default function ProductsPage({ cart, setCart }) {
     }
   }, [isLoggedIn, setCart]);
 
+  // Load cart from localStorage if available
   useEffect(() => {
     const storedCart = localStorage.getItem("cart");
     if (storedCart) {
@@ -79,88 +82,75 @@ export default function ProductsPage({ cart, setCart }) {
 
   const handleAddProductToCart = (item, isAccessory = false) => {
     if (!userId) {
-      navigate("/signin");  // Redirect to sign-in if the user is not logged in
+      navigate("/signin");
       return;
     }
-  
-    // Check if the item (product or accessory) already exists in the cart
+
     const existingItem = cart.find(
       (cartItem) =>
-        cartItem.id === item.id && 
-        cartItem.type === (isAccessory ? "accessory" : "product") // Check type
+        cartItem.id === item.id &&
+        cartItem.type === (isAccessory ? "accessory" : "product")
     );
-  
+
     if (existingItem) {
-      // If the item exists, increase its quantity
       const updatedCart = cart.map((cartItem) =>
-        cartItem.id === item.id && cartItem.type === (isAccessory ? "accessory" : "product")
+        cartItem.id === item.id &&
+        cartItem.type === (isAccessory ? "accessory" : "product")
           ? { ...cartItem, quantity: cartItem.quantity + 1 }
           : cartItem
       );
       setCart(updatedCart);
       localStorage.setItem("cart", JSON.stringify(updatedCart));
-  
-      // Update the item quantity on the server
+
       fetch("http://localhost:8080/smarthomes/cart/product", {
-        method: "PUT", // Use PUT for updating existing cart item
+        method: "PUT",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/json"
         },
         credentials: "include",
         body: JSON.stringify({
           id: existingItem.id,
-          quantity: existingItem.quantity + 1, // Increment quantity
-          type: isAccessory ? "accessory" : "product", // Pass the correct type
-          userId,
-        }),
-      })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Failed to update item in the cart.");
-        }
-      })
-      .catch((error) => {
+          quantity: existingItem.quantity + 1,
+          type: isAccessory ? "accessory" : "product",
+          userId
+        })
+      }).catch((error) => {
         console.error("Error updating item in cart:", error);
       });
     } else {
-      // If the item is not in the cart, add it
       const newItem = {
         id: item.id,
         name: item.name,
         price: item.price,
         image: item.image,
-        quantity: 1, // Set initial quantity
-        type: isAccessory ? "accessory" : "product", // Set the correct type
-        userId,
+        quantity: 1,
+        type: isAccessory ? "accessory" : "product",
+        userId
       };
-  
+
       fetch("http://localhost:8080/smarthomes/cart/product", {
-        method: "POST", // Use POST for adding new cart item
+        method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/json"
         },
         credentials: "include",
-        body: JSON.stringify(newItem),
+        body: JSON.stringify(newItem)
       })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Failed to add item to cart.");
-        }
-        const updatedCart = [...cart, newItem];
-        setCart(updatedCart);
-        localStorage.setItem("cart", JSON.stringify(updatedCart));
-      })
-      .catch((error) => {
-        console.error("Error adding item to cart:", error);
-      });
+        .then(() => {
+          const updatedCart = [...cart, newItem];
+          setCart(updatedCart);
+          localStorage.setItem("cart", JSON.stringify(updatedCart));
+        })
+        .catch((error) => {
+          console.error("Error adding item to cart:", error);
+        });
     }
-  
-    // Update the UI quantities state
+
     setQuantities((prevQuantities) => ({
       ...prevQuantities,
-      [item.id]: (prevQuantities[item.id] || 0) + 1, // Increment quantity
+      [item.id]: (prevQuantities[item.id] || 0) + 1
     }));
-  };    
+  };
 
   const handleIncreaseQuantity = (id) => {
     const product = cart.find((item) => item.id === id);
@@ -356,10 +346,7 @@ export default function ProductsPage({ cart, setCart }) {
                     {product.description || "No description available"}
                   </p>
                   <p className="text-lg font-bold mt-2">
-                    $
-                    {product.price !== undefined && product.price !== null
-                      ? product.price.toFixed(2)
-                      : "N/A"}
+                    ${product.price ? product.price.toFixed(2) : "N/A"}
                   </p>
 
                   {productQuantity > 0 ? (
@@ -390,7 +377,7 @@ export default function ProductsPage({ cart, setCart }) {
                         className="bg-green-500 text-white px-2 py-2 mt-2 rounded"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleAddProductToCart(product, false); // Pass product correctly
+                          handleAddProductToCart(product, false);
                         }}
                       >
                         Add to Cart
@@ -452,49 +439,47 @@ export default function ProductsPage({ cart, setCart }) {
 
               {/* Rendering Accessories */}
               {selectedProduct.accessories &&
-                selectedProduct.accessories.length > 0 && (
-                  <div className="mb-4">
-                    <h4 className="text-base font-semibold mb-2">
-                      Accessories:
-                    </h4>
-                    <ul className="flex flex-wrap gap-4">
-                      {selectedProduct.accessories.map((accessory, index) => (
-                        <li key={index} className="flex flex-col items-center">
-                          <h5 className="text-sm font-semibold">
-                            {accessory.name || "Unknown Accessory"}
-                          </h5>
-                          <p className="text-sm font-bold">
-                            Price: $
-                            {accessory.price
-                              ? accessory.price.toFixed(2)
-                              : "N/A"}
-                          </p>
-                          <Img
-                            src={accessory.image || "/default-image.png"}
-                            alt={accessory.name || "Accessory Image"}
-                            className="w-20 h-20 object-contain"
-                            loader={<div>Loading...</div>}
-                            unloader={<div>Image not found</div>}
-                          />
-                          {/* Fix here: Prevent event propagation */}
-                          <button
-                            className="bg-green-500 text-white px-2 py-2 mt-2 rounded"
-                            onClick={(e) => {
-                              e.stopPropagation(); // Prevent the event from bubbling up
-                              handleAddProductToCart(accessory, true); // Add the accessory to cart
-                            }}
-                          >
-                            Add to Cart
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+              selectedProduct.accessories.length > 0 ? (
+                <div className="mb-4">
+                  <h4 className="text-base font-semibold mb-2">Accessories:</h4>
+                  <ul className="flex flex-wrap gap-4">
+                    {selectedProduct.accessories.map((accessory, index) => (
+                      <li key={index} className="flex flex-col items-center">
+                        <h5 className="text-sm font-semibold">
+                          {accessory.name || "Unknown Accessory"}
+                        </h5>
+                        <p className="text-sm font-bold">
+                          Price: $
+                          {accessory.price ? accessory.price.toFixed(2) : "N/A"}
+                        </p>
+                        <Img
+                          src={accessory.image || "/default-image.png"}
+                          alt={accessory.name || "Accessory Image"}
+                          className="w-20 h-20 object-contain"
+                          loader={<div>Loading...</div>}
+                          unloader={<div>Image not found</div>}
+                        />
+                        <button
+                          className="bg-green-500 text-white px-2 py-2 mt-2 rounded"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAddProductToCart(accessory, true); // Add accessory to cart
+                          }}
+                        >
+                          Add to Cart
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                <p>No accessories available for this product.</p>
+              )}
+
               <button
                 className="bg-green-500 text-white px-4 py-2 mt-4 rounded w-full"
                 onClick={() => {
-                  handleAddProductToCart(selectedProduct, false); // Handle main product
+                  handleAddProductToCart(selectedProduct, false);
                   handleCloseModal();
                 }}
               >
@@ -510,7 +495,6 @@ export default function ProductsPage({ cart, setCart }) {
           </div>
         )}
       </main>
-
       <footer className="bg-[#550403] text-white p-4 mt-8">
         <div className="container mx-auto text-center">
           <p>&copy; 2024 Smart Homes. All rights reserved.</p>

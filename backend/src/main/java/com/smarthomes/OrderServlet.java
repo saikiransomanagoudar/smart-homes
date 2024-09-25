@@ -32,9 +32,6 @@ public class OrderServlet extends HttpServlet {
         response.setContentType("application/json");
 
         HttpSession session = request.getSession(false);
-        
-        // Fix: Use email instead of username
-        System.out.println("Email in session (OrderServlet): " + session.getAttribute("email"));
 
         if (session == null || session.getAttribute("email") == null) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -64,9 +61,8 @@ public class OrderServlet extends HttpServlet {
 
         String selectOrdersSQL = "SELECT * FROM orders WHERE user_id = ? ORDER BY purchase_date DESC";
 
-        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/smarthomes", "root",
-                "root");
-                PreparedStatement stmt = connection.prepareStatement(selectOrdersSQL)) {
+        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/smarthomes", "root", "root");
+             PreparedStatement stmt = connection.prepareStatement(selectOrdersSQL)) {
 
             stmt.setInt(1, userId);
             ResultSet rs = stmt.executeQuery();
@@ -90,11 +86,18 @@ public class OrderServlet extends HttpServlet {
                 order.setShippingCost(rs.getDouble("shipping_cost"));
                 order.setDiscount(rs.getDouble("discount"));
                 order.setTotalSales(rs.getInt("total_sales"));
-                order.setStoreId(rs.getInt("store_id"));
-                order.setStoreAddress(rs.getString("store_address"));
                 order.setDeliveryDate(rs.getString("deliveryDate"));
                 order.setDeliveryOption(rs.getString("deliveryOption"));
                 order.setStatus(rs.getString("status"));
+
+                // Set StoreLocation object if store_id is not null
+                if (rs.getObject("store_id") != null) {
+                    Orders.StoreLocation storeLocation = new Orders.StoreLocation();
+                    storeLocation.setStoreId(rs.getInt("store_id"));
+                    storeLocation.setStoreAddress(rs.getString("store_address"));
+                    order.setStoreLocation(storeLocation);
+                }
+
                 ordersList.add(order);
             }
 
@@ -149,9 +152,8 @@ public class OrderServlet extends HttpServlet {
     private boolean cancelOrderInDatabase(int orderId) throws IOException {
         String updateOrderSQL = "UPDATE orders SET status = 'Cancelled' WHERE order_id = ? AND status = 'Processing'";
 
-        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/smarthomes", "root",
-                "root");
-                PreparedStatement stmt = connection.prepareStatement(updateOrderSQL)) {
+        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/smarthomes", "root", "root");
+             PreparedStatement stmt = connection.prepareStatement(updateOrderSQL)) {
 
             stmt.setInt(1, orderId);
             int rowsUpdated = stmt.executeUpdate();

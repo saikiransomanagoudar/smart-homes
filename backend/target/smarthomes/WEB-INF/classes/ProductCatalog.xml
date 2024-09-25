@@ -125,7 +125,7 @@
     </doorbell>
 
     <!-- Doorlocks -->
-    <doorlock id="1" retailer="SmartHomes" category="doorlocks">
+    <doorlock id="6" retailer="SmartHomes" category="doorlocks">
         <nameP>TMEZON Smart Door Lock</nameP>
         <priceP>59.99</priceP>
         <description>TMEZON Smart Door Lock Fingerprint, Keyless Entry Door Lock with Handle, APP/IC Cards/Codes/Keys/Fingerprints Biometric Electronic Keyless Entry</description>
@@ -135,7 +135,7 @@
             <accessoryRef id="4"/>
         </accessories>
     </doorlock>
-    <doorlock id="2" retailer="SmartHomes" category="doorlocks">
+    <doorlock id="7" retailer="SmartHomes" category="doorlocks">
         <nameP>Philips Wi-Fi Smart Door Lock</nameP>
         <priceP>139.99</priceP>
         <description>Philips Wi-Fi Smart Door Lock, Keyless Entry Door Lock with App Control, Fingerprint ID, Auto Unlock, Keypad Deadbolt with Wi-Fi Bridge Adaptor</description>
@@ -145,7 +145,7 @@
             <accessoryRef id="6"/>
         </accessories>
     </doorlock>
-    <doorlock id="3" retailer="SmartHomes" category="doorlocks">
+    <doorlock id="8" retailer="SmartHomes" category="doorlocks">
         <nameP>Keypad Smart Door Lock</nameP>
         <priceP>79.99</priceP>
         <description>Keypad Smart Door Lock with Handle: Kucacci Keyless Entry Door Lock - Digital Door Lock with Keypad Code - Fingerprint Door Lever Lock Deadbolt</description>
@@ -155,7 +155,7 @@
             <accessoryRef id="4"/>
         </accessories>
     </doorlock>
-    <doorlock id="4" retailer="SmartHomes" category="doorlocks">
+    <doorlock id="9" retailer="SmartHomes" category="doorlocks">
         <nameP>eufy Smart Lock C30</nameP>
         <priceP>59.99</priceP>
         <description>eufy Smart Lock C30, Keyless Entry Door Lock, Built-in WiFi Deadbolt, Smart Lock for Front Door, No Bridge Required, Easy Installation</description>
@@ -165,7 +165,7 @@
             <accessoryRef id="4"/>
         </accessories>
     </doorlock>
-    <doorlock id="5" retailer="SmartHomes" category="doorlocks">
+    <doorlock id="10" retailer="SmartHomes" category="doorlocks">
         <nameP>Yale Assure Lock 2 with Wi-Fi</nameP>
         <priceP>239.99</priceP>
         <description>Yale Assure Lock 2 with Wi-Fi, Black Connected Keypad Smart Lock for Front Door or Back, Door Lock with Code and Back-Up Key</description>
@@ -175,7 +175,7 @@
             <accessoryRef id="4"/>
         </accessories>
     </doorlock>
-    <doorlock id="6" retailer="SmartHomes" category="doorlocks">
+    <doorlock id="11" retailer="SmartHomes" category="doorlocks">
         <nameP>Keyless Entry Door Lock with Handle</nameP>
         <priceP>66.49</priceP>
         <description>Keyless Entry Door Lock with Handle, Hornbill Smart Front Door Lock Set, Electronic Keypad Deadbolt Lock, Alexa Front Door Handle Set</description>
@@ -187,7 +187,7 @@
     </doorlock>
 
     <!-- Lightings -->
-    <lighting id="1" retailer="SmartHomes" category="lightings">
+    <lighting id="12" retailer="SmartHomes" category="lightings">
         <nameP>Govee Smart Light Bulbs</nameP>
         <priceP>34.99</priceP>
         <description>Govee Smart Light Bulbs, Color Changing Light Bulb, Work with Alexa and Google Assistant, 16 Million Colors RGBWW, WiFi &amp; Bluetooth LED Light Bulbs</description>
@@ -197,7 +197,7 @@
             <accessoryRef id="10"/>
         </accessories>
     </lighting>
-    <lighting id="2" retailer="SmartHomes" category="lightings">
+    <lighting id="13" retailer="SmartHomes" category="lightings">
         <nameP>GE CYNC A19 Smart LED Light Bulbs</nameP>
         <priceP>14.95</priceP>
         <description>GE CYNC A19 Smart LED Light Bulbs, Color Changing Room Décor, Bluetooth and WiFi Light Bulbs</description>
@@ -207,7 +207,7 @@
             <accessoryRef id="10"/>
         </accessories>
     </lighting>
-    <lighting id="3" retailer="SmartHomes" category="lightings">
+    <lighting id="14" retailer="SmartHomes" category="lightings">
         <nameP>Touch Bedside Table Lamp</nameP>
         <priceP>23.99</priceP>
         <description>Touch Bedside Table Lamp, [Sleek Design &amp; RGB Mode] 3 Way Dimmable Small Lamp for Bedroom</description>
@@ -217,7 +217,7 @@
             <accessoryRef id="10"/>
         </accessories>
     </lighting>
-    <lighting id="4" retailer="SmartHomes" category="lightings">
+    <lighting id="15" retailer="SmartHomes" category="lightings">
         <nameP>Echo Glow</nameP>
         <priceP>29.99</priceP>
         <description>Echo Glow - Multicolor smart lamp, Works with Alexa</description>
@@ -227,7 +227,7 @@
             <accessoryRef id="10"/>
         </accessories>
     </lighting>
-    <lighting id="5" retailer="SmartHomes" category="lightings">
+    <lighting id="16" retailer="SmartHomes" category="lightings">
         <nameP>Govee RGBIC Floor Lamp</nameP>
         <priceP>99.99</priceP>
         <description>Govee RGBIC Floor Lamp, LED Corner Lamp Works with Alexa, Smart Modern Floor Lamp</description>
@@ -239,7 +239,7 @@
     </lighting>
 
     <!-- Speakers -->
-    <speaker id="1" retailer="SmartHomes" category="speakers">
+    <speaker id="17" retailer="SmartHomes" category="speakers">
         <nameP>Amazon Echo Studio</nameP>
         <priceP>199.99</priceP>
         <description>Amazon Echo Studio | Our best-sounding smart speaker ever - With Dolby Atmos, spatial audio processing technology, and Alexa</description>
@@ -249,7 +249,7 @@
             <accessoryRef id="12"/>
         </accessories>
     </speaker>
-    <speaker id="2" retailer="SmartHomes" category="speakers">
+    <speaker id="18" retailer="SmartHomes" category="speakers">
         <nameP>NOTABRICK Bluetooth Speakers</nameP>
         <priceP>49.99</priceP>
         <description>NOTABRICK Bluetooth Speakers, 15W Portable Speakers Bluetooth Wireless V5.0 with Stereo Sound, Active Extra Bass, IPX6 Waterproof</description>
@@ -259,7 +259,7 @@
             <accessoryRef id="12"/>
         </accessories>
     </speaker>
-    <speaker id="3" retailer="SmartHomes" category="speakers">
+    <speaker id="19" retailer="SmartHomes" category="speakers">
         <nameP>Google Nest Mini</nameP>
         <priceP>47.00</priceP>
         <description>Google Nest Mini 2nd Generation Smart Speaker with Google Assistant</description>
@@ -269,7 +269,7 @@
             <accessoryRef id="12"/>
         </accessories>
     </speaker>
-    <speaker id="4" retailer="SmartHomes" category="speakers">
+    <speaker id="20" retailer="SmartHomes" category="speakers">
         <nameP>Sonos Era 100</nameP>
         <priceP>244.85</priceP>
         <description>Sonos Era 100 - White - Wireless, Alexa Enabled Smart Speaker</description>
@@ -279,7 +279,7 @@
             <accessoryRef id="12"/>
         </accessories>
     </speaker>
-    <speaker id="5" retailer="SmartHomes" category="speakers">
+    <speaker id="21" retailer="SmartHomes" category="speakers">
         <nameP>Anker Soundcore 2 Portable Bluetooth Speaker</nameP>
         <priceP>27.99</priceP>
         <description>Anker Soundcore 2 Portable Bluetooth Speaker with 12W Stereo Sound, Bluetooth 5, Bassup, IPX7 Waterproof, 24-Hour Playtime</description>
@@ -289,7 +289,7 @@
             <accessoryRef id="12"/>
         </accessories>
     </speaker>
-    <speaker id="6" retailer="SmartHomes" category="speakers">
+    <speaker id="22" retailer="SmartHomes" category="speakers">
         <nameP>Edifier WiFi Smart Speaker</nameP>
         <priceP>113.99</priceP>
         <description>Edifier WiFi Smart Speaker Without Microphone, Works with Alexa, Supports AirPlay 2, Spotify Connect</description>
@@ -301,7 +301,7 @@
     </speaker>
 
     <!-- Thermostats -->
-    <thermostat id="1" retailer="SmartHomes" category="thermostats">
+    <thermostat id="23" retailer="SmartHomes" category="thermostats">
         <nameP>Amazon Smart Thermostat</nameP>
         <priceP>79.99</priceP>
         <description>Amazon Smart Thermostat – Save money and energy - Works with Alexa and Ring - C-wire required</description>
@@ -311,7 +311,7 @@
             <accessoryRef id="14"/>
         </accessories>
     </thermostat>
-    <thermostat id="2" retailer="SmartHomes" category="thermostats">
+    <thermostat id="24" retailer="SmartHomes" category="thermostats">
         <nameP>GE CYNC Smart Thermostat</nameP>
         <priceP>58.77</priceP>
         <description>GE CYNC Smart Thermostat for Home, Energy Star Certified, Smart Home Programmable Wi-Fi Thermostat</description>
@@ -321,7 +321,7 @@
             <accessoryRef id="14"/>
         </accessories>
     </thermostat>
-    <thermostat id="3" retailer="SmartHomes" category="thermostats">
+    <thermostat id="25" retailer="SmartHomes" category="thermostats">
         <nameP>Sensi Lite Smart Thermostat</nameP>
         <priceP>75.00</priceP>
         <description>Sensi Lite Smart Thermostat, Data Privacy, Programmable, Wi-Fi, Easy DIY, Works With Alexa</description>
@@ -331,7 +331,7 @@
             <accessoryRef id="14"/>
         </accessories>
     </thermostat>
-    <thermostat id="4" retailer="SmartHomes" category="thermostats">
+    <thermostat id="26" retailer="SmartHomes" category="thermostats">
         <nameP>Google Nest Thermostat</nameP>
         <priceP>144.99</priceP>
         <description>Google Nest Thermostat - Smart Thermostat for Home - Programmable Wifi Thermostat</description>
@@ -341,7 +341,7 @@
             <accessoryRef id="14"/>
         </accessories>
     </thermostat>
-    <thermostat id="5" retailer="SmartHomes" category="thermostats">
+    <thermostat id="27" retailer="SmartHomes" category="thermostats">
         <nameP>Honeywell Home RTH8800WF2022</nameP>
         <priceP>85.00</priceP>
         <description>Honeywell Home RTH8800WF2022, T5 WiFi Smart Thermostat, 7 Day-Programmable Touchscreen</description>
@@ -351,7 +351,7 @@
             <accessoryRef id="14"/>
         </accessories>
     </thermostat>
-    <thermostat id="6" retailer="SmartHomes" category="thermostats">
+    <thermostat id="28" retailer="SmartHomes" category="thermostats">
         <nameP>Vine Thermostat</nameP>
         <priceP>69.99</priceP>
         <description>Vine Thermostat for Home with Touchscreen Color Display, WiFi Smart Thermostat</description>

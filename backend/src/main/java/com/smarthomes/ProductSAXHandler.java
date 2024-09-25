@@ -4,15 +4,20 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class ProductSAXHandler extends DefaultHandler {
 
     private List<Product> products = null;
-    private Product product = null;  // Common product object for both products and accessories
+    private Product product = null;
     private StringBuilder data = null;
+
+    // To store accessory references
+    private List<Integer> accessoryRefs = null;
 
     // Getters
     public List<Product> getProducts() {
@@ -26,43 +31,40 @@ public class ProductSAXHandler extends DefaultHandler {
 
     @Override
     public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-
-        // Handle product elements (doorbell, doorlock, lighting, speaker, thermostat, accessory)
         if (qName.equalsIgnoreCase("doorbell") || qName.equalsIgnoreCase("doorlock") ||
-            qName.equalsIgnoreCase("lighting") || qName.equalsIgnoreCase("speaker") ||
-            qName.equalsIgnoreCase("thermostat") || qName.equalsIgnoreCase("accessory")) {
+                qName.equalsIgnoreCase("lighting") || qName.equalsIgnoreCase("speaker") ||
+                qName.equalsIgnoreCase("thermostat")) {
 
             product = new Product();
+            product.setType("product"); // Set type as product
+            accessoryRefs = new ArrayList<>(); // Initialize accessory references list
+
             String idValue = attributes.getValue("id");
             if (idValue != null && !idValue.isEmpty()) {
                 try {
-                    product.setId(Integer.parseInt(idValue));  // Set product/accessory ID
-                    System.out.println("Product/Accessory ID: " + idValue);  // Debugging
+                    product.setId(Integer.parseInt(idValue)); // Set product ID
+                    System.out.println("Product ID: " + idValue); // Debugging
                 } catch (NumberFormatException e) {
-                    System.err.println("Invalid product/accessory ID: " + idValue);
+                    System.err.println("Invalid product ID: " + idValue);
                 }
             }
 
             product.setCategory(attributes.getValue("category"));
             product.setRetailer(attributes.getValue("retailer"));
 
-            // Set type as accessory or product based on the XML element name
-            if (qName.equalsIgnoreCase("accessory")) {
-                product.setType("accessory");  // Set type as accessory
-            } else {
-                product.setType("product");  // Set type as product
-            }
-        }
+            // Debugging: Print category being processed
+            System.out.println("Processing product with category: " + product.getCategory());
 
-        // Handle accessoryRef by extracting the id attribute
-        if (qName.equalsIgnoreCase("accessoryRef")) {
-            String accessoryRefId = attributes.getValue("id");
-            if (accessoryRefId != null && !accessoryRefId.isEmpty()) {
+        } else if (qName.equalsIgnoreCase("accessoryRef")) {
+            // Capture accessory references
+            String accessoryId = attributes.getValue("id");
+            if (accessoryId != null && !accessoryId.isEmpty()) {
                 try {
-                    product.addAccessoryId(Integer.parseInt(accessoryRefId));  // Add accessory ID reference
-                    System.out.println("AccessoryRef added to Product ID " + product.getId() + ": " + accessoryRefId);  // Debugging
+                    int accessoryRefId = Integer.parseInt(accessoryId);
+                    accessoryRefs.add(accessoryRefId); // Add accessory reference to the list
+                    System.out.println("AccessoryRef ID: " + accessoryRefId); // Debugging
                 } catch (NumberFormatException e) {
-                    System.err.println("Invalid accessoryRef ID: " + accessoryRefId);
+                    System.err.println("Invalid accessoryRef ID: " + accessoryId);
                 }
             }
         }
@@ -74,25 +76,23 @@ public class ProductSAXHandler extends DefaultHandler {
     public void endElement(String uri, String localName, String qName) throws SAXException {
         if (product != null) {
             switch (qName) {
-                case "nameP":  // For product names
-                case "nameA":  // For accessory names
+                case "nameP": // Product name
+                case "nameA": // Accessory name
                     product.setName(data.toString());
                     break;
-                case "priceP":  // For product prices
-                case "priceA":  // For accessory prices
-                    if (!data.toString().isEmpty()) {
-                        try {
-                            product.setPrice(Double.parseDouble(data.toString()));
-                        } catch (NumberFormatException e) {
-                            System.err.println("Invalid price: " + data.toString());
-                        }
+                case "priceP": // Product price
+                case "priceA": // Accessory price
+                    try {
+                        product.setPrice(Double.parseDouble(data.toString()));
+                    } catch (NumberFormatException e) {
+                        System.err.println("Invalid price: " + data.toString());
                     }
                     break;
-                case "description":  // For product descriptions (accessories don't have descriptions)
+                case "description": // Product description
                     product.setDescription(data.toString());
                     break;
-                case "imageP":  // For product images
-                case "imageA":  // For accessory images
+                case "imageP": // Product image
+                case "imageA": // Accessory image
                     product.setImage(data.toString());
                     break;
                 case "doorbell":
@@ -100,16 +100,11 @@ public class ProductSAXHandler extends DefaultHandler {
                 case "lighting":
                 case "speaker":
                 case "thermostat":
-                case "accessory":
-                    // Now map accessory IDs to actual accessories if any
-                    List<Product> productAccessories = product.getAccessoryIds().stream()
-                        .map(id -> products.stream()
-                            .filter(p -> p.getId() == id && p.getType().equals("accessory"))
-                            .findFirst().orElse(null))
-                        .filter(p -> p != null)  // Remove nulls
-                        .collect(Collectors.toList());
-                    product.setAccessories(productAccessories);  // Set accessories for the product
-                    System.out.println("Product accessories mapped for Product ID " + product.getId() + ": " + productAccessories);  // Debugging
+                    // Insert product into the database
+                    if (!isProductInDatabase(product.getId())) {
+                        insertProductIntoDatabase(); // relationships
+                    }
+                    insertProductAccessoryRelationship(product.getId(), accessoryRefs);
                     products.add(product);
                     product = null;
                     break;
@@ -120,5 +115,110 @@ public class ProductSAXHandler extends DefaultHandler {
     @Override
     public void characters(char[] ch, int start, int length) throws SAXException {
         data.append(new String(ch, start, length));
+    }
+
+    // Check if product exists in the database before inserting
+    private boolean isProductInDatabase(int productId) {
+        Connection conn = MySQLDataStoreUtilities.getConnection();
+        PreparedStatement ps = null;
+        boolean exists = false;
+        try {
+            String query = "SELECT id FROM Products WHERE id = ?";
+            ps = conn.prepareStatement(query);
+            ps.setInt(1, productId);
+            exists = ps.executeQuery().next();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            MySQLDataStoreUtilities.closePreparedStatement(ps);
+            MySQLDataStoreUtilities.closeConnection(conn);
+        }
+        return exists;
+    }
+
+    // Insert product into MySQL database
+    private void insertProductIntoDatabase() {
+        Connection conn = MySQLDataStoreUtilities.getConnection();
+        PreparedStatement ps = null;
+        try {
+            // Insert product into Products table
+            String query = "INSERT INTO Products (id, name, price, description, image, category, retailer) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?)";
+            ps = conn.prepareStatement(query);
+            ps.setInt(1, product.getId());
+            ps.setString(2, product.getName());
+            ps.setDouble(3, product.getPrice());
+            ps.setString(4, product.getDescription());
+            ps.setString(5, product.getImage());
+            ps.setString(6, product.getCategory());
+            ps.setString(7, product.getRetailer());
+
+            ps.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            MySQLDataStoreUtilities.closePreparedStatement(ps);
+            MySQLDataStoreUtilities.closeConnection(conn);
+        }
+    }
+
+    // Check if product-accessory relationship exists in the database before inserting
+    private boolean isProductAccessoryInDatabase(int productId, int accessoryId) {
+        Connection conn = MySQLDataStoreUtilities.getConnection();
+        PreparedStatement ps = null;
+        boolean exists = false;
+        try {
+            String query = "SELECT * FROM ProductAccessories WHERE product_id = ? AND accessory_id = ?";
+            ps = conn.prepareStatement(query);
+            ps.setInt(1, productId);
+            ps.setInt(2, accessoryId);
+            exists = ps.executeQuery().next(); // Check if the relationship exists
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            MySQLDataStoreUtilities.closePreparedStatement(ps);
+            MySQLDataStoreUtilities.closeConnection(conn);
+        }
+        return exists;
+    }
+
+    // Insert product-accessory relationships into ProductAccessories table
+    private void insertProductAccessoryRelationship(int productId, List<Integer> accessoryIds) {
+        if (accessoryIds == null || accessoryIds.isEmpty()) {
+            System.out.println("No accessories found for Product ID: " + productId); // Debugging
+            return; // No accessories to insert
+        }
+
+        System.out.println("Inserting accessories for Product ID: " + productId); // Debugging
+
+        Connection conn = MySQLDataStoreUtilities.getConnection();
+        PreparedStatement ps = null;
+        try {
+            String query = "INSERT INTO ProductAccessories (product_id, accessory_id) VALUES (?, ?)";
+            ps = conn.prepareStatement(query);
+
+            for (int accessoryId : accessoryIds) {
+                // Check if the product-accessory relationship already exists
+                if (!isProductAccessoryInDatabase(productId, accessoryId)) {
+                    // Debugging: Print the product_id and accessory_id
+                    System.out.println("Inserting into ProductAccessories - Product ID: " + productId
+                            + ", Accessory ID: " + accessoryId);
+                    ps.setInt(1, productId);
+                    ps.setInt(2, accessoryId);
+                    ps.addBatch(); // Add the query to batch for execution
+                } else {
+                    System.out.println("ProductAccessory relationship already exists for Product ID: " + productId
+                            + ", Accessory ID: " + accessoryId);
+                }
+            }
+            ps.executeBatch(); // Execute the batch of insertions
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            MySQLDataStoreUtilities.closePreparedStatement(ps);
+            MySQLDataStoreUtilities.closeConnection(conn);
+        }
     }
 }

@@ -85,19 +85,20 @@ export default function Cart() {
     const updatedItems = items
       .map((item) => {
         if (item.id === id && item.quantity > 1) {
-          return { ...item, quantity: item.quantity - 1 };
+          return { ...item, quantity: item.quantity - 1 }; // Decrease quantity
         } else if (item.id === id && item.quantity === 1) {
-          return null;
+          return null; // Remove the item if the quantity is 1
         }
         return item;
       })
-      .filter((item) => item !== null);
+      .filter((item) => item !== null); // Filter out items where quantity is 0
   
     setItems(updatedItems);
     localStorage.setItem("cart", JSON.stringify(updatedItems));
   
     const removedItem = items.find((item) => item.id === id);
-    if (removedItem.quantity === 1) {
+    
+    if (removedItem && removedItem.quantity === 1) {
       // Send DELETE request if quantity is 1 and removed
       fetch("http://localhost:8080/smarthomes/cart/product", {
         method: "DELETE",
@@ -119,7 +120,7 @@ export default function Cart() {
       .catch((error) => {
         console.error("Error deleting item from cart:", error);
       });
-    } else {
+    } else if (removedItem && removedItem.quantity > 1) {
       // Update backend when quantity is reduced
       fetch("http://localhost:8080/smarthomes/cart/product", {
         method: "PUT",
@@ -129,7 +130,7 @@ export default function Cart() {
         credentials: "include",
         body: JSON.stringify({
           id: removedItem.id,
-          quantity: removedItem.quantity,
+          quantity: removedItem.quantity - 1, // Ensure the new quantity is sent
           type: removedItem.type,
           userId: localStorage.getItem("userId"),
         }),

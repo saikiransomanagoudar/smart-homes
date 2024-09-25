@@ -50,7 +50,8 @@ public class CartServlet extends HttpServlet {
             if (currentQuantity > 0) {
                 // Update the cart item quantity
                 updateCartItemQuantity(userId, fullProduct.getId(), currentQuantity + 1);
-                System.out.println("Updated quantity for product " + fullProduct.getId() + " to " + (currentQuantity + 1));
+                System.out.println(
+                        "Updated quantity for product " + fullProduct.getId() + " to " + (currentQuantity + 1));
             } else {
                 // Insert new item into the cart
                 insertCartItem(userId, fullProduct, incomingProduct.getQuantity());
@@ -83,7 +84,8 @@ public class CartServlet extends HttpServlet {
             // Update the cart item quantity with the incoming quantity
             if (incomingProduct.getQuantity() > 0) {
                 updateCartItemQuantity(userId, incomingProduct.getId(), incomingProduct.getQuantity());
-                System.out.println("Updated quantity for product " + incomingProduct.getId() + " to " + incomingProduct.getQuantity());
+                System.out.println("Updated quantity for product " + incomingProduct.getId() + " to "
+                        + incomingProduct.getQuantity());
             } else if (incomingProduct.getQuantity() == 0) {
                 // Remove the item from the cart if the quantity becomes 0
                 deleteCartItem(userId, incomingProduct.getId());
@@ -114,6 +116,33 @@ public class CartServlet extends HttpServlet {
         sendJsonResponse(response, cart != null ? cart : new ArrayList<>());
     }
 
+    @Override
+    protected void doDelete(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        enableCORS(request, response);
+        HttpSession session = request.getSession();
+        int userId = getUserIdFromSession(session);
+
+        BufferedReader reader = request.getReader();
+
+        try {
+            Product incomingProduct = new Gson().fromJson(reader, Product.class);
+
+            // Delete the item from the cart
+            deleteCartItem(userId, incomingProduct.getId());
+            System.out.println("Removed product " + incomingProduct.getId() + " from the cart.");
+
+            // Fetch the updated cart and return it as a response
+            List<Product> cart = getCartFromDB(userId);
+            sendJsonResponse(response, cart);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            sendErrorResponse(response, "Failed to delete cart item.");
+        }
+    }
+
     // Helper methods
 
     private int getUserIdFromSession(HttpSession session) {
@@ -127,7 +156,7 @@ public class CartServlet extends HttpServlet {
     private int getCartItemQuantity(int userId, int productId) {
         String query = "SELECT quantity FROM cart WHERE user_id = ? AND product_id = ?";
         try (Connection conn = MySQLDataStoreUtilities.getConnection();
-             PreparedStatement ps = conn.prepareStatement(query)) {
+                PreparedStatement ps = conn.prepareStatement(query)) {
             ps.setInt(1, userId);
             ps.setInt(2, productId);
             ResultSet rs = ps.executeQuery();
@@ -143,7 +172,7 @@ public class CartServlet extends HttpServlet {
     private void updateCartItemQuantity(int userId, int productId, int newQuantity) {
         String query = "UPDATE cart SET quantity = ? WHERE user_id = ? AND product_id = ?";
         try (Connection conn = MySQLDataStoreUtilities.getConnection();
-             PreparedStatement ps = conn.prepareStatement(query)) {
+                PreparedStatement ps = conn.prepareStatement(query)) {
             ps.setInt(1, newQuantity);
             ps.setInt(2, userId);
             ps.setInt(3, productId);
@@ -156,7 +185,7 @@ public class CartServlet extends HttpServlet {
     private void deleteCartItem(int userId, int productId) {
         String query = "DELETE FROM cart WHERE user_id = ? AND product_id = ?";
         try (Connection conn = MySQLDataStoreUtilities.getConnection();
-             PreparedStatement ps = conn.prepareStatement(query)) {
+                PreparedStatement ps = conn.prepareStatement(query)) {
             ps.setInt(1, userId);
             ps.setInt(2, productId);
             ps.executeUpdate();
@@ -168,7 +197,7 @@ public class CartServlet extends HttpServlet {
     private void insertCartItem(int userId, Product product, int quantity) {
         String query = "INSERT INTO cart (user_id, product_id, quantity) VALUES (?, ?, ?)";
         try (Connection conn = MySQLDataStoreUtilities.getConnection();
-             PreparedStatement ps = conn.prepareStatement(query)) {
+                PreparedStatement ps = conn.prepareStatement(query)) {
             ps.setInt(1, userId);
             ps.setInt(2, product.getId());
             ps.setInt(3, quantity); // Use the quantity from incoming product
@@ -183,7 +212,7 @@ public class CartServlet extends HttpServlet {
         String query = "SELECT product_id, quantity FROM cart WHERE user_id = ?";
 
         try (Connection conn = MySQLDataStoreUtilities.getConnection();
-             PreparedStatement ps = conn.prepareStatement(query)) {
+                PreparedStatement ps = conn.prepareStatement(query)) {
             ps.setInt(1, userId);
             ResultSet rs = ps.executeQuery();
 
