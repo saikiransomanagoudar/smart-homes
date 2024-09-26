@@ -18,7 +18,7 @@ export default function ProductsPage({ cart, setCart }) {
     storeZip: "",
     storeCity: "",
     storeState: "",
-    productOnSale: false,
+    productOnSale: true,
     manufacturerName: "",
     manufacturerRebate: false,
     userId: "",
@@ -33,6 +33,19 @@ export default function ProductsPage({ cart, setCart }) {
 
   const isLoggedIn = localStorage.getItem("isLoggedIn");
   const userId = localStorage.getItem("userId");
+
+  const storeAddresses = [
+    { address: "1001 Main St", zip: "12345" },
+    { address: "1501 Maple Ave", zip: "12346" },
+    { address: "2001 Oak St", zip: "12347" },
+    { address: "2501 Pine St", zip: "12348" },
+    { address: "3001 Elm St", zip: "12349" },
+    { address: "3501 Cedar St", zip: "12350" },
+    { address: "4001 Birch St", zip: "12351" },
+    { address: "4501 Walnut St", zip: "12352" },
+    { address: "5001 Chestnut St", zip: "12353" },
+    { address: "5501 Spruce St", zip: "12354" }
+  ];
 
   // Fetch products by category from the backend
   useEffect(() => {
@@ -112,27 +125,42 @@ export default function ProductsPage({ cart, setCart }) {
   // Handle submission of review form
   const handleSubmitReview = (e) => {
     e.preventDefault();
-    if (isLoggedIn) {
-      fetch("/api/review", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...reviewForm, userId })
+  
+    const reviewData = {
+      productName: reviewForm.productName,
+      category: reviewForm.category,
+      price: reviewForm.price,
+      storeAddress: reviewForm.storeAddress,
+      productOnSale: reviewForm.productOnSale, // "Yes" for all products
+      manufacturerRebate: reviewForm.manufacturerRebate, // "Yes" if applicable
+      userId: userId, // From the session
+      userAge: reviewForm.userAge,
+      userGender: reviewForm.userGender,
+      userOccupation: reviewForm.userOccupation,
+      reviewRating: reviewForm.reviewRating,
+      reviewDate: reviewForm.reviewDate,
+      reviewText: reviewForm.reviewText,
+    };
+  
+    fetch("http://localhost:8080/smarthomes/api/review", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(reviewData),
+    })
+      .then((response) => {
+        if (response.ok) {
+          alert("Review submitted successfully!");
+          setShowReviewModal(false);
+        } else {
+          alert("Error submitting review");
+        }
       })
-        .then((response) => {
-          if (response.ok) {
-            alert("Review submitted successfully!");
-            setShowReviewModal(false); // Close modal on success
-          } else {
-            alert("Error submitting review");
-          }
-        })
-        .catch((error) => {
-          console.error("Error submitting review:", error);
-        });
-    } else {
-      navigate("/signin");
-    }
-  };
+      .catch((error) => {
+        console.error("Error submitting review:", error);
+      });
+  };  
 
   const handleProductClick = (product) => {
     setSelectedProduct(product);
@@ -172,11 +200,12 @@ export default function ProductsPage({ cart, setCart }) {
       productName: product.name,
       category: product.category,
       price: product.price,
+      discountedPrice: product.discountedPrice || product.price,
+      productOnSale: true,
       storeId: "",
       storeZip: "",
       storeCity: "",
       storeState: "",
-      productOnSale: false,
       manufacturerName: "",
       manufacturerRebate: false,
       userId: "",
@@ -426,7 +455,6 @@ export default function ProductsPage({ cart, setCart }) {
           </nav>
         </div>
       </header>
-
       <main className="container mx-auto py-4 sm:py-8">
         <div className="text-center">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4">
@@ -534,7 +562,10 @@ export default function ProductsPage({ cart, setCart }) {
                       >
                         Write Review
                       </button>
-                      <button className="bg-gray-500 text-white px-4 py-2 mt-4 rounded">
+                      <button
+                        className="bg-gray-500 text-white px-4 py-2 mt-4 rounded"
+                        onClick={(e) => e.stopPropagation}
+                      >
                         View Reviews
                       </button>
                     </>
@@ -554,7 +585,7 @@ export default function ProductsPage({ cart, setCart }) {
             onClick={() => setShowReviewModal(false)}
           >
             <div
-              className="bg-white p-6 rounded-lg shadow-lg w-96 relative"
+              className="bg-white p-6 rounded-lg shadow-lg w-96 max-h-[80vh] relative overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               <button
@@ -594,11 +625,131 @@ export default function ProductsPage({ cart, setCart }) {
                   <input
                     type="text"
                     name="price"
-                    value={`$${reviewForm.price}`}
+                    value={
+                      reviewForm.productOnSale && reviewForm.discountedPrice
+                        ? `$${reviewForm.discountedPrice.toFixed(2)}`
+                        : `$${reviewForm.price.toFixed(2)}`
+                    }
                     onChange={handleReviewFieldChange}
                     className="w-full p-2 border rounded"
                     readOnly
                   />
+                </div>
+
+                {/* Product On Sale */}
+                <div className="mb-2">
+                  <label className="block text-sm font-medium">
+                    Product On Sale:
+                  </label>
+                  <input
+                    type="text"
+                    name="productOnSale"
+                    value="Yes"
+                    className="w-full p-2 border rounded"
+                    readOnly
+                  />
+                </div>
+
+                {/* Manufacturer Rebate */}
+                <div className="mb-2">
+                  <label className="block text-sm font-medium">
+                    Manufacturer Rebate:
+                  </label>
+                  <input
+                    type="text"
+                    name="manufacturerRebate"
+                    value={reviewForm.manufacturerRebate ? "Yes" : "No"}
+                    onChange={handleReviewFieldChange}
+                    className="w-full p-2 border rounded"
+                    readOnly
+                  />
+                </div>
+
+                {/* User ID - Retrieved from session */}
+                <div className="mb-2">
+                  <label className="block text-sm font-medium">User ID:</label>
+                  <input
+                    type="text"
+                    name="userId"
+                    value={userId}
+                    className="w-full p-2 border rounded"
+                    readOnly
+                  />
+                </div>
+
+                {/* User Age - Let the user enter */}
+                <div className="mb-2">
+                  <label className="block text-sm font-medium">User Age:</label>
+                  <input
+                    type="number"
+                    name="userAge"
+                    value={reviewForm.userAge}
+                    min="0"
+                    onChange={handleReviewFieldChange}
+                    className="w-full p-2 border rounded"
+                    placeholder="Enter your age"
+                  />
+                </div>
+
+                {/* User Gender - Dropdown with Male, Female, Other */}
+                <div className="mb-2">
+                  <label className="block text-sm font-medium">
+                    User Gender:
+                  </label>
+                  <select
+                    name="userGender"
+                    value={reviewForm.userGender}
+                    onChange={handleReviewFieldChange}
+                    className="w-full p-2 border rounded"
+                  >
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+
+                {/* User Occupation - Let the user enter */}
+                <div className="mb-2">
+                  <label className="block text-sm font-medium">
+                    User Occupation:
+                  </label>
+                  <input
+                    type="text"
+                    name="userOccupation"
+                    value={reviewForm.userOccupation}
+                    onChange={handleReviewFieldChange}
+                    className="w-full p-2 border rounded"
+                    placeholder="Enter your occupation"
+                  />
+                </div>
+                {/* Store Address Dropdown */}
+                <div className="mb-2">
+                  <label className="block text-sm font-medium">
+                    Store Address:
+                  </label>
+                  <select
+                    name="storeAddress"
+                    value={reviewForm.storeAddress}
+                    onChange={(e) => {
+                      const selectedStore = storeAddresses.find(
+                        (store) => store.address === e.target.value
+                      );
+                      setReviewForm({
+                        ...reviewForm,
+                        storeAddress: selectedStore.address,
+                        storeZip: selectedStore.zip
+                      });
+                    }}
+                    className="w-full p-2 border rounded"
+                  >
+                    <option value="">Select Store Address</option>
+                    {storeAddresses.map((store) => (
+                      <option key={store.zip} value={store.address}>
+                        {store.address}, ZIP: {store.zip}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 {/* Add other fields similarly */}
                 <div className="mb-2">
@@ -612,7 +763,12 @@ export default function ProductsPage({ cart, setCart }) {
                         name="reviewRating"
                         value={rating}
                         checked={reviewForm.reviewRating === rating}
-                        onChange={handleReviewFieldChange}
+                        onChange={(e) =>
+                          setReviewForm({
+                            ...reviewForm,
+                            reviewRating: parseInt(e.target.value)
+                          })
+                        }
                       />
                       {rating}
                     </label>
@@ -679,12 +835,11 @@ export default function ProductsPage({ cart, setCart }) {
               {selectedProduct.description && (
                 <p className="text-sm mb-4">{selectedProduct.description}</p>
               )}
-              <p className="text-lg font-bold mb-4">
-                $
-                {selectedProduct.price !== undefined &&
-                selectedProduct.price !== null
-                  ? selectedProduct.price.toFixed(2)
-                  : "N/A"}
+              <p className="text-lg font-bold mt-2">
+                {selectedProduct.productOnSale &&
+                selectedProduct.discountedPrice
+                  ? `$${selectedProduct.discountedPrice.toFixed(2)}`
+                  : `$${selectedProduct.price.toFixed(2)}`}
               </p>
 
               {/* Rendering Accessories */}

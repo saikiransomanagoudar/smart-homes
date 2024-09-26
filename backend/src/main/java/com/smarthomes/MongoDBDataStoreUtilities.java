@@ -12,28 +12,22 @@ public class MongoDBDataStoreUtilities {
     private static MongoDatabase database;
 
     static {
-        mongoClient = MongoClients.create("mongodb://localhost:27017");
-        database = mongoClient.getDatabase("smarthomes");
+        mongoClient = MongoClients.create("mongodb://localhost:27017"); // Make sure this matches your MongoDB configuration
+        database = mongoClient.getDatabase("smarthomes"); // Database name is 'smarthomes'
     }
 
-    // Method to store product review in MongoDB
-    public static void storeProductReview(String productName, String category, double price, String storeId, String storeZip, 
-                                          String storeCity, String storeState, boolean productOnSale, String manufacturerName, 
-                                          boolean manufacturerRebate, String userId, int userAge, String userGender, String userOccupation, 
-                                          int reviewRating, String reviewDate, String reviewText) {
-        // Access the 'reviews' collection
+    public static void storeProductReview(String productName, String category, double price, String storeAddress, boolean productOnSale,
+                                          boolean manufacturerRebate, String userId, int userAge, String userGender,
+                                          String userOccupation, int reviewRating, String reviewDate, String reviewText) {
+        // Get the 'reviews' collection
         MongoCollection<Document> reviewsCollection = database.getCollection("reviews");
 
-        // Create a new document with all the review fields
+        // Create a new review document
         Document review = new Document("productName", productName)
                 .append("category", category)
                 .append("price", price)
-                .append("storeId", storeId)
-                .append("storeZip", storeZip)
-                .append("storeCity", storeCity)
-                .append("storeState", storeState)
+                .append("storeAddress", storeAddress)
                 .append("productOnSale", productOnSale)
-                .append("manufacturerName", manufacturerName)
                 .append("manufacturerRebate", manufacturerRebate)
                 .append("userId", userId)
                 .append("userAge", userAge)
@@ -43,7 +37,7 @@ public class MongoDBDataStoreUtilities {
                 .append("reviewDate", reviewDate)
                 .append("reviewText", reviewText);
 
-        // Insert the review document into the collection
+        // Insert the review into the collection
         reviewsCollection.insertOne(review);
     }
 }
