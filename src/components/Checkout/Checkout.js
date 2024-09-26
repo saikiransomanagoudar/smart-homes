@@ -103,27 +103,26 @@ export default function Checkout() {
   function calculateDiscountedPrice(item) {
     // Ensure price is a number
     const price = parseFloat(item.price);
-  
+
     // If price is not valid, return 0 to avoid errors
     if (isNaN(price)) {
       return 0;
     }
-  
+
     const discountProduct = discountProducts[item.id];
-    
+
     // Check if the product has a discount, and calculate accordingly
     if (discountProduct) {
       const discountAmount = (price * discountProduct.discount) / 100;
-  
+
       // Calculate the final discounted price and ensure it’s a number
       const finalPrice = price - discountAmount;
       return isNaN(finalPrice) ? 0 : finalPrice;
     }
-  
+
     // If no discount, return the original price
     return price;
   }
-  
 
   // Handle form submission
   const handleSubmit = (e) => {
@@ -141,9 +140,7 @@ export default function Checkout() {
       return;
     }
 
-    const selectedStore = storeLocations.find(
-      (store) => store.id === parseInt(formData.storeLocation)
-    );
+    const selectedStore = formData.storeLocation;
 
     // Prepare order data
     const orderData = {
@@ -173,6 +170,7 @@ export default function Checkout() {
           : null
     };
 
+    console.log("Order Data:", orderData);
     // Send order data to the backend
     fetch("http://localhost:8080/smarthomes/checkout", {
       method: "POST",
@@ -201,6 +199,7 @@ export default function Checkout() {
           error.message || "Error processing your order. Please try again."
         );
       });
+    console.log("Order Data:", orderData);
   };
 
   // Confirmation page after placing the order
@@ -372,14 +371,15 @@ export default function Checkout() {
             </label>
             <select
               name="storeLocation"
-              value={formData.storeLocation.id || ""} // set store id as value
+              value={formData.storeLocation ? formData.storeLocation.id : ""} // Safely check if storeLocation exists
               onChange={(e) => {
                 const selectedStore = storeLocations.find(
                   (location) => location.id === parseInt(e.target.value)
                 );
+                console.log("Selected Store:", selectedStore); // Add a console log to check
                 setFormData({
                   ...formData,
-                  storeLocation: selectedStore // store the entire selected store object
+                  storeLocation: selectedStore // Store the entire selected store object
                 });
               }}
               required

@@ -258,6 +258,7 @@ export default function ProductsPage({ cart, setCart }) {
           quantity: existingItem.quantity + 1,
           price: discountedPrice,
           type: isAccessory ? "accessory" : "product",
+          category: existingItem.category,
           userId
         })
       }).catch((error) => {
@@ -271,6 +272,7 @@ export default function ProductsPage({ cart, setCart }) {
         image: item.image,
         quantity: 1,
         type: isAccessory ? "accessory" : "product",
+        category: item.category,
         userId
       };
 
