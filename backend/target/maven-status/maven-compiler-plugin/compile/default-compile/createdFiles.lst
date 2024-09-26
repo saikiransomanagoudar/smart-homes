@@ -4,10 +4,12 @@ com\smarthomes\Product.class
 com\smarthomes\ProductSAXHandler.class
 com\smarthomes\CartServlet.class
 com\smarthomes\Orders$StoreLocation.class
+com\smarthomes\ReviewServlet.class
 com\smarthomes\MySQLDataStoreUtilities.class
 com\smarthomes\ProductServlet.class
 com\smarthomes\RegistrationServlet.class
 com\smarthomes\LoginServlet.class
+com\smarthomes\MongoDBDataStoreUtilities.class
 com\smarthomes\OrderServlet.class
 com\smarthomes\CartItem.class
 com\smarthomes\CheckoutServlet.class

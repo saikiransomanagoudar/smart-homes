@@ -73,10 +73,10 @@ export default function Checkout() {
 
   // Calculate total price based on cart items
   const calculateTotalPrice = (products) => {
-    const total = products.reduce(
-      (sum, item) => sum + item.price * item.quantity,
-      0
-    );
+    const total = products.reduce((sum, item) => {
+      const discountedPrice = calculateDiscountedPrice(item);
+      return sum + discountedPrice * item.quantity;
+    }, 0);
     setTotalPrice(total);
   };
 
@@ -84,6 +84,31 @@ export default function Checkout() {
     const totalSales = products.reduce((sum, item) => sum + item.quantity, 0);
     return totalSales;
   };
+
+  const discountProducts = {
+    1: { discount: 10, rebate: 5 }, // Blink Video Doorbell
+    3: { discount: 20, rebate: 10 }, // Ring Video Doorbell
+    10: { discount: 15, rebate: 7 }, // Philips Wi-Fi Smart Door Lock
+    14: { discount: 18, rebate: 5 }, // GE Cync A19 Smart LED Light Bulbs
+    23: { discount: 25, rebate: 15 }, // Sonos Roam - White
+    26: { discount: 30, rebate: 20 }, // Sensis Lite Smart Thermostat
+    4: { discount: 12, rebate: 6 }, // Google Nest Doorbell
+    11: { discount: 22, rebate: 12 }, // Yale Assure Lock 2 Wi-Fi Smart Door Lock
+    16: { discount: 17, rebate: 8 }, // Amazon Echo Studio
+    18: { discount: 25, rebate: 10 }, // Google Nest Mini (2nd Gen)
+    28: { discount: 20, rebate: 10 }, // Vine Thermostat for Home
+    5: { discount: 18, rebate: 9 } // Smart Doorlock
+  };
+
+  function calculateDiscountedPrice(item) {
+    const discountProduct = discountProducts[item.id];
+    if (discountProduct) {
+      const discountAmount = (item.price * discountProduct.discount) / 100;
+      return item.price - discountAmount; // Return the discounted price
+    }
+    return item.price; // If no discount, return the original price
+  }
+  
 
   // Handle form submission
   const handleSubmit = (e) => {
@@ -117,12 +142,16 @@ export default function Checkout() {
         name: item.name,
         category: item.category,
         image: item.image,
-        price: item.price,
-        quantity: item.quantity
+        price: calculateDiscountedPrice(item),
+        quantity: item.quantity,
+        discount: discountProducts[item.id]?.discount || 0
       })),
       totalSales: calculateTotalSales(cartItems),
       shippingCost: formData.deliveryOption === "home" ? 5.0 : 0.0,
-      discount: 0.0,
+      discount: cartItems.reduce(
+        (sum, item) => sum + (discountProducts[item.id]?.discount || 0),
+        0
+      ),
       storeLocation:
         formData.deliveryOption === "pickup" && selectedStore
           ? { storeId: selectedStore.id, storeAddress: selectedStore.address }
@@ -184,22 +213,25 @@ export default function Checkout() {
         </p>
         <div className="mt-6">
           <h3 className="text-xl font-semibold">Order Details</h3>
-          {cartItems.map((item, index) => (
-            <div key={index} className="flex items-center mb-4">
-              <img
-                src={item.image}
-                alt={item.name}
-                className="w-20 h-20 object-contain mr-4"
-              />
-              <div>
-                <p>
-                  <strong>{item.name}</strong>
-                </p>
-                <p>Price: ${item.price ? item.price.toFixed(2) : "N/A"}</p>
-                <p>Quantity: {item.quantity || 1}</p>
+          {cartItems.map((item, index) => {
+            const discountedPrice = calculateDiscountedPrice(item);
+            return (
+              <div key={index} className="flex items-center mb-4">
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  className="w-20 h-20 object-contain mr-4"
+                />
+                <div>
+                  <p>
+                    <strong>{item.name}</strong>
+                  </p>
+                  <p>Price: ${discountedPrice.toFixed(2)}</p> {/* Updated to show discounted price */}
+                  <p>Quantity: {item.quantity || 1}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
         <button
           onClick={() => navigate("/orders")} // Redirect to orders page
@@ -357,7 +389,21 @@ export default function Checkout() {
                 <p>
                   <strong>{item.name}</strong>
                 </p>
-                <p>Price: ${item.price}</p>
+                {discountProducts[item.id] ? (
+                  <>
+                    <p className="line-through text-red-500">
+                      ${item.price.toFixed(2)}
+                    </p>
+                    <p>
+                      ${calculateDiscountedPrice(item)}{" "}
+                      <span className="text-green-500">
+                        ({discountProducts[item.id]?.discount}% OFF)
+                      </span>
+                    </p>
+                  </>
+                ) : (
+                  <p>Price: ${item.price.toFixed(2)}</p>
+                )}
                 <p>Quantity: {item.quantity || 1}</p>
               </div>
             </div>
