@@ -101,12 +101,27 @@ export default function Checkout() {
   };
 
   function calculateDiscountedPrice(item) {
-    const discountProduct = discountProducts[item.id];
-    if (discountProduct) {
-      const discountAmount = (item.price * discountProduct.discount) / 100;
-      return item.price - discountAmount; // Return the discounted price
+    // Ensure price is a number
+    const price = parseFloat(item.price);
+  
+    // If price is not valid, return 0 to avoid errors
+    if (isNaN(price)) {
+      return 0;
     }
-    return item.price; // If no discount, return the original price
+  
+    const discountProduct = discountProducts[item.id];
+    
+    // Check if the product has a discount, and calculate accordingly
+    if (discountProduct) {
+      const discountAmount = (price * discountProduct.discount) / 100;
+  
+      // Calculate the final discounted price and ensure it’s a number
+      const finalPrice = price - discountAmount;
+      return isNaN(finalPrice) ? 0 : finalPrice;
+    }
+  
+    // If no discount, return the original price
+    return price;
   }
   
 
@@ -215,6 +230,7 @@ export default function Checkout() {
           <h3 className="text-xl font-semibold">Order Details</h3>
           {cartItems.map((item, index) => {
             const discountedPrice = calculateDiscountedPrice(item);
+
             return (
               <div key={index} className="flex items-center mb-4">
                 <img
@@ -226,7 +242,22 @@ export default function Checkout() {
                   <p>
                     <strong>{item.name}</strong>
                   </p>
-                  <p>Price: ${discountedPrice.toFixed(2)}</p> {/* Updated to show discounted price */}
+                  {discountProducts[item.id] ? (
+                    <>
+                      <p className="line-through text-red-500">
+                        ${(parseFloat(item.price) || 0).toFixed(2)}
+                      </p>
+                      <p>
+                        ${discountedPrice.toFixed(2)}{" "}
+                        {/* Apply toFixed only after ensuring discountedPrice is a valid number */}
+                        <span className="text-green-500">
+                          ({discountProducts[item.id]?.discount}% OFF)
+                        </span>
+                      </p>
+                    </>
+                  ) : (
+                    <p>Price: ${(parseFloat(item.price) || 0).toFixed(2)}</p>
+                  )}
                   <p>Quantity: {item.quantity || 1}</p>
                 </div>
               </div>

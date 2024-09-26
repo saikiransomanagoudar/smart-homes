@@ -125,7 +125,7 @@ export default function ProductsPage({ cart, setCart }) {
   // Handle submission of review form
   const handleSubmitReview = (e) => {
     e.preventDefault();
-  
+
     const reviewData = {
       productName: reviewForm.productName,
       category: reviewForm.category,
@@ -139,15 +139,15 @@ export default function ProductsPage({ cart, setCart }) {
       userOccupation: reviewForm.userOccupation,
       reviewRating: reviewForm.reviewRating,
       reviewDate: reviewForm.reviewDate,
-      reviewText: reviewForm.reviewText,
+      reviewText: reviewForm.reviewText
     };
-  
+
     fetch("http://localhost:8080/smarthomes/api/review", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify(reviewData),
+      body: JSON.stringify(reviewData)
     })
       .then((response) => {
         if (response.ok) {
@@ -160,7 +160,7 @@ export default function ProductsPage({ cart, setCart }) {
       .catch((error) => {
         console.error("Error submitting review:", error);
       });
-  };  
+  };
 
   const handleProductClick = (product) => {
     setSelectedProduct(product);
@@ -180,7 +180,9 @@ export default function ProductsPage({ cart, setCart }) {
         description: product.description || "",
         image: product.image,
         type: product.type, // Type will either be 'product' or 'accessory'
-        quantity: quantities[product.id] || 1 // Default to 1 if not specified
+        quantity: quantities[product.id] || 1, // Default to 1 if not specified
+        discount: discountProducts[product.id]?.discount || 0,
+        category: product.category
       };
 
       // Direct the user to the checkout page with the selected product
@@ -416,6 +418,9 @@ export default function ProductsPage({ cart, setCart }) {
               className="text-sm sm:text-base"
             >
               Contact
+            </Link>
+            <Link to="/orders" className="text-sm sm:text-base">
+              View Orders
             </Link>
             <div className="ml-4 text-sm sm:text-base">
               {isLoggedIn ? (

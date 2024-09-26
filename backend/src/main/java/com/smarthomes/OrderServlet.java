@@ -15,7 +15,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
-@WebServlet("/orders")
+@WebServlet("/orders/*")
 public class OrderServlet extends HttpServlet {
 
     // Helper method to add CORS headers to the response
@@ -51,13 +51,20 @@ public class OrderServlet extends HttpServlet {
         List<Orders> userOrders = getUserOrdersFromDatabase(userId);
 
         // Convert the list of orders to JSON and send as response
-        String jsonResponse = new Gson().toJson(Map.of("orders", userOrders));
-        response.getWriter().write(jsonResponse);
+        if (userOrders != null && !userOrders.isEmpty()) {
+            String jsonResponse = new Gson().toJson(Map.of("orders", userOrders));
+            response.getWriter().write(jsonResponse);
+        } else {
+            response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+            response.getWriter().write("{\"message\": \"No orders found for this user.\"}");
+        }
+        
     }
 
     // Fetch orders from the database for the specified user
     private List<Orders> getUserOrdersFromDatabase(int userId) throws IOException {
         List<Orders> ordersList = new ArrayList<>();
+        System.out.println("Fetching orders for user ID: " + userId);
 
         String selectOrdersSQL = "SELECT * FROM orders WHERE user_id = ? ORDER BY purchase_date DESC";
 
@@ -66,7 +73,6 @@ public class OrderServlet extends HttpServlet {
 
             stmt.setInt(1, userId);
             ResultSet rs = stmt.executeQuery();
-
             while (rs.next()) {
                 Orders order = new Orders();
                 // Populate the order object with data from the result set
@@ -116,7 +122,7 @@ public class OrderServlet extends HttpServlet {
 
         if (session == null || session.getAttribute("email") == null) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("User not logged in");
+            response.getWriter().write("{\"error\": \"User not logged in\"}");
             return;
         }
 
@@ -124,7 +130,7 @@ public class OrderServlet extends HttpServlet {
         String pathInfo = request.getPathInfo();
         if (pathInfo == null || pathInfo.length() <= 1) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.getWriter().write("Invalid order ID.");
+            response.getWriter().write("{\"error\": \"Invalid order ID\"}");
             return;
         }
 
@@ -137,15 +143,15 @@ public class OrderServlet extends HttpServlet {
 
             if (success) {
                 response.setStatus(HttpServletResponse.SC_OK);
-                response.getWriter().write("Order cancelled successfully.");
+                response.getWriter().write("{\"message\": \"Order cancelled successfully\"}");
             } else {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write("Failed to cancel order.");
+                response.getWriter().write("{\"error\": \"Failed to cancel order\"}");
             }
 
         } catch (NumberFormatException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.getWriter().write("Invalid order ID format.");
+            response.getWriter().write("{\"error\": \"Invalid order ID format\"}");
         }
     }
 

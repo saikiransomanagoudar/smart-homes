@@ -95,10 +95,11 @@ public class CheckoutServlet extends HttpServlet {
     }
 
     private void saveOrderToDatabase(Orders order) {
-        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/smarthomes", "root", "root");
-             PreparedStatement stmt = connection.prepareStatement(
-                     "INSERT INTO orders (user_id, customer_name, customer_address, credit_card_no, confirmation_number, purchase_date, ship_date, product_id, product_name, category, quantity, price, shipping_cost, discount, total_sales, store_id, store_address, deliveryDate, deliveryOption, status) "
-                             + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/smarthomes", "root",
+                "root");
+                PreparedStatement stmt = connection.prepareStatement(
+                        "INSERT INTO orders (user_id, customer_name, customer_address, credit_card_no, confirmation_number, purchase_date, ship_date, product_id, product_name, category, quantity, price, shipping_cost, discount, total_sales, store_id, store_address, deliveryDate, deliveryOption, status) "
+                                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
 
             // Purchase date and ship date (3 days from now)
             String purchaseDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date()); // Current date
@@ -112,6 +113,8 @@ public class CheckoutServlet extends HttpServlet {
             Integer storeId = null;
             String storeAddress = null;
             if ("pickup".equalsIgnoreCase(order.getDeliveryOption()) && order.getStoreLocation() != null) {
+                System.out.println("Store ID: " + order.getStoreLocation().getStoreId());
+                System.out.println("Store Address: " + order.getStoreLocation().getStoreAddress());
                 storeId = order.getStoreLocation().getStoreId();
                 storeAddress = order.getStoreLocation().getStoreAddress();
             }
@@ -128,7 +131,7 @@ public class CheckoutServlet extends HttpServlet {
             stmt.setString(9, order.getName());
             stmt.setString(10, order.getCategory());
             stmt.setInt(11, order.getQuantity());
-            stmt.setDouble(12, order.getPrice());
+            stmt.setDouble(12, Math.round(order.getPrice() * 100.0) / 100.0);
             stmt.setDouble(13, order.getShippingCost());
             stmt.setDouble(14, order.getDiscount());
             stmt.setInt(15, order.getTotalSales());
@@ -148,7 +151,7 @@ public class CheckoutServlet extends HttpServlet {
     private int getAssociatedProductId(int accessoryId) {
         String query = "SELECT product_id FROM ProductAccessories WHERE accessory_id = ?";
         try (Connection conn = MySQLDataStoreUtilities.getConnection();
-             PreparedStatement ps = conn.prepareStatement(query)) {
+                PreparedStatement ps = conn.prepareStatement(query)) {
             ps.setInt(1, accessoryId);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {

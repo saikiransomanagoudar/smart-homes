@@ -14,7 +14,8 @@ export default function Orders() {
     })
       .then((response) => response.json())
       .then((data) => {
-        setOrders(data.orders || []);
+        console.log("Fetched Orders: ", data.orders);
+        setOrders(data.orders);
       })
       .catch((err) => {
         setError("Failed to fetch orders. Please try again.");
@@ -24,32 +25,41 @@ export default function Orders() {
 
   // Handle order cancellation
   const cancelOrder = (orderId) => {
-    if (window.confirm("Are you sure you want to cancel the order?")) {
-      fetch(`http://localhost:8080/smarthomes/orders/${orderId}`, {
-        method: "DELETE",
-        credentials: "include"
+    fetch(`http://localhost:8080/smarthomes/orders/${orderId}`, {
+      method: 'DELETE',
+      credentials: 'include', // Include cookies
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          return response.json().then((err) => {
+            throw new Error(err.error || 'Failed to cancel the order');
+          });
+        }
+        return response.json(); // Parse JSON response
       })
-        .then((response) => {
-          if (response.ok) {
-            // Remove the order from the local state
-            setOrders(orders.filter((order) => order.orderId !== orderId));
-          } else {
-            throw new Error("Failed to cancel the order");
-          }
-        })
-        .catch((err) => {
-          setError("Failed to cancel the order. Please try again.");
-          console.error(err);
-        });
-    }
+      .then((data) => {
+        console.log('Order cancelled successfully', data);
+        // After successful cancellation, update the UI without refreshing
+        const updatedOrders = orders.map(order => 
+          order.orderId === orderId ? { ...order, status: 'Cancelled' } : order
+        );
+        setOrders(updatedOrders); // Update state with the new order status
+      })
+      .catch((error) => {
+        console.error('Error:', error.message);
+        // Handle error
+      });
   };
-
+  
   return (
     <div className="orders max-w-2xl mx-auto p-8 bg-white shadow-lg rounded-lg">
       <h2 className="text-2xl font-bold mb-6">Your Orders</h2>
-
+  
       {error && <p className="text-red-500">{error}</p>}
-
+  
       {orders.length > 0 ? (
         orders.map((order, index) => (
           <div
@@ -57,31 +67,28 @@ export default function Orders() {
             className="order mb-8 p-4 border rounded bg-gray-100"
           >
             <h3 className="text-xl font-semibold mb-2">
-              Order for {order.customerName}
+              Order for {order.customerName || "Unknown"}
             </h3>
-            <p>Address: {order.customerAddress}</p>
+            <p>Address: {order.customerAddress || "No address provided"}</p>
             <p>
               Delivery Option:{" "}
-              {order.deliveryOption === "pickup"
-                ? "In-store Pickup"
-                : "Home Delivery"}
+              {order.deliveryOption === "pickup" ? "In-store Pickup" : "Home Delivery"}
             </p>
-            {order.deliveryOption === "pickup" && (
-              <p>Store Location: {order.storeAddress}</p>
+            {order.deliveryOption === "pickup" && order.storeLocation && (
+              <p>Store Location: {order.storeLocation.storeAddress}</p>
             )}
-
+  
             <div className="mt-4">
               <h4 className="font-semibold">
                 {order.quantity === 1 ? "Item Purchased:" : "Items Purchased:"}
               </h4>
-              <p>Product Name: {order.productName}</p>
-              <p>Category: {order.category}</p>
-              <p>Quantity: {order.quantity}</p>
-              <p>Total Price: ${order.totalSales.toFixed(2)}</p>
-              <p>Status: {order.status || "Processing"}</p>{" "}
-              {/* Show order status */}
+              <p>Product Name: {order.name || "No product name available"}</p>
+              <p>Category: {order.category || "No category available"}</p>
+              <p>Quantity: {order.quantity || 1}</p>
+              <p>Total Price: ${order.price}</p>
+              <p>Status: {order.status || "Processing"}</p> {/* Show order status */}
             </div>
-
+  
             {/* Cancel order button */}
             {order.status === "Processing" && (
               <button
@@ -96,7 +103,7 @@ export default function Orders() {
       ) : (
         <p>No orders available.</p>
       )}
-
+  
       {/* Button to go back to homepage */}
       <button
         onClick={() => navigate("/")}
@@ -105,5 +112,5 @@ export default function Orders() {
         Go back to homepage
       </button>
     </div>
-  );
+  );  
 }
