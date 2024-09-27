@@ -19,6 +19,7 @@ export default function Home() {
     const loggedInStatus = localStorage.getItem("isLoggedIn");
     setIsLoggedIn(loggedInStatus === "true");
   }, []);
+  const loginType = localStorage.getItem("loginType");
 
   // Handle Shop Now navigation without the sign-in check
   const handleShopNow = (category) => {
@@ -40,6 +41,12 @@ export default function Home() {
             <Link to="/">Smart Homes</Link>
           </h1>
           <nav className="flex space-x-2 sm:space-x-4 items-center">
+            {isLoggedIn &&
+              (loginType === "StoreManager" ? (
+                <span className="text-sm sm:text-base">Hello, Manager!</span>
+              ) : (
+                <span className="text-sm sm:text-base">Hello, Customer!</span>
+              ))}
             <Link
               to="/trending"
               className="text-sm sm:text-base flex items-center"
@@ -65,7 +72,6 @@ export default function Home() {
             </Link>
             {isLoggedIn ? (
               <>
-                {/* <span className="text-sm sm:text-base">Welcome, user!</span> */}
                 <Link to="/orders" className="text-sm sm:text-base">
                   View Orders
                 </Link>

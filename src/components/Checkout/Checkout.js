@@ -28,29 +28,28 @@ export default function Checkout() {
   useEffect(() => {
     if (isLoggedIn === "true") {
       if (!productDetails) {
-        // Fetch cart items from the backend
         fetch("http://localhost:8080/smarthomes/cart", {
           method: "GET",
-          credentials: "include" // Include credentials (cookies) in request
+          credentials: "include"
         })
           .then((response) => response.json())
           .then((data) => {
             const products = data || [];
-            setCartItems(products); // Add accessories to cart items
-            calculateTotalPrice(products); // Update price calculation
+            setCartItems(products);  // Set cart items from backend
+            calculateTotalPrice(products);  // Update total price
           })
           .catch((error) => {
             console.error("Error fetching cart items:", error);
           });
       } else {
-        // If it's a Buy Now, set the product as the only item in cartItems
-        setCartItems([{ ...productDetails, quantity: 1 }]);
-        setTotalPrice(productDetails.price); // Set initial price for Buy Now
+        setCartItems([{ ...productDetails, quantity: 1 }]);  // For "Buy Now" flow
+        setTotalPrice(productDetails.price);  // Set price for a single product
       }
     } else {
       navigate("/signin");
     }
-  }, [productDetails, isLoggedIn, navigate]);
+  }, [productDetails, isLoggedIn, navigate, cartItems]);  // Add `cartItems` as dependency
+  
 
   // Hardcoded store locations for pickup
   const storeLocations = [
@@ -79,7 +78,7 @@ export default function Checkout() {
     }, 0);
     setTotalPrice(total);
   };
-
+  
   const calculateTotalSales = (products) => {
     const totalSales = products.reduce((sum, item) => sum + item.quantity, 0);
     return totalSales;
@@ -100,6 +99,7 @@ export default function Checkout() {
     5: { discount: 18, rebate: 9 } // Smart Doorlock
   };
 
+  // Function to calculate the discounted price of an item
   function calculateDiscountedPrice(item) {
     // Ensure price is a number
     const price = parseFloat(item.price);
@@ -114,10 +114,9 @@ export default function Checkout() {
     // Check if the product has a discount, and calculate accordingly
     if (discountProduct) {
       const discountAmount = (price * discountProduct.discount) / 100;
-
-      // Calculate the final discounted price and ensure it’s a number
       const finalPrice = price - discountAmount;
-      return isNaN(finalPrice) ? 0 : finalPrice;
+
+      return isNaN(finalPrice) ? 0 : finalPrice; // Ensure finalPrice is a valid number
     }
 
     // If no discount, return the original price
@@ -141,7 +140,6 @@ export default function Checkout() {
     }
 
     const selectedStore = formData.storeLocation;
-
     // Prepare order data
     const orderData = {
       userId: parseInt(localStorage.getItem("userId")),
@@ -227,41 +225,41 @@ export default function Checkout() {
         </p>
         <div className="mt-6">
           <h3 className="text-xl font-semibold">Order Details</h3>
-          {cartItems.map((item, index) => {
-            const discountedPrice = calculateDiscountedPrice(item);
-
-            return (
-              <div key={index} className="flex items-center mb-4">
-                <img
-                  src={item.image}
-                  alt={item.name}
-                  className="w-20 h-20 object-contain mr-4"
-                />
-                <div>
-                  <p>
-                    <strong>{item.name}</strong>
-                  </p>
-                  {discountProducts[item.id] ? (
-                    <>
-                      <p className="line-through text-red-500">
-                        ${(parseFloat(item.price) || 0).toFixed(2)}
-                      </p>
-                      <p>
-                        ${discountedPrice.toFixed(2)}{" "}
-                        {/* Apply toFixed only after ensuring discountedPrice is a valid number */}
-                        <span className="text-green-500">
-                          ({discountProducts[item.id]?.discount}% OFF)
-                        </span>
-                      </p>
-                    </>
-                  ) : (
-                    <p>Price: ${(parseFloat(item.price) || 0).toFixed(2)}</p>
-                  )}
-                  <p>Quantity: {item.quantity || 1}</p>
-                </div>
+          {cartItems.map((item, index) => (
+            <div key={index} className="flex items-center mb-4">
+              <img
+                src={item.image}
+                alt={item.name}
+                className="w-20 h-20 object-contain mr-4"
+              />
+              <div>
+                <p>
+                  <strong>{item.name}</strong>
+                </p>
+                {discountProducts[item.id] ? (
+                  <>
+                    <p className="line-through text-red-500">
+                      ${parseFloat(item.price * item.quantity).toFixed(2)}{" "}
+                      {/* Multiply by quantity */}
+                    </p>
+                    <p>
+                      $
+                      {(calculateDiscountedPrice(item) * item.quantity).toFixed(
+                        2
+                      )}{" "}
+                      <span className="text-green-500">
+                        ({discountProducts[item.id]?.discount}% OFF)
+                      </span>
+                    </p>
+                  </>
+                ) : (
+                  <p>Price: ${(item.price * item.quantity).toFixed(2)}</p>
+                )}
+                <p>Quantity: {item.quantity || 1}</p>{" "}
+                {/* Ensure quantity is shown */}
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
         <button
           onClick={() => navigate("/orders")} // Redirect to orders page
@@ -376,7 +374,6 @@ export default function Checkout() {
                 const selectedStore = storeLocations.find(
                   (location) => location.id === parseInt(e.target.value)
                 );
-                console.log("Selected Store:", selectedStore); // Add a console log to check
                 setFormData({
                   ...formData,
                   storeLocation: selectedStore // Store the entire selected store object
@@ -423,19 +420,24 @@ export default function Checkout() {
                 {discountProducts[item.id] ? (
                   <>
                     <p className="line-through text-red-500">
-                      ${item.price.toFixed(2)}
+                      ${parseFloat(item.price * item.quantity).toFixed(2)}{" "}
+                      {/* Multiply by quantity */}
                     </p>
                     <p>
-                      ${calculateDiscountedPrice(item)}{" "}
+                      $
+                      {(calculateDiscountedPrice(item) * item.quantity).toFixed(
+                        2
+                      )}{" "}
                       <span className="text-green-500">
                         ({discountProducts[item.id]?.discount}% OFF)
                       </span>
                     </p>
                   </>
                 ) : (
-                  <p>Price: ${item.price.toFixed(2)}</p>
+                  <p>Price: ${(item.price * item.quantity).toFixed(2)}</p>
                 )}
-                <p>Quantity: {item.quantity || 1}</p>
+                <p>Quantity: {item.quantity || 1}</p>{" "}
+                {/* Ensure quantity is shown */}
               </div>
             </div>
           ))}

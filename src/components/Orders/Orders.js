@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faFire } from "@fortawesome/free-solid-svg-icons";
 
 export default function Orders() {
   const navigate = useNavigate();
@@ -24,7 +26,7 @@ export default function Orders() {
     // Fetch orders from backend
     fetch("http://localhost:8080/smarthomes/orders", {
       method: "GET",
-      credentials: "include", // Include credentials (cookies) in request
+      credentials: "include" // Include credentials (cookies) in request
     })
       .then((response) => {
         if (!response.ok) {
@@ -51,11 +53,11 @@ export default function Orders() {
       method: "PUT",
       credentials: "include", // Include cookies
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        action: "cancelOrder", // Customers send this action to cancel the order
-      }),
+        action: "cancelOrder" // Customers send this action to cancel the order
+      })
     })
       .then((response) => {
         if (!response.ok) {
@@ -84,11 +86,11 @@ export default function Orders() {
       method: "PUT",
       credentials: "include",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        action: "incrementQuantity", // Store Managers send this action to increment quantity
-      }),
+        action: "incrementQuantity" // Store Managers send this action to increment quantity
+      })
     })
       .then((response) => {
         if (!response.ok) {
@@ -120,8 +122,8 @@ export default function Orders() {
       method: "DELETE",
       credentials: "include",
       headers: {
-        "Content-Type": "application/json",
-      },
+        "Content-Type": "application/json"
+      }
     })
       .then((response) => {
         if (!response.ok) {
@@ -143,13 +145,26 @@ export default function Orders() {
 
   return (
     <div className="orders max-w-2xl mx-auto p-8 bg-white shadow-lg rounded-lg">
-      <h2 className="text-2xl font-bold mb-6">Your Orders</h2>
-
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold">Your Orders</h2>
+        {loginType === "StoreManager" && (
+          <Link
+            to="/trending"
+            className="text-sm sm:text-base flex items-center"
+          >
+            <FontAwesomeIcon icon={faFire} className="mr-2" />
+            Trending Products
+          </Link>
+        )}
+      </div>
       {error && <p className="text-red-500">{error}</p>}
 
       {orders.length > 0 ? (
         orders.map((order, index) => (
-          <div key={index} className="order mb-8 p-4 border rounded bg-gray-100">
+          <div
+            key={index}
+            className="order mb-8 p-4 border rounded bg-gray-100"
+          >
             <h3 className="text-xl font-semibold mb-2">
               Order for {order.customerName || "Unknown"}
             </h3>

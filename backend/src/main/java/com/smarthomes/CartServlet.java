@@ -44,7 +44,7 @@ public class CartServlet extends HttpServlet {
                         currentQuantity + incomingItem.getQuantity(), incomingItem.getType());
             } else {
                 // Insert new item into the cart
-                insertCartItem(userId, incomingItem.getId(), incomingItem.getType(), incomingItem.getQuantity(), incomingItem.getImage());
+                insertCartItem(userId, incomingItem.getId(), incomingItem.getType(), incomingItem.getCategory(), incomingItem.getQuantity(), incomingItem.getImage());
             }
 
             // Send updated cart as JSON response
@@ -177,16 +177,17 @@ public class CartServlet extends HttpServlet {
         }
     }
 
-    private void insertCartItem(int userId, int productId, String type, int quantity, String image) {
-        String query = "INSERT INTO cart (user_id, product_id, type, quantity, image) VALUES (?, ?, ?, ?, ?)";
+    private void insertCartItem(int userId, int productId, String type, String category, int quantity, String image) {
+        String query = "INSERT INTO cart (user_id, product_id, type, category, quantity, image) VALUES (?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = MySQLDataStoreUtilities.getConnection();
                 PreparedStatement ps = conn.prepareStatement(query)) {
             ps.setInt(1, userId); // Set user_id
             ps.setInt(2, productId); // Set product_id (or accessory_id, depending on type)
             ps.setString(3, type); // Set type ('product' or 'accessory')
-            ps.setInt(4, quantity); // Set the quantity
-            ps.setString(5, image); // Set the image
+            ps.setString(4, category); // Set the category
+            ps.setInt(5, quantity); // Set the quantity
+            ps.setString(6, image); // Set the image
 
             ps.executeUpdate();
         } catch (SQLException e) {
@@ -197,13 +198,12 @@ public class CartServlet extends HttpServlet {
     private List<CartItem> getCartFromDB(int userId) {
         List<CartItem> cartItems = new ArrayList<>();
     
-        // Use UNION to combine results for both products and accessories, including the image field
-        String query = "SELECT c.product_id AS id, p.name AS name, p.price AS price, c.quantity AS quantity, 'product' AS type, p.image AS image "
+        String query = "SELECT c.product_id AS id, p.name AS name, p.price AS price, c.quantity AS quantity, 'product' AS type, p.image AS image, c.category AS category "
                      + "FROM cart c "
                      + "JOIN Products p ON c.product_id = p.id "
                      + "WHERE c.user_id = ? AND c.type = 'product' "
                      + "UNION "
-                     + "SELECT c.product_id AS id, a.name AS name, a.price AS price, c.quantity AS quantity, 'accessory' AS type, a.image AS image "
+                     + "SELECT c.product_id AS id, a.name AS name, a.price AS price, c.quantity AS quantity, 'accessory' AS type, a.image AS image, c.category AS category "
                      + "FROM cart c "
                      + "JOIN Accessories a ON c.product_id = a.id "
                      + "WHERE c.user_id = ? AND c.type = 'accessory'";
@@ -222,7 +222,8 @@ public class CartServlet extends HttpServlet {
                 cartItem.setPrice(rs.getDouble("price"));
                 cartItem.setQuantity(rs.getInt("quantity"));
                 cartItem.setType(rs.getString("type"));
-                cartItem.setImage(rs.getString("image")); // Set the image field
+                cartItem.setCategory(rs.getString("category"));  // Fetch the category
+                cartItem.setImage(rs.getString("image")); // Fetch the image field
     
                 cartItems.add(cartItem); // Add the item to the list
             }
@@ -231,9 +232,8 @@ public class CartServlet extends HttpServlet {
         }
     
         return cartItems;
-    }
+    }    
     
-
     private void sendJsonResponse(HttpServletResponse response, Object data) throws IOException {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
