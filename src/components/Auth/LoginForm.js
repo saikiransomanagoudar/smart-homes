@@ -45,7 +45,7 @@ const LoginForm = () => {
         if (loginType === "StoreManager") {
           navigate("/orders"); // If StoreManager, navigate to orders
         } else if (loginType === "Salesman") {
-          navigate("signup"); // If Salesman, navigate to signup
+          navigate("/signup"); // If Salesman, navigate to signup
         } else {
           navigate("/"); // Otherwise, navigate to home
         }
