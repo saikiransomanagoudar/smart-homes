@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Img } from "react-image";
 import { Link, useNavigate } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faFire } from "@fortawesome/free-solid-svg-icons";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -38,6 +40,13 @@ export default function Home() {
             <Link to="/">Smart Homes</Link>
           </h1>
           <nav className="flex space-x-2 sm:space-x-4 items-center">
+            <Link
+              to="/trending"
+              className="text-sm sm:text-base flex items-center"
+            >
+              <FontAwesomeIcon icon={faFire} className="mr-2" />
+              Trending Products
+            </Link>
             <Link
               to="https://github.com/saikiransomanagoudar/smart-homes"
               target="_blank"

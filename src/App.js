@@ -8,6 +8,7 @@ import './styles/globals.css';
 import { useState } from 'react';
 import ProductsPage from './components/Products/ProductsPage';
 import Orders from './components/Orders/Orders';
+import Trending from './components/Trending/Trending';
 
 function App() {
   const [cart, setCart] = useState([]);
@@ -23,6 +24,7 @@ function App() {
         <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={<Checkout cart={cart} setCart={setCart} />} />
         <Route path="/orders" element={<Orders />} />
+        <Route path="/trending" element={<Trending />} />
       </Routes>
     </Router>
   );

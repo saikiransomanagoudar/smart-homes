@@ -1,9 +1,12 @@
 com\smarthomes\User.class
 com\smarthomes\Orders.class
+com\smarthomes\TrendingSalesServlet.class
 com\smarthomes\Product.class
 com\smarthomes\ProductSAXHandler.class
+com\smarthomes\TrendingReviewsServlet.class
 com\smarthomes\CartServlet.class
 com\smarthomes\Orders$StoreLocation.class
+com\smarthomes\TrendingZipServlet.class
 com\smarthomes\ReviewServlet.class
 com\smarthomes\MySQLDataStoreUtilities.class
 com\smarthomes\ProductServlet.class

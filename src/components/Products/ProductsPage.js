@@ -3,6 +3,7 @@ import { Img } from "react-image";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faShoppingCart } from "@fortawesome/free-solid-svg-icons";
+import { faFire } from "@fortawesome/free-solid-svg-icons";
 
 export default function ProductsPage({ cart, setCart }) {
   const { category } = useParams();
@@ -405,6 +406,13 @@ export default function ProductsPage({ cart, setCart }) {
             </nav>
           </h1>
           <nav className="flex space-x-2 sm:space-x-4 items-center">
+          <Link
+              to="/trending"
+              className="text-sm sm:text-base flex items-center"
+            >
+              <FontAwesomeIcon icon={faFire} className="mr-2" />
+              Trending Products
+            </Link>
             <Link
               to="https://github.com/saikiransomanagoudar/smart-homes"
               target="_blank"
