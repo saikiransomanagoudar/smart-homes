@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loginType, setLoginType] = useState("Customer"); // Track login type (Customer or Salesman)
+  const [loginType, setLoginType] = useState("Customer"); // Track login type (Customer, Salesman, Store Manager)
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
@@ -15,19 +15,13 @@ const LoginForm = () => {
       return;
     }
 
-    // If Salesman is selected, navigate to the signup page
-    if (loginType === "Salesman") {
-      navigate("/signup");
-      return;
-    }
-
     // Create form data to send to backend (for Customer login)
     const formData = new URLSearchParams();
     formData.append("email", email);
     formData.append("password", password);
+    formData.append("loginType", loginType); // Pass the loginType to the backend
 
     try {
-      // Send POST request to the Java servlet backend
       const response = await fetch("http://localhost:8080/smarthomes/signin", {
         method: "POST",
         body: formData,
@@ -38,17 +32,21 @@ const LoginForm = () => {
       });
 
       if (response.ok) {
-        const data = await response.json(); // Parse the response as JSON
+        const data = await response.json();
         console.log(data);
 
-        // Store userId and email in localStorage after successful login
-        localStorage.setItem("userId", data.userId);
-        // localStorage.setItem("name", name);
+        // Store userId and loginType in localStorage
+        localStorage.setItem("userId", data.userId); // userId is stored as an integer
+        localStorage.setItem("loginType", loginType); // Store the loginType (Customer, Salesman, StoreManager)
         localStorage.setItem("email", data.email);
-        localStorage.setItem("isLoggedIn", "true"); 
+        localStorage.setItem("isLoggedIn", "true");
 
-        // Redirect to home or dashboard
-        navigate("/");
+        // Redirect based on loginType
+        if (loginType === "StoreManager") {
+          navigate("/orders"); // If StoreManager, navigate to orders
+        } else {
+          navigate("/"); // Otherwise, navigate to home
+        }
       } else {
         const data = await response.json(); // Parse error message
         setError(data.error || "Login failed.");
@@ -74,7 +72,7 @@ const LoginForm = () => {
             </a>
           </p>
           {error && <div className="text-red-500">{error}</div>}
-          
+
           {/* Add Dropdown Menu for selecting login type */}
           <div className="mt-6 w-full">
             <label>Select Role</label>
@@ -85,6 +83,7 @@ const LoginForm = () => {
             >
               <option value="Customer">Customer Login</option>
               <option value="Salesman">Salesman Login</option>
+              <option value="StoreManager">Store Manager Login</option>
             </select>
           </div>
 

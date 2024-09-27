@@ -22,6 +22,7 @@ public class LoginServlet extends HttpServlet {
         // Get the user parameters from the request
         String email = request.getParameter("email");
         String password = request.getParameter("password");
+        String loginType = request.getParameter("loginType");
 
         String error_msg = null;
 
@@ -57,6 +58,7 @@ public class LoginServlet extends HttpServlet {
                 HttpSession session = request.getSession(true);
                 session.setAttribute("userId", userId);  // Store the userId in session for later use
                 session.setAttribute("email", email);  // Store the email for session use if needed
+                session.setAttribute("loginType", loginType);  // Store the login type for session use if needed  
 
                 System.out.println("User ID set in session: " + session.getAttribute("userId"));
 
