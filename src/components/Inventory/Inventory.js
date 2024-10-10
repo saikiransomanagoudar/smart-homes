@@ -8,19 +8,19 @@ export default function Inventory() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const loginType = localStorage.getItem('loginType'); // Fetch login type from localStorage
-    const isLoggedIn = localStorage.getItem('isLoggedIn'); // Assume there's an isLoggedIn flag in localStorage
+    const loginType = localStorage.getItem('loginType');
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
 
     // If user is not logged in at all, redirect to sign-in page
     if (!isLoggedIn) {
-      navigate("/signin"); // Redirect to login page
+      navigate("/signin");
       return;
     }
 
     // If user is logged in but not a StoreManager, show alert and redirect to home page
     if (loginType !== 'StoreManager') {
       alert("Unauthorized access. You must be a Store Manager to access this page.");
-      navigate("/"); // Redirect to home page or any other relevant page
+      navigate("/");
       return;
     }
   }, [navigate]);
@@ -51,10 +51,9 @@ export default function Inventory() {
       hAxis: { title: "Available Quantity" },
       vAxis: { title: "Product", textStyle: { fontSize: 12 }, slantedText: true, slantedTextAngle: 45 },
       chartArea: { width: "50%" },
-      bar: { groupWidth: "75%" }, // Adjust bar width for better readability
+      bar: { groupWidth: "75%" },
     };
-  
-    // Calculate height dynamically: base 400px plus 50px for each product
+
     const chartHeight = 400 + products.length * 50;
   
     return (
