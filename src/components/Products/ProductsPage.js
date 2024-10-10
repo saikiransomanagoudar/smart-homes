@@ -132,9 +132,9 @@ export default function ProductsPage({ cart, setCart }) {
       category: reviewForm.category,
       price: reviewForm.price,
       storeAddress: reviewForm.storeAddress,
-      productOnSale: reviewForm.productOnSale, // "Yes" for all products
-      manufacturerRebate: reviewForm.manufacturerRebate, // "Yes" if applicable
-      userId: userId, // From the session
+      productOnSale: reviewForm.productOnSale,
+      manufacturerRebate: reviewForm.manufacturerRebate,
+      userId: userId,
       userAge: reviewForm.userAge,
       userGender: reviewForm.userGender,
       userOccupation: reviewForm.userOccupation,

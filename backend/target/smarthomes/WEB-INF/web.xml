@@ -2,32 +2,6 @@
  "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
  "http://java.sun.com/dtd/web-app_2_3.dtd" >
 <web-app>
-  <!-- <servlet>
-    <servlet-name>ProductServlet</servlet-name>
-    <servlet-class>com.smarthomes.ProductServlet</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>ProductServlet</servlet-name>
-    <url-pattern>/products</url-pattern>
-  </servlet-mapping>
-
-  <servlet>
-    <servlet-name>CartServlet</servlet-name>
-    <servlet-class>com.smarthomes.CartServlet</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>CartServlet</servlet-name>
-    <url-pattern>/cart</url-pattern>
-  </servlet-mapping> -->
-  <!-- <servlet>
-    <servlet-name>CheckoutServlet</servlet-name>
-    <servlet-class>com.smarthomes.CheckoutServlet</servlet-class>
-    <load-on-startup>1</load-on-startup>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>CheckoutServlet</servlet-name>
-    <url-pattern>/checkout</url-pattern>
-  </servlet-mapping> -->
   <!-- CORS Filter -->
   <filter>
     <filter-name>CorsFilter</filter-name>

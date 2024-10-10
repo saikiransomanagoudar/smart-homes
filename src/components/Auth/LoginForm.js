@@ -42,9 +42,7 @@ const LoginForm = () => {
         localStorage.setItem("isLoggedIn", "true");
 
         // Redirect based on loginType
-        if (loginType === "StoreManager") {
-          navigate("/orders"); // If StoreManager, navigate to orders
-        } else if (loginType === "Salesman") {
+        if (loginType === "Salesman") {
           navigate("/signup"); // If Salesman, navigate to signup
         } else {
           navigate("/"); // Otherwise, navigate to home

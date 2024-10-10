@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Img } from "react-image";
 import { Link, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFire } from "@fortawesome/free-solid-svg-icons";
+import { faFire, faWarehouse } from "@fortawesome/free-solid-svg-icons";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -47,6 +47,10 @@ export default function Home() {
               ) : (
                 <span className="text-sm sm:text-base">Hello, Customer!</span>
               ))}
+            <Link to="/inventory" className="text-sm sm:text-base">
+              <FontAwesomeIcon icon={faWarehouse} className="mr-2" />
+              Inventory
+            </Link>
             <Link
               to="/trending"
               className="text-sm sm:text-base flex items-center"

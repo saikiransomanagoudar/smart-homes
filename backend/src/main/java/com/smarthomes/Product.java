@@ -16,6 +16,8 @@ public class Product implements Serializable {
     private List<Product> accessories;   // List of Product objects for accessories
     private int quantity;  // Quantity of the product or accessory
     private String type;  // Type of product or accessory (product or accessory)
+    private boolean onSale;
+    private boolean hasRebate;
 
     // No-argument constructor
     public Product() {
@@ -24,7 +26,7 @@ public class Product implements Serializable {
     }
 
     // Parameterized constructor
-    public Product(int id, String category, String name, double price, String description, String image, List<Integer> accessoryIds, int quantity, String type) {
+    public Product(int id, String category, String name, double price, String description, String image, List<Integer> accessoryIds, int quantity, String type, boolean onSale, boolean hasRebate) {
         this.id = id;
         this.category = category;
         this.name = name;
@@ -35,6 +37,8 @@ public class Product implements Serializable {
         this.quantity = quantity;
         this.accessories = new ArrayList<>(); // Initialize an empty accessories list
         this.type = type;
+        this.onSale = onSale;
+        this.hasRebate = hasRebate;
     }
 
     // Getters and setters for accessories
@@ -127,6 +131,22 @@ public class Product implements Serializable {
         this.type = type;
     }
 
+    public boolean isOnSale() {
+        return onSale;
+    }
+
+    public void setOnSale(boolean onSale) {
+        this.onSale = onSale;
+    }
+
+    public boolean isHasRebate() {
+        return hasRebate;
+    }
+
+    public void setHasRebate(boolean hasRebate) {
+        this.hasRebate = hasRebate;
+    }
+
     // Override toString to return a formatted string representation of Product
     @Override
     public String toString() {
@@ -141,6 +161,8 @@ public class Product implements Serializable {
                 ", accessories=" + accessories +
                 ", quantity=" + quantity +
                 ", type='" + type + '\'' +
+                ", onSale=" + onSale +
+                ", hasRebate=" + hasRebate +
                 '}';
     }
 }

@@ -51,6 +51,17 @@ public class ProductSAXHandler extends DefaultHandler {
 
             product.setCategory(attributes.getValue("category"));
 
+            // Parse onSale and hasRebate attributes if they exist in the XML
+            String onSaleValue = attributes.getValue("onSale");
+            if (onSaleValue != null) {
+                product.setOnSale(Boolean.parseBoolean(onSaleValue));
+            }
+
+            String hasRebateValue = attributes.getValue("hasRebate");
+            if (hasRebateValue != null) {
+                product.setHasRebate(Boolean.parseBoolean(hasRebateValue));
+            }
+
             // Debugging: Print category being processed
             System.out.println("Processing product with category: " + product.getCategory());
 
@@ -141,8 +152,8 @@ public class ProductSAXHandler extends DefaultHandler {
         PreparedStatement ps = null;
         try {
             // Insert product into Products table
-            String query = "INSERT INTO Products (id, name, price, description, image, category, retailer) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?)";
+            String query = "INSERT INTO Products (id, name, price, description, image, category, retailer, onSale, hasRebate) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
             ps = conn.prepareStatement(query);
             ps.setInt(1, product.getId());
             ps.setString(2, product.getName());
@@ -150,6 +161,8 @@ public class ProductSAXHandler extends DefaultHandler {
             ps.setString(4, product.getDescription());
             ps.setString(5, product.getImage());
             ps.setString(6, product.getCategory());
+            ps.setBoolean(7, product.isOnSale());
+            ps.setBoolean(8, product.isHasRebate());
 
             ps.executeUpdate();
 
