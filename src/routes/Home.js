@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Img } from "react-image";
 import { Link, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faFire,
   faDolly,
-  faClipboardList
+  faClipboardList,
+  faSearch
 } from "@fortawesome/free-solid-svg-icons";
+// import axios from "axios";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -14,6 +16,24 @@ export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   // eslint-disable-next-line
   const [storedName, setStoredName] = useState("");
+  const [searchTerm, setSearchTerm] = useState(""); // State for search term
+  const [searchResults, setSearchResults] = useState([]); // State for auto-complete suggestions
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const searchRef = useRef(null);
+
+  useEffect(() => {
+    // Detect clicks outside the search box
+    function handleClickOutside(event) {
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setSearchResults([]); // Close dropdown if click is outside search box or dropdown
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     const storedName = localStorage.getItem("name");
@@ -36,6 +56,59 @@ export default function Home() {
     navigate("/"); // Redirect to the home page
   };
 
+  const handleKeyDown = (event) => {
+    if (event.key === "ArrowDown") {
+      // Move down in the list
+      setHighlightedIndex((prevIndex) =>
+        prevIndex < searchResults.length - 1 ? prevIndex + 1 : prevIndex
+      );
+    } else if (event.key === "ArrowUp") {
+      // Move up in the list
+      setHighlightedIndex((prevIndex) =>
+        prevIndex > 0 ? prevIndex - 1 : prevIndex
+      );
+    } else if (event.key === "Enter" && highlightedIndex >= 0) {
+      // If Enter is pressed, select the highlighted item
+      handleSearchItemClick(searchResults[highlightedIndex]);
+    }
+  };
+
+  const handleSearch = (event) => {
+    const searchTerm = event.target.value;
+    setSearchTerm(searchTerm);
+
+    if (searchTerm.length > 1) {
+      fetch(
+        `http://localhost:8080/smarthomes/autocomplete?query=${searchTerm}`,
+        {
+          credentials: "include"
+        }
+      )
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Failed to fetch");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          console.log(data);
+          setSearchResults(data); // Store fetched products in searchResults state
+        })
+        .catch((error) => {
+          console.error("Error fetching search results:", error);
+        });
+    } else {
+      setSearchResults([]); // Clear results if input is empty or too short
+    }
+  };
+
+  // Function to handle search item click
+  const handleSearchItemClick = (productName) => {
+    setSearchTerm(productName); // Set the selected product name in the search bar
+    setSearchResults([]); // Clear auto-complete suggestions
+    navigate(`/search?term=${productName}`); // Navigate to search results page
+  };
+
   return (
     <div className="bg-[#f5f5f5] overflow-x-hidden">
       {/* Header */}
@@ -44,6 +117,55 @@ export default function Home() {
           <h1 className="text-3xl sm:text-4xl font-bold">
             <Link to="/">Smart Homes</Link>
           </h1>
+          <div className="flex-grow w-64 ml-4">
+            {/* Search Input */}
+            <div className="flex items-center mr-8">
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={handleSearch}
+                onKeyDown={handleKeyDown}
+                placeholder="Search for all products..."
+                className="border border-gray-300 p-2 pl-4 pr-12 rounded-full w-full text-black bg-white focus:outline-none"
+                style={{ color: "black", width: "250px" }}
+              />
+              <button
+                className="bg-yellow-500 text-white px-4 py-2 rounded-full ml-2 text-sm sm:text-base flex items-center"
+                onClick={() => {
+                  if (searchTerm.trim() === "") {
+                    alert("Please start typing the product name"); // Display pop-up when search bar is empty
+                  } else {
+                    handleSearchItemClick(searchTerm);
+                  }
+                }}
+              >
+                Search
+                <span style={{ marginLeft: "5px" }}>
+                  {" "}
+                  {/* Add space between the word and the icon */}
+                  <FontAwesomeIcon icon={faSearch} />
+                </span>
+              </button>
+            </div>
+
+            {searchResults.length > 0 && (
+              <ul className="absolute bg-white border border-gray-300 rounded mt-1 z-10">
+                {searchResults.map((result, index) => (
+                  <li
+                    key={index}
+                    className={`p-2 cursor-pointer hover:bg-gray-200 ${
+                      highlightedIndex === index ? "bg-blue-500 text-white" : ""
+                    }`}
+                    onMouseEnter={() => setHighlightedIndex(index)} // Highlight the item on mouse enter
+                    style={{ color: "black" }} // Force the text color to black
+                    onClick={() => handleSearchItemClick(result)}
+                  >
+                    {result} {/* Render the product name */}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
           <nav className="flex space-x-2 sm:space-x-4 items-center">
             {isLoggedIn &&
               (loginType === "StoreManager" ? (
