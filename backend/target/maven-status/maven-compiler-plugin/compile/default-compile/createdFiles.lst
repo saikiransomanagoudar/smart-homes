@@ -12,6 +12,7 @@ com\smarthomes\AjaxUtility.class
 com\smarthomes\LoginServlet.class
 com\smarthomes\MongoDBDataStoreUtilities.class
 com\smarthomes\OrderServlet.class
+com\smarthomes\ProductDetailServlet.class
 com\smarthomes\Product.class
 com\smarthomes\ProductSAXHandler.class
 com\smarthomes\TrendingReviewsServlet.class

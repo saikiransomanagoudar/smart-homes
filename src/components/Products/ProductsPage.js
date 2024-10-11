@@ -189,9 +189,9 @@ export default function ProductsPage({ cart, setCart }) {
 
   // Function to handle search item click
   const handleSearchItemClick = (productName) => {
-    setSearchTerm(productName); // Set the selected product name in the search bar
-    setSearchResults([]); // Clear auto-complete suggestions
-    navigate(`/search?term=${productName}`); // Navigate to search results page
+    setSearchTerm(productName);
+    setSearchResults([]);
+    navigate(`/search?name=${productName}`);
   };
 
   // Handle submission of review form
