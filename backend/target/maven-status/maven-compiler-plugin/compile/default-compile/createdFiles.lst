@@ -1,3 +1,4 @@
+com\smarthomes\ProductSales.class
 com\smarthomes\User.class
 com\smarthomes\Orders.class
 com\smarthomes\TrendingSalesServlet.class
@@ -9,8 +10,11 @@ com\smarthomes\Orders$StoreLocation.class
 com\smarthomes\TrendingZipServlet.class
 com\smarthomes\InventoryServlet.class
 com\smarthomes\ReviewServlet.class
+com\smarthomes\DailySalesServlet.class
 com\smarthomes\MySQLDataStoreUtilities.class
 com\smarthomes\ProductServlet.class
+com\smarthomes\SalesReportServlet.class
+com\smarthomes\DailySales.class
 com\smarthomes\RegistrationServlet.class
 com\smarthomes\LoginServlet.class
 com\smarthomes\MongoDBDataStoreUtilities.class

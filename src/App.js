@@ -10,6 +10,7 @@ import ProductsPage from './components/Products/ProductsPage';
 import Orders from './components/Orders/Orders';
 import Trending from './components/Trending/Trending';
 import Inventory from './components/Inventory/Inventory';
+import SalesReport from './components/SalesReport/SalesReport';
 
 function App() {
   const [cart, setCart] = useState([]);
@@ -27,6 +28,7 @@ function App() {
         <Route path="/orders" element={<Orders />} />
         <Route path="/trending" element={<Trending />} />
         <Route path="/inventory" element={<Inventory />} />
+        <Route path="/sales-report" element={<SalesReport />} />
       </Routes>
     </Router>
   );

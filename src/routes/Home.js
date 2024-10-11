@@ -2,7 +2,11 @@ import React, { useState, useEffect } from "react";
 import { Img } from "react-image";
 import { Link, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFire, faWarehouse } from "@fortawesome/free-solid-svg-icons";
+import {
+  faFire,
+  faDolly,
+  faClipboardList
+} from "@fortawesome/free-solid-svg-icons";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -43,21 +47,37 @@ export default function Home() {
           <nav className="flex space-x-2 sm:space-x-4 items-center">
             {isLoggedIn &&
               (loginType === "StoreManager" ? (
-                <span className="text-sm sm:text-base">Hello, Manager!</span>
+                <>
+                  <span
+                    className="text-sm sm:text-base font-bold"
+                    style={{ fontStyle: "italic" }}
+                  >
+                    Hello, Manager!
+                  </span>
+                  <Link to="/sales-report" className="text-sm sm:text-base">
+                    <FontAwesomeIcon icon={faClipboardList} className="mr-2" />
+                    Sales Report
+                  </Link>
+                  <Link to="/inventory" className="text-sm sm:text-base">
+                    <FontAwesomeIcon icon={faDolly} className="mr-2" />
+                    Inventory
+                  </Link>
+                  <Link
+                    to="/trending"
+                    className="text-sm sm:text-base flex items-center"
+                  >
+                    <FontAwesomeIcon icon={faFire} className="mr-2" />
+                    Trending Products
+                  </Link>
+                </>
               ) : (
-                <span className="text-sm sm:text-base">Hello, Customer!</span>
+                <span
+                  className="text-sm sm:text-base font-bold"
+                  style={{ fontStyle: "italic" }}
+                >
+                  Hello, Customer!
+                </span>
               ))}
-            <Link to="/inventory" className="text-sm sm:text-base">
-              <FontAwesomeIcon icon={faWarehouse} className="mr-2" />
-              Inventory
-            </Link>
-            <Link
-              to="/trending"
-              className="text-sm sm:text-base flex items-center"
-            >
-              <FontAwesomeIcon icon={faFire} className="mr-2" />
-              Trending Products
-            </Link>
             <Link
               to="https://github.com/saikiransomanagoudar/smart-homes"
               target="_blank"
