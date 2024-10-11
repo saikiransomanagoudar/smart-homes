@@ -4,6 +4,7 @@ import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -12,8 +13,39 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+
 @WebServlet("/getProducts")
 public class ProductServlet extends HttpServlet {
+
+     @Override
+    public void init() throws ServletException {
+        super.init();
+        // This method will be called when the servlet is first initialized (when backend starts)
+        try {
+            // Load and parse the ProductCatalog.xml
+            SAXParserFactory factory = SAXParserFactory.newInstance();
+            SAXParser saxParser = factory.newSAXParser();
+
+            // Load ProductCatalog.xml from the resources folder or classpath
+            InputStream xmlInput = getClass().getClassLoader().getResourceAsStream("ProductCatalog.xml");
+
+            if (xmlInput != null) {
+                // Parse the XML file using ProductSAXHandler
+                ProductSAXHandler handler = new ProductSAXHandler();
+                saxParser.parse(xmlInput, handler);
+
+                // Once parsed, the data will be stored in the database by ProductSAXHandler
+                System.out.println("Product data loaded from ProductCatalog.xml and stored in database.");
+            } else {
+                System.out.println("ProductCatalog.xml not found.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ServletException("Failed to load ProductCatalogxml", e);
+        }
+    }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
