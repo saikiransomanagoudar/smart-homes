@@ -28,13 +28,13 @@ public class AjaxUtility extends HttpServlet {
     // Handle CORS for preflight OPTIONS requests
     protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         enableCORS(response);
-        response.setStatus(HttpServletResponse.SC_OK); // Send OK status
+        response.setStatus(HttpServletResponse.SC_OK);
     }
 
     // Handle GET requests for auto-complete
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         enableCORS(response); // Ensure CORS headers are set for GET requests
-        String searchKeyword = request.getParameter("query"); // Ensure 'query' matches frontend
+        String searchKeyword = request.getParameter("query");
         ArrayList<String> matchingProducts = new ArrayList<>();
 
         if (searchKeyword != null && !searchKeyword.isEmpty()) {
@@ -72,7 +72,7 @@ public class AjaxUtility extends HttpServlet {
                 product.setDescription(rs.getString("description"));
                 product.setCategory(rs.getString("category"));
 
-                productsMap.put(product.getName(), product); // Store products in hashmap
+                productsMap.put(product.getName(), product);
             }
         } catch (Exception e) {
             e.printStackTrace();

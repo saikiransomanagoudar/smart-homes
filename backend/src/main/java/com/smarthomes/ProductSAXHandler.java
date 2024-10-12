@@ -161,8 +161,9 @@ public class ProductSAXHandler extends DefaultHandler {
             ps.setString(4, product.getDescription());
             ps.setString(5, product.getImage());
             ps.setString(6, product.getCategory());
-            ps.setBoolean(7, product.isOnSale());
-            ps.setBoolean(8, product.isHasRebate());
+            ps.setString(7, "Smarthomes");
+            ps.setBoolean(8, product.isOnSale());
+            ps.setBoolean(9, product.isHasRebate());
 
             ps.executeUpdate();
 

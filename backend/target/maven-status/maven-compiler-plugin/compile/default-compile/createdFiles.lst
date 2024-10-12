@@ -1,6 +1,7 @@
 com\smarthomes\ProductSales.class
 com\smarthomes\User.class
 com\smarthomes\Orders.class
+com\smarthomes\ProductManagementServlet.class
 com\smarthomes\TrendingSalesServlet.class
 com\smarthomes\Orders$StoreLocation.class
 com\smarthomes\TrendingZipServlet.class

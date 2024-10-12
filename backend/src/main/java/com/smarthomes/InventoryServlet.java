@@ -40,7 +40,7 @@ public class InventoryServlet extends HttpServlet {
             rs = stmt.executeQuery();
 
             ArrayList<Product> products = new ArrayList<>();
-            Random random = new Random(); // Random generator for quantity, onSale, and hasRebate
+            Random random = new Random();
 
             while (rs.next()) {
                 Product product = new Product();

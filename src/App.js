@@ -12,6 +12,7 @@ import Trending from './components/Trending/Trending';
 import Inventory from './components/Inventory/Inventory';
 import SalesReport from './components/SalesReport/SalesReport';
 import SearchResult from './components/SearchResult/SearchResult';
+import ProductsUpdate from './components/ProductsUpdate/ProductsUpdate';
 
 function App() {
   const [cart, setCart] = useState([]);
@@ -31,6 +32,7 @@ function App() {
         <Route path="/inventory" element={<Inventory />} />
         <Route path="/sales-report" element={<SalesReport />} />
         <Route path="/search" element={<SearchResult />} />
+        <Route path="/update-product" element={<ProductsUpdate />} />
       </Routes>
     </Router>
   );

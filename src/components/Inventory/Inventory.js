@@ -11,13 +11,11 @@ export default function Inventory() {
     const loginType = localStorage.getItem('loginType');
     const isLoggedIn = localStorage.getItem('isLoggedIn');
 
-    // If user is not logged in at all, redirect to sign-in page
     if (!isLoggedIn) {
       navigate("/signin");
       return;
     }
 
-    // If user is logged in but not a StoreManager, show alert and redirect to home page
     if (loginType !== 'StoreManager') {
       alert("Unauthorized access. You must be a Store Manager to access this page.");
       navigate("/");

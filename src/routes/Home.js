@@ -6,7 +6,8 @@ import {
   faFire,
   faDolly,
   faClipboardList,
-  faSearch
+  faSearch,
+  faList,
 } from "@fortawesome/free-solid-svg-icons";
 // import axios from "axios";
 
@@ -125,9 +126,9 @@ export default function Home() {
                 value={searchTerm}
                 onChange={handleSearch}
                 onKeyDown={handleKeyDown}
-                placeholder="Search for all products..."
+                placeholder="Search for products..."
                 className="border border-gray-300 p-2 pl-4 pr-12 rounded-full w-full text-black bg-white focus:outline-none"
-                style={{ color: "black", width: "250px" }}
+                style={{ color: "black", width: "210px" }}
               />
               <button
                 className="bg-yellow-500 text-white px-4 py-2 rounded-full ml-2 text-sm sm:text-base flex items-center"
@@ -139,12 +140,10 @@ export default function Home() {
                   }
                 }}
               >
-                Search
-                <span style={{ marginLeft: "5px" }}>
-                  {" "}
+                {/* <span style={{ marginLeft: "5px" }}> */}
                   {/* Add space between the word and the icon */}
                   <FontAwesomeIcon icon={faSearch} />
-                </span>
+                {/* </span> */}
               </button>
             </div>
 
@@ -190,6 +189,14 @@ export default function Home() {
                   >
                     <FontAwesomeIcon icon={faFire} className="mr-2" />
                     Trending Products
+                  </Link>
+                  <Link
+                    to="/update-product"
+                    className="text-sm sm:text-base flex items-center"
+                  >
+                    <FontAwesomeIcon icon={faList} className="mr-2" />
+                    Product
+                    Mgmt
                   </Link>
                 </>
               ) : (
