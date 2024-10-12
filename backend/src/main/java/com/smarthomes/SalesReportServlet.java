@@ -33,7 +33,7 @@ public class SalesReportServlet extends HttpServlet {
             conn = DriverManager.getConnection(url, user, password);
 
             // Query to fetch total sales per product
-            String productSalesQuery = "SELECT product_name, price, SUM(quantity) AS items_sold, SUM(total_sales) AS total_sales " +
+            String productSalesQuery = "SELECT product_name, price, SUM(quantity) AS items_sold, SUM(quantity) AS quantity " +
                                        "FROM Orders WHERE status != 'Cancelled' GROUP BY product_name, price";
             stmt = conn.prepareStatement(productSalesQuery);
             rs = stmt.executeQuery();
@@ -44,7 +44,7 @@ public class SalesReportServlet extends HttpServlet {
                 ps.setProductName(rs.getString("product_name"));
                 ps.setPrice(rs.getDouble("price"));
                 ps.setItemsSold(rs.getInt("items_sold"));
-                ps.setTotalSales(rs.getDouble("total_sales"));
+                ps.setTotalSales(rs.getDouble("quantity"));
                 productSalesList.add(ps);
             }
 

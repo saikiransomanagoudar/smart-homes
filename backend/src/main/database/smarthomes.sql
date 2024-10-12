@@ -20,7 +20,10 @@ CREATE TABLE IF NOT EXISTS Products (
     description TEXT,
     image VARCHAR(255),
     category VARCHAR(255),
-    retailer VARCHAR(255)
+    retailer VARCHAR(255),
+    quantity INT,
+    onSale BOOLEAN,
+    hasRebate BOOLEAN
 );
 
 -- Create ProductAccessories table (for relationship between Products and Accessories)
