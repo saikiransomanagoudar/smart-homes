@@ -32,8 +32,8 @@ public class DailySalesServlet extends HttpServlet {
             String password = "root";
             conn = DriverManager.getConnection(url, user, password);
 
-            // Query to fetch total daily sales, calculating sales as (price * total_sales)
-            String dailySalesQuery = "SELECT purchase_date, SUM(price * total_sales) AS total_daily_sales " +
+            // Query to fetch total daily sales, calculating sales as (price * quantity)
+            String dailySalesQuery = "SELECT purchase_date, SUM(price * quantity) AS total_daily_sales " +
                                      "FROM Orders WHERE status != 'Cancelled' " +
                                      "GROUP BY purchase_date";
             stmt = conn.prepareStatement(dailySalesQuery);
