@@ -1,5 +1,6 @@
 # Smart Homes E-Commerce Store
-![image](https://github.com/user-attachments/assets/b027b9c6-c7f2-4355-8238-1105ac91e440)
+![image](https://github.com/user-attachments/assets/d3c5e227-d092-4e03-b4fe-70e01a44928d)
+
 
 
 Smart Homes is a full-stack web application designed to simulate an e-commerce platform for purchasing smart home products. The platform allows users to browse a variety of smart home devices, add them to a cart, and place orders.
