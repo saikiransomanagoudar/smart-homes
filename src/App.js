@@ -13,6 +13,8 @@ import Inventory from './components/Inventory/Inventory';
 import SalesReport from './components/SalesReport/SalesReport';
 import SearchResult from './components/SearchResult/SearchResult';
 import ProductsUpdate from './components/ProductsUpdate/ProductsUpdate';
+import OpenTicket from './components/OpenTicket/OpenTicket';
+import CheckTicketStatus from './components/CheckTicketStatus/CheckTicketStatus';
 
 function App() {
   const [cart, setCart] = useState([]);
@@ -21,7 +23,6 @@ function App() {
     <Router>
       <Routes>
         <Route exact path="/" element={<Home />} />
-        {/* Route for product categories, dynamically loading products based on the category */}
         <Route path="/products/:category" element={<ProductsPage cart={cart} setCart={setCart} />} />
         <Route path="/signin" element={<LoginForm />} />
         <Route path="/signup" element={<Register />} />
@@ -33,6 +34,8 @@ function App() {
         <Route path="/sales-report" element={<SalesReport />} />
         <Route path="/search" element={<SearchResult />} />
         <Route path="/update-product" element={<ProductsUpdate />} />
+        <Route path="/customer-service/open-ticket" element={<OpenTicket />} />
+        <Route path="/customer-service/ticket-status" element={<CheckTicketStatus />} />
       </Routes>
     </Router>
   );

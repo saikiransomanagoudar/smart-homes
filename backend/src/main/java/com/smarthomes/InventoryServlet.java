@@ -34,7 +34,6 @@ public class InventoryServlet extends HttpServlet {
             String password = "root";
             conn = DriverManager.getConnection(url, user, password);
 
-            // Query to fetch products
             String sql = "SELECT id, name, price, retailer FROM Products"; 
             stmt = conn.prepareStatement(sql);
             rs = stmt.executeQuery();
@@ -49,15 +48,14 @@ public class InventoryServlet extends HttpServlet {
                 product.setPrice(rs.getDouble("price"));
 
                 // Generate random values
-                int randomQuantity = random.nextInt(50) + 1; // Random quantity between 1 and 50
-                boolean randomOnSale = random.nextBoolean(); // Random onSale value (true/false)
-                boolean randomHasRebate = random.nextBoolean(); // Random hasRebate value (true/false)
+                int randomQuantity = random.nextInt(50) + 1; 
+                boolean randomOnSale = random.nextBoolean();
+                boolean randomHasRebate = random.nextBoolean();
 
                 product.setQuantity(randomQuantity);
                 product.setOnSale(randomOnSale);
                 product.setHasRebate(randomHasRebate);
 
-                // Update the product in the database with random values for quantity, onSale, and hasRebate
                 String updateSql = "UPDATE Products SET quantity = ?, onSale = ?, hasRebate = ? WHERE id = ?";
                 PreparedStatement updateStmt = conn.prepareStatement(updateSql);
                 updateStmt.setInt(1, randomQuantity);

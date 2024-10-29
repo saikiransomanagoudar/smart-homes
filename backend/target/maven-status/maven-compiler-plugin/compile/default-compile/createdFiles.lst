@@ -5,6 +5,7 @@ com\smarthomes\ProductManagementServlet.class
 com\smarthomes\TrendingSalesServlet.class
 com\smarthomes\Orders$StoreLocation.class
 com\smarthomes\TrendingZipServlet.class
+com\smarthomes\OpenTicketServlet.class
 com\smarthomes\InventoryServlet.class
 com\smarthomes\DailySalesServlet.class
 com\smarthomes\SalesReportServlet.class
@@ -13,6 +14,7 @@ com\smarthomes\AjaxUtility.class
 com\smarthomes\LoginServlet.class
 com\smarthomes\MongoDBDataStoreUtilities.class
 com\smarthomes\OrderServlet.class
+com\smarthomes\DecisionService.class
 com\smarthomes\ProductDetailServlet.class
 com\smarthomes\Product.class
 com\smarthomes\ProductSAXHandler.class
@@ -22,5 +24,7 @@ com\smarthomes\ReviewServlet.class
 com\smarthomes\MySQLDataStoreUtilities.class
 com\smarthomes\ProductServlet.class
 com\smarthomes\RegistrationServlet.class
+com\smarthomes\AuthFilter.class
 com\smarthomes\CartItem.class
+com\smarthomes\CheckTicketStatusServlet.class
 com\smarthomes\CheckoutServlet.class

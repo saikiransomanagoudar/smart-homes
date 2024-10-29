@@ -2,8 +2,12 @@ import React, { useState, useEffect, useRef } from "react";
 import { Img } from "react-image";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faShoppingCart } from "@fortawesome/free-solid-svg-icons";
-import { faFire, faSearch } from "@fortawesome/free-solid-svg-icons";
+import {
+  faShoppingCart,
+  faFire,
+  faQuestionCircle,
+  faSearch,
+} from "@fortawesome/free-solid-svg-icons";
 
 export default function ProductsPage({ cart, setCart }) {
   const { category } = useParams();
@@ -28,7 +32,7 @@ export default function ProductsPage({ cart, setCart }) {
     userOccupation: "",
     reviewRating: 0,
     reviewDate: "",
-    reviewText: ""
+    reviewText: "",
   });
   const navigate = useNavigate();
 
@@ -38,6 +42,7 @@ export default function ProductsPage({ cart, setCart }) {
   const [searchResults, setSearchResults] = useState([]); // State for auto-complete suggestions
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const searchRef = useRef(null);
+  const loginType = localStorage.getItem("loginType");
 
   const storeAddresses = [
     { address: "1001 Main St", zip: "12345" },
@@ -49,8 +54,20 @@ export default function ProductsPage({ cart, setCart }) {
     { address: "4001 Birch St", zip: "12351" },
     { address: "4501 Walnut St", zip: "12352" },
     { address: "5001 Chestnut St", zip: "12353" },
-    { address: "5501 Spruce St", zip: "12354" }
+    { address: "5501 Spruce St", zip: "12354" },
   ];
+
+  const [showCustomerServiceMenu, setShowCustomerServiceMenu] = useState(false);
+  const toggleCustomerServiceMenu = () => {
+      const isLoggedIn = localStorage.getItem("isLoggedIn");
+
+      if (isLoggedIn) {
+          setShowCustomerServiceMenu(!showCustomerServiceMenu);
+      } else {
+          navigate("/signin");
+          alert("Please sign in to access Customer Service");
+      }
+  };
 
   useEffect(() => {
     // Detect clicks outside the search box
@@ -87,7 +104,7 @@ export default function ProductsPage({ cart, setCart }) {
     if (isLoggedIn) {
       fetch("http://localhost:8080/smarthomes/cart", {
         method: "GET",
-        credentials: "include"
+        credentials: "include",
       })
         .then((response) => response.json())
         .then((data) => {
@@ -120,7 +137,7 @@ export default function ProductsPage({ cart, setCart }) {
     16: { discount: 17, rebate: 8 }, // Amazon Echo Studio
     18: { discount: 25, rebate: 10 }, // Google Nest Mini (2nd Gen)
     28: { discount: 20, rebate: 10 }, // Vine Thermostat for Home
-    5: { discount: 18, rebate: 9 } // Smart Doorlock
+    5: { discount: 18, rebate: 9 }, // Smart Doorlock
   };
 
   const calculateDiscountedPrice = (product) => {
@@ -137,7 +154,7 @@ export default function ProductsPage({ cart, setCart }) {
     const { name, value, type, checked } = e.target;
     setReviewForm({
       ...reviewForm,
-      [name]: type === "checkbox" ? checked : value
+      [name]: type === "checkbox" ? checked : value,
     });
   };
 
@@ -166,7 +183,7 @@ export default function ProductsPage({ cart, setCart }) {
       fetch(
         `http://localhost:8080/smarthomes/autocomplete?query=${searchTerm}`,
         {
-          credentials: "include"
+          credentials: "include",
         }
       )
         .then((response) => {
@@ -211,15 +228,15 @@ export default function ProductsPage({ cart, setCart }) {
       userOccupation: reviewForm.userOccupation,
       reviewRating: reviewForm.reviewRating,
       reviewDate: reviewForm.reviewDate,
-      reviewText: reviewForm.reviewText
+      reviewText: reviewForm.reviewText,
     };
 
     fetch("http://localhost:8080/smarthomes/api/review", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(reviewData)
+      body: JSON.stringify(reviewData),
     })
       .then((response) => {
         if (response.ok) {
@@ -254,14 +271,14 @@ export default function ProductsPage({ cart, setCart }) {
         type: product.type, // Type will either be 'product' or 'accessory'
         quantity: quantities[product.id] || 1, // Default to 1 if not specified
         discount: discountProducts[product.id]?.discount || 0,
-        category: product.category
+        category: product.category,
       };
 
       // Direct the user to the checkout page with the selected product
       navigate("/checkout", {
         state: {
-          product: productData
-        }
+          product: productData,
+        },
       });
     } else {
       navigate("/signin");
@@ -288,7 +305,7 @@ export default function ProductsPage({ cart, setCart }) {
       userOccupation: "",
       reviewRating: 0,
       reviewDate: "",
-      reviewText: ""
+      reviewText: "",
     });
     setShowReviewModal(true); // Open modal
   };
@@ -322,7 +339,7 @@ export default function ProductsPage({ cart, setCart }) {
       fetch("http://localhost:8080/smarthomes/cart/product", {
         method: "PUT",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         credentials: "include",
         body: JSON.stringify({
@@ -331,8 +348,8 @@ export default function ProductsPage({ cart, setCart }) {
           price: discountedPrice,
           type: isAccessory ? "accessory" : "product",
           category: existingItem.category,
-          userId
-        })
+          userId,
+        }),
       }).catch((error) => {
         console.error("Error updating item in cart:", error);
       });
@@ -345,16 +362,16 @@ export default function ProductsPage({ cart, setCart }) {
         quantity: 1,
         type: isAccessory ? "accessory" : "product",
         category: item.category,
-        userId
+        userId,
       };
 
       fetch("http://localhost:8080/smarthomes/cart/product", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         credentials: "include",
-        body: JSON.stringify(newItem)
+        body: JSON.stringify(newItem),
       })
         .then(() => {
           const updatedCart = [...cart, newItem];
@@ -368,7 +385,7 @@ export default function ProductsPage({ cart, setCart }) {
 
     setQuantities((prevQuantities) => ({
       ...prevQuantities,
-      [item.id]: (prevQuantities[item.id] || 0) + 1
+      [item.id]: (prevQuantities[item.id] || 0) + 1,
     }));
   };
 
@@ -379,14 +396,14 @@ export default function ProductsPage({ cart, setCart }) {
       fetch("http://localhost:8080/smarthomes/cart/product", {
         method: "PUT",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         credentials: "include",
         body: JSON.stringify({
           id: product.id,
           userId,
-          quantity: product.quantity + 1 // Increase quantity
-        })
+          quantity: product.quantity + 1, // Increase quantity
+        }),
       })
         .then((response) => {
           if (!response.ok) {
@@ -408,7 +425,7 @@ export default function ProductsPage({ cart, setCart }) {
     // Update the UI quantity
     setQuantities((prevQuantities) => ({
       ...prevQuantities,
-      [id]: (prevQuantities[id] || 0) + 1 // Increase quantity
+      [id]: (prevQuantities[id] || 0) + 1, // Increase quantity
     }));
   };
 
@@ -420,14 +437,14 @@ export default function ProductsPage({ cart, setCart }) {
         fetch("http://localhost:8080/smarthomes/cart/product", {
           method: "PUT",
           headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
           },
           credentials: "include",
           body: JSON.stringify({
             id: product.id,
             userId,
-            quantity: product.quantity - 1
-          })
+            quantity: product.quantity - 1,
+          }),
         })
           .then(() => {
             const updatedCart = cart.map((item) =>
@@ -437,7 +454,7 @@ export default function ProductsPage({ cart, setCart }) {
             localStorage.setItem("cart", JSON.stringify(updatedCart));
             setQuantities((prevQuantities) => ({
               ...prevQuantities,
-              [id]: prevQuantities[id] - 1 // Decrease quantity
+              [id]: prevQuantities[id] - 1, // Decrease quantity
             }));
           })
           .catch((error) => {
@@ -447,10 +464,10 @@ export default function ProductsPage({ cart, setCart }) {
         fetch("http://localhost:8080/smarthomes/cart/product", {
           method: "DELETE",
           headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
           },
           credentials: "include",
-          body: JSON.stringify({ id: product.id, userId })
+          body: JSON.stringify({ id: product.id, userId }),
         })
           .then(() => {
             const updatedCart = cart.filter((item) => item.id !== id);
@@ -526,7 +543,7 @@ export default function ProductsPage({ cart, setCart }) {
             )}
           </div>
           <nav className="flex space-x-2 sm:space-x-4 items-center">
-          <Link
+            <Link
               to="/trending"
               className="text-sm sm:text-base flex items-center"
             >
@@ -552,6 +569,40 @@ export default function ProductsPage({ cart, setCart }) {
             <Link to="/orders" className="text-sm sm:text-base">
               View Orders
             </Link>
+            {loginType === "StoreManager" ? (
+              <div className="relative">
+                <button
+                  onClick={toggleCustomerServiceMenu}
+                  className="text-sm sm:text-base flex items-center bg-gray-700 px-2 py-1 rounded-full"
+                >
+                  <FontAwesomeIcon icon={faQuestionCircle} className="mr-1" />
+                  Customer Service
+                </button>
+                {showCustomerServiceMenu && (
+                  <div className="absolute bg-white text-black right-0 mt-2 w-40 rounded shadow-lg z-10">
+                    <Link
+                      to="/customer-service/open-ticket"
+                      className="block px-4 py-2 hover:bg-gray-100"
+                    >
+                      Open a Ticket
+                    </Link>
+                    <Link
+                      to="/customer-service/ticket-status"
+                      className="block px-4 py-2 hover:bg-gray-100"
+                    >
+                      Status of a Ticket
+                    </Link>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link
+                to="/customer-service"
+                className="text-sm sm:text-base bg-gray-700 px-3 py-1 rounded"
+              >
+                Customer Service
+              </Link>
+            )}
             <div className="ml-4 text-sm sm:text-base">
               {isLoggedIn ? (
                 <>
@@ -873,7 +924,7 @@ export default function ProductsPage({ cart, setCart }) {
                       setReviewForm({
                         ...reviewForm,
                         storeAddress: selectedStore.address,
-                        storeZip: selectedStore.zip
+                        storeZip: selectedStore.zip,
                       });
                     }}
                     className="w-full p-2 border rounded"
@@ -901,7 +952,7 @@ export default function ProductsPage({ cart, setCart }) {
                         onChange={(e) =>
                           setReviewForm({
                             ...reviewForm,
-                            reviewRating: parseInt(e.target.value)
+                            reviewRating: parseInt(e.target.value),
                           })
                         }
                       />

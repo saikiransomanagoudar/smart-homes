@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS ProductAccessories (
 SHOW TABLES;
 
 CREATE TABLE IF NOT EXISTS users (
-    id INT AUTO_INCREMENT PRIMARY KEY,  -- AUTO_INCREMENT starts from 1 by default
+    id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100),
     email VARCHAR(100) UNIQUE,
     password VARCHAR(100)
@@ -112,3 +112,12 @@ JOIN Products ON ProductAccessories.product_id = Products.id
 JOIN Accessories ON ProductAccessories.accessory_id = Accessories.id
 WHERE Accessories.id = ?; -- the accessory_id you're searching for
 
+CREATE TABLE Tickets (
+    ticket_id INT AUTO_INCREMENT PRIMARY KEY,
+    
+    ticket_number VARCHAR(50) UNIQUE NOT NULL,
+    description TEXT,
+    image_path VARCHAR(255),
+    decision VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
