@@ -13,11 +13,12 @@ export default function CheckTicketStatus() {
             if (result.status === "success") {
                 setTicketData({
                     ticketNumber: ticketNumber,
-                    decision: result.decision,
-                    rationale: result.rationale,
-                    imageDescription: result.image_description,
+                    decision: result.decision || "No action provided",
+                    rationale: result.rationale || "No rationale provided",
+                    imageDescription: result.image_description || "No description provided",
                     actionResult: result.action_result,
-                    imagePath: `http://localhost:8080/${result.image_path}`, // Assuming image path is relative
+                    description: localStorage.getItem("description"), // Retrieve the user description from local storage
+                    imagePath: localStorage.getItem("ticketImage"), // Use image from local storage
                 });
                 setErrorMessage("");
             } else {
@@ -68,13 +69,19 @@ export default function CheckTicketStatus() {
                         <div className="mb-4">
                             <strong>Submitted Image:</strong>
                             {ticketData.imagePath ? (
-                                <img src={`http://localhost:8080/smarthomes/images/${ticketData.imagePath}`} alt="Submitted Image" className="mt-2 rounded-lg w-full h-40 object-cover" />
+                                <img
+                                    src={ticketData.imagePath}
+                                    alt="Submitted Image"
+                                    className="mt-2 rounded-lg w-full h-40 object-cover"
+                                    onError={(e) => e.target.style.display = 'none'}
+                                />
                             ) : (
                                 <p className="text-gray-500">No image available</p>
                             )}
                         </div>
-                        
+
                         <p className="text-gray-700 mb-2"><strong>Action:</strong> {ticketData.decision}</p>
+                        <p className="text-gray-700 mb-2"><strong>User Description:</strong> {ticketData.description || "No description provided"}</p>
                         <p className="text-gray-700 mb-2"><strong>Image Description:</strong> {ticketData.imageDescription}</p>
                         <p className="text-gray-700 mb-2"><strong>Rationale:</strong> {ticketData.rationale}</p>
                         <p className="text-gray-700"><strong>Action Result:</strong> {ticketData.actionResult}</p>

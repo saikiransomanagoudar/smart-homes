@@ -14,10 +14,10 @@ export default function OpenTicket() {
     const handleSubmit = async (event) => {
         event.preventDefault();
         const formData = new FormData();
-        formData.append("userId", localStorage.getItem("userId")); // Ensure userId is set in localStorage
+        formData.append("userId", localStorage.getItem("userId"));
         formData.append("description", description);
         formData.append("image", image);
-
+    
         try {
             const response = await fetch("http://localhost:8080/smarthomes/open-ticket", {
                 method: "POST",
@@ -25,17 +25,33 @@ export default function OpenTicket() {
                 mode: "cors",
                 credentials: "include",
             });
-            const result = await response.json();
-            setAlertType("success");
-            setAlertMessage(`Ticket submitted successfully! Ticket Number: ${result.ticketNumber}`);
-
-            // Auto-hide the alert after 5 seconds
-            setTimeout(() => setAlertMessage(null), 5000);
+    
+            // Check if the response is OK (status 200-299)
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+    
+            // Check if response is JSON
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.includes("application/json")) {
+                const result = await response.json();
+                setAlertType("success");
+                setAlertMessage(`Ticket submitted successfully! Ticket Number: ${result.ticketNumber}`);
+    
+                // Store image and ticket details in local storage
+                localStorage.setItem("ticketImage", URL.createObjectURL(image));
+                localStorage.setItem("ticketNumber", result.ticketNumber);
+            } else {
+                throw new Error("Expected JSON response from server, but received a different format.");
+            }
+            
+            // Clear the message after 20 seconds
+            setTimeout(() => setAlertMessage(null), 20000);
         } catch (error) {
             console.error("Error submitting ticket:", error);
             setAlertType("error");
-            setAlertMessage("Failed to submit ticket due to an error.");
-            setTimeout(() => setAlertMessage(null), 5000);
+            setAlertMessage("Failed to submit ticket due to an error. Please try again later.");
+            setTimeout(() => setAlertMessage(null), 20000);
         }
     };
 
@@ -43,7 +59,7 @@ export default function OpenTicket() {
         <div className="flex justify-center items-center min-h-screen bg-gray-100">
             <form onSubmit={handleSubmit} className="bg-white shadow-lg rounded-lg p-8 w-full max-w-md">
                 <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Open a Support Ticket</h2>
-
+                
                 {alertMessage && (
                     <div className={`flex items-center p-4 mb-4 rounded-lg shadow-md ${alertType === "success" ? "bg-green-100 border border-green-400 text-green-700" : "bg-red-100 border border-red-400 text-red-700"}`}>
                         {alertType === "success" ? (

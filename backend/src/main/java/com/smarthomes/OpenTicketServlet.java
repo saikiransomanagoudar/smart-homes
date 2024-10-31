@@ -8,21 +8,18 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 import jakarta.servlet.ServletException;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.Base64;
 import java.util.Map;
 import java.util.UUID;
 import com.google.gson.JsonObject;
 import com.google.gson.Gson;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-
 
 @WebServlet("/open-ticket")
 @MultipartConfig
@@ -37,12 +34,18 @@ public class OpenTicketServlet extends HttpServlet {
         String description = request.getParameter("description");
         Part imagePart = request.getPart("image");
 
-        String ticketNumber = UUID.randomUUID().toString();
-        String base64Image = convertToBase64(imagePart);
-        Map<String, String> decisionMap = decisionService.analyzeImageAndDecide(base64Image, description, ticketNumber);
+        String ticketNumber = "TICKET-" + UUID.randomUUID().toString();
 
+        // Pass the InputStream directly to DecisionService
+        Map<String, String> decisionMap;
+        try (InputStream imageInputStream = imagePart.getInputStream()) {
+            decisionMap = decisionService.analyzeImageAndDecide(imageInputStream, description, ticketNumber);
+        }
+
+        // Save the image to file system
         String imageFilePath = saveImageFile(imagePart, ticketNumber);
 
+        // Store ticket information in the database
         try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/smarthomes", "root", "root")) {
             String sql = "INSERT INTO Tickets (user_id, ticket_number, description, image_path, decision, rationale, image_description, action_result) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             PreparedStatement stmt = conn.prepareStatement(sql);
@@ -66,13 +69,6 @@ public class OpenTicketServlet extends HttpServlet {
         jsonResponse.addProperty("ticketNumber", ticketNumber);
         jsonResponse.addProperty("decision", decisionMap.get("Action"));
         response.getWriter().write(new Gson().toJson(jsonResponse));
-    }
-
-    private String convertToBase64(Part imagePart) throws IOException {
-        try (InputStream inputStream = imagePart.getInputStream()) {
-            byte[] bytes = inputStream.readAllBytes();
-            return Base64.getEncoder().encodeToString(bytes);
-        }
     }
 
     private String saveImageFile(Part imagePart, String ticketNumber) throws IOException {
