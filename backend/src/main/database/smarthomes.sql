@@ -114,10 +114,12 @@ WHERE Accessories.id = ?; -- the accessory_id you're searching for
 
 CREATE TABLE Tickets (
     ticket_id INT AUTO_INCREMENT PRIMARY KEY,
-    
     ticket_number VARCHAR(50) UNIQUE NOT NULL,
     description TEXT,
     image_path VARCHAR(255),
     decision VARCHAR(50),
+    rationale TEXT,
+    image_description TEXT,
+    action_result TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
