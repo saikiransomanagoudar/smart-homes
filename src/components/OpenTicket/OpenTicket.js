@@ -25,27 +25,23 @@ export default function OpenTicket() {
                 mode: "cors",
                 credentials: "include",
             });
-    
-            // Check if the response is OK (status 200-299)
+
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
-    
-            // Check if response is JSON
+
             const contentType = response.headers.get("content-type");
             if (contentType && contentType.includes("application/json")) {
                 const result = await response.json();
                 setAlertType("success");
                 setAlertMessage(`Ticket submitted successfully! Ticket Number: ${result.ticketNumber}`);
-    
-                // Store image and ticket details in local storage
+
                 localStorage.setItem("ticketImage", URL.createObjectURL(image));
                 localStorage.setItem("ticketNumber", result.ticketNumber);
             } else {
                 throw new Error("Expected JSON response from server, but received a different format.");
             }
-            
-            // Clear the message after 20 seconds
+
             setTimeout(() => setAlertMessage(null), 20000);
         } catch (error) {
             console.error("Error submitting ticket:", error);

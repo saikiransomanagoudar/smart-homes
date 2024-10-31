@@ -17,8 +17,8 @@ export default function CheckTicketStatus() {
                     rationale: result.rationale || "No rationale provided",
                     imageDescription: result.image_description || "No description provided",
                     actionResult: result.action_result,
-                    description: localStorage.getItem("description"), // Retrieve the user description from local storage
-                    imagePath: localStorage.getItem("ticketImage"), // Use image from local storage
+                    description: localStorage.getItem("description"), 
+                    imagePath: localStorage.getItem("ticketImage"),
                 });
                 setErrorMessage("");
             } else {
@@ -81,9 +81,9 @@ export default function CheckTicketStatus() {
                         </div>
 
                         <p className="text-gray-700 mb-2"><strong>Action:</strong> {ticketData.decision}</p>
-                        <p className="text-gray-700 mb-2"><strong>User Description:</strong> {ticketData.description || "No description provided"}</p>
-                        <p className="text-gray-700 mb-2"><strong>Image Description:</strong> {ticketData.imageDescription}</p>
-                        <p className="text-gray-700 mb-2"><strong>Rationale:</strong> {ticketData.rationale}</p>
+                        {/* <p className="text-gray-700 mb-2"><strong>User Description:</strong> {ticketData.description || "No description provided"}</p> */}
+                        {/* <p className="text-gray-700 mb-2"><strong>Image Description:</strong> {ticketData.imageDescription}</p> */}
+                        {/* <p className="text-gray-700 mb-2"><strong>Rationale:</strong> {ticketData.rationale}</p> */}
                         <p className="text-gray-700"><strong>Action Result:</strong> {ticketData.actionResult}</p>
                     </div>
                 )}

@@ -36,16 +36,13 @@ public class OpenTicketServlet extends HttpServlet {
 
         String ticketNumber = "TICKET-" + UUID.randomUUID().toString();
 
-        // Pass the InputStream directly to DecisionService
         Map<String, String> decisionMap;
         try (InputStream imageInputStream = imagePart.getInputStream()) {
             decisionMap = decisionService.analyzeImageAndDecide(imageInputStream, description, ticketNumber);
         }
 
-        // Save the image to file system
         String imageFilePath = saveImageFile(imagePart, ticketNumber);
 
-        // Store ticket information in the database
         try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/smarthomes", "root", "root")) {
             String sql = "INSERT INTO Tickets (user_id, ticket_number, description, image_path, decision, rationale, image_description, action_result) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             PreparedStatement stmt = conn.prepareStatement(sql);
