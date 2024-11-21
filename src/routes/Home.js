@@ -18,6 +18,10 @@ export default function Home() {
   const [storedName, setStoredName] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
+  const [reviewQuery, setReviewQuery] = useState("");
+  const [reviewResults, setReviewResults] = useState([]);
+  const [productQuery, setProductQuery] = useState("");
+  const [recommendedProduct, setRecommendedProduct] = useState(null);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const searchRef = useRef(null);
   const [showCustomerServiceMenu, setShowCustomerServiceMenu] = useState(false);
@@ -53,6 +57,61 @@ export default function Home() {
     const loggedInStatus = localStorage.getItem("isLoggedIn");
     setIsLoggedIn(loggedInStatus === "true");
   }, []);
+
+  const handleReviewSearch = () => {
+    if (reviewQuery.trim() === "") {
+      alert("Please enter a search term for reviews");
+      return;
+    }
+
+    // Mock fetching similar reviews (replace with actual API call)
+    fetch(
+      `http://localhost:8080/smarthomes/search-reviews?query=${reviewQuery}`,
+      {
+        credentials: "include",
+      }
+    )
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to fetch reviews");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        setReviewResults(data);
+      })
+      .catch((error) => {
+        console.error("Error fetching reviews:", error);
+      });
+  };
+
+  const handleProductRecommendation = () => {
+    if (productQuery.trim() === "") {
+      alert("Please enter a product search term");
+      return;
+    }
+
+    // Mock fetching recommended product (replace with actual API call)
+    fetch(
+      `http://localhost:8080/smarthomes/recommend-product?query=${productQuery}`,
+      {
+        credentials: "include",
+      }
+    )
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to fetch product recommendation");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        setRecommendedProduct(data);
+      })
+      .catch((error) => {
+        console.error("Error fetching product recommendation:", error);
+      });
+  };
+
   const loginType = localStorage.getItem("loginType");
 
   const handleShopNow = (category) => {
@@ -227,7 +286,7 @@ export default function Home() {
                 className="text-sm sm:text-base flex items-center bg-gray-700 px-2 py-1 rounded-full"
               >
                 <FontAwesomeIcon icon={faQuestionCircle} className="mr-1" />
-                {loginType === "Customer" ? "Customer Service" : "Help" }
+                {loginType === "Customer" ? "Customer Service" : "Help"}
               </button>
               {showCustomerServiceMenu && (
                 <div className="absolute bg-white text-black right-0 mt-2 w-40 rounded shadow-lg z-10">
@@ -377,6 +436,72 @@ export default function Home() {
           </div>
         </div>
       </main>
+
+      {/* Search Reviews Section */}
+      <div className="mt-8">
+        <h3 className="text-lg font-semibold mb-2 text-gray-800">
+          Search Reviews
+        </h3>
+        <div className="flex items-center space-x-3">
+          <input
+            type="text"
+            value={reviewQuery}
+            onChange={(e) => setReviewQuery(e.target.value)}
+            placeholder="Enter search term for reviews..."
+            className="border border-gray-300 p-2 rounded-full flex-grow focus:ring-2 focus:ring-yellow-400 outline-none"
+          />
+          <button
+            onClick={handleReviewSearch}
+            className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-full font-medium"
+          >
+            {" "}
+            Search Reviews
+          </button>
+        </div>
+        {reviewResults.length > 0 && (
+          <ul className="mt-4 space-y-2">
+            {reviewResults.map((review, index) => (
+              <li
+                key={index}
+                className="p-2 rounded-lg bg-gray-100 border border-gray-200"
+              >
+                {review}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {/* Recommend Product Section */}
+      <div className="mt-8">
+        <h3 className="text-lg font-semibold mb-2 text-gray-800">
+          Recommend Product
+        </h3>
+        <div className="flex items-center space-x-3">
+          <input
+            type="text"
+            value={productQuery}
+            onChange={(e) => setProductQuery(e.target.value)}
+            placeholder="Enter product search term..."
+            className="border border-gray-300 p-2 rounded-full flex-grow focus:ring-2 focus:ring-green-400 outline-none"
+          />
+          <button
+            onClick={handleProductRecommendation}
+            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full font-medium"
+          >
+            {" "}
+            Recommend Product
+          </button>
+        </div>
+        {recommendedProduct && (
+          <div className="mt-4 p-4 rounded-lg bg-gray-100 border border-gray-200">
+            <h4 className="text-md font-bold">{recommendedProduct.name}</h4>
+            <p>Category: {recommendedProduct.category}</p>
+            <p>Description: {recommendedProduct.description}</p>
+            <p>Price: ${recommendedProduct.price}</p>
+          </div>
+        )}
+      </div>
 
       <footer className="bg-[#550403] text-white p-4 mt-8">
         <div className="container mx-auto text-center">
