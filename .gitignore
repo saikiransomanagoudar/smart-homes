@@ -2,6 +2,8 @@
 
 .env.local
 backend/.env
+backend/app/config.py
+__pycache__/
 
 # dependencies
 /node_modules
