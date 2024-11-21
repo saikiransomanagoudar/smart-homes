@@ -22,9 +22,7 @@ public class ProductServlet extends HttpServlet {
      @Override
     public void init() throws ServletException {
         super.init();
-        // This method will be called when the servlet is first initialized (when backend starts)
         try {
-            // Load and parse the ProductCatalog.xml
             SAXParserFactory factory = SAXParserFactory.newInstance();
             SAXParser saxParser = factory.newSAXParser();
 
@@ -49,6 +47,7 @@ public class ProductServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        enableCORS(request, response);
         response.setContentType("application/json");
         PrintWriter out = response.getWriter();
 
@@ -137,5 +136,12 @@ public class ProductServlet extends HttpServlet {
         }
 
         return accessories;
+    }
+
+    private void enableCORS(HttpServletRequest request, HttpServletResponse response) {
+        response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+        response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        response.setHeader("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization");
+        response.setHeader("Access-Control-Allow-Credentials", "true");
     }
 }

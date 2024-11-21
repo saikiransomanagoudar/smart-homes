@@ -14,8 +14,8 @@ public class LoginServlet extends HttpServlet {
 
     public void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
-        // Set response content type to application/json
+        
+        enableCORS(request, response);
         response.setContentType("application/json");
         PrintWriter out = response.getWriter();
 
@@ -85,5 +85,11 @@ public class LoginServlet extends HttpServlet {
             out.print("{ \"error\": \"" + error_msg + "\" }");
         }
         out.flush();
+    }
+    private void enableCORS(HttpServletRequest request, HttpServletResponse response) {
+        response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+        response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        response.setHeader("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization");
+        response.setHeader("Access-Control-Allow-Credentials", "true");
     }
 }

@@ -1,0 +1,29 @@
+id,name,price,description,image,category,retailer,quantity,onSale,hasRebate
+1,"Blink Video Doorbell",59.99,"Blink Video Doorbell | Two-way audio, HD video, motion and chime app alerts and Alexa enabled — wired or wire-free (Black)",/images/doorbells/doorbell1.jpg,doorbells,SmartHomes,4,1,1
+2,"Tapo TP-Link Smart Doorbell",89.99,"Tapo TP-Link Smart Video Doorbell Camera, Battery Powered, Chime Included, 2K 5MP, Color Night Vision, 2-Way Audio",/images/doorbells/doorbell2.jpg,doorbells,SmartHomes,19,0,1
+3,"Ring Video Doorbell",59.99,"Ring Video Doorbell - 1080p HD video, improved motion detection, easy installation (2020 release) – Satin Nickel",/images/doorbells/doorbell3.jpg,doorbells,SmartHomes,50,1,0
+4,"Google Nest Doorbell",137.31,"Google Nest Doorbell (Battery) - Ash",/images/doorbells/doorbell4.jpg,doorbells,Smarthomes,25,0,1
+5,"Smart Video Doorbell Camera Wireless",13.99,"Smart Video Doorbell Camera Wireless, AI Human Detection and Instant Alerts, Night Vision, 2-Way Audio, Battery Powered, Cloud Storage, 2.4G WiFi",/images/doorbells/doorbell5.jpg,doorbells,SmartHomes,50,1,0
+6,"Keyless Entry Door Lock with Handle",66.49,"Keyless Entry Door Lock with Handle, Hornbill Smart Front Door Lock Set, Electronic Keypad Deadbolt Lock, Alexa Front Door Handle Set",/images/doorlocks/doorlock6.jpg,doorlocks,SmartHomes,38,1,1
+7,"Philips Wi-Fi Smart Door Lock",139.99,"Philips Wi-Fi Smart Door Lock, Keyless Entry Door Lock with App Control, Fingerprint ID, Auto Unlock, Keypad Deadbolt with Wi-Fi Bridge Adaptor",/images/doorlocks/doorlock2.jpg,doorlocks,SmartHomes,49,1,1
+8,"Keypad Smart Door Lock",79.99,"Keypad Smart Door Lock with Handle: Kucacci Keyless Entry Door Lock - Digital Door Lock with Keypad Code - Fingerprint Door Lever Lock Deadbolt",/images/doorlocks/doorlock3.jpg,doorlocks,SmartHomes,21,1,1
+9,"eufy Smart Lock C30",59.99,"eufy Smart Lock C30, Keyless Entry Door Lock, Built-in WiFi Deadbolt, Smart Lock for Front Door, No Bridge Required, Easy Installation",/images/doorlocks/doorlock4.jpg,doorlocks,SmartHomes,50,1,1
+10,"Yale Assure Lock 2 with Wi-Fi",239.99,"Yale Assure Lock 2 with Wi-Fi, Black Connected Keypad Smart Lock for Front Door or Back, Door Lock with Code and Back-Up Key",/images/doorlocks/doorlock5.jpg,doorlocks,SmartHomes,31,0,1
+11,"Keyless Entry Door Lock with Handle",66.49,"Keyless Entry Door Lock with Handle, Hornbill Smart Front Door Lock Set, Electronic Keypad Deadbolt Lock, Alexa Front Door Handle Set",/images/doorlocks/doorlock6.jpg,doorlocks,SmartHomes,16,0,1
+12,"Govee Smart Light Bulbs",34.99,"Govee Smart Light Bulbs, Color Changing Light Bulb, Work with Alexa and Google Assistant, 16 Million Colors RGBWW, WiFi & Bluetooth LED Light Bulbs",/images/lightings/lighting1.jpg,lightings,SmartHomes,6,1,0
+13,"GE CYNC A19 Smart LED Light Bulbs",14.95,"GE CYNC A19 Smart LED Light Bulbs, Color Changing Room Décor, Bluetooth and WiFi Light Bulbs",/images/lightings/lighting2.jpg,lightings,SmartHomes,38,0,1
+14,"Touch Bedside Table Lamp",23.99,"Touch Bedside Table Lamp, [Sleek Design & RGB Mode] 3 Way Dimmable Small Lamp for Bedroom",/images/lightings/lighting3.jpg,lightings,SmartHomes,6,0,0
+15,"Echo Glow",29.99,"Echo Glow - Multicolor smart lamp, Works with Alexa",/images/lightings/lighting4.jpg,lightings,SmartHomes,2,0,0
+16,"Govee RGBIC Floor Lamp",99.99,"Govee RGBIC Floor Lamp, LED Corner Lamp Works with Alexa, Smart Modern Floor Lamp",/images/lightings/lighting5.jpg,lightings,SmartHomes,31,1,0
+17,"Amazon Echo Studio",199.99,"Amazon Echo Studio | Our best-sounding smart speaker ever - With Dolby Atmos, spatial audio processing technology, and Alexa",/images/speakers/speaker1.jpg,speakers,SmartHomes,16,1,1
+18,"NOTABRICK Bluetooth Speakers",49.99,"NOTABRICK Bluetooth Speakers, 15W Portable Speakers Bluetooth Wireless V5.0 with Stereo Sound, Active Extra Bass, IPX6 Waterproof",/images/speakers/speaker2.jpg,speakers,SmartHomes,8,0,1
+19,"Google Nest Mini",47.00,"Google Nest Mini 2nd Generation Smart Speaker with Google Assistant",/images/speakers/speaker3.jpg,speakers,SmartHomes,23,1,0
+20,"Sonos Era 100",244.85,"Sonos Era 100 - White - Wireless, Alexa Enabled Smart Speaker",/images/speakers/speaker4.jpg,speakers,Smarthomes,0,0,0
+21,"Anker Soundcore 2 Portable Bluetooth Speaker",27.99,"Anker Soundcore 2 Portable Bluetooth Speaker with 12W Stereo Sound, Bluetooth 5, Bassup, IPX7 Waterproof, 24-Hour Playtime",/images/speakers/speaker5.jpg,speakers,SmartHomes,40,1,0
+22,"Edifier WiFi Smart Speaker",113.99,"Edifier WiFi Smart Speaker Without Microphone, Works with Alexa, Supports AirPlay 2, Spotify Connect",/images/speakers/speaker6.jpg,speakers,SmartHomes,48,1,0
+23,"Amazon Smart Thermostat",79.99,"Amazon Smart Thermostat – Save money and energy - Works with Alexa and Ring - C-wire required",/images/thermostats/thermostat1.jpg,thermostats,Smarthomes,43,1,1
+24,"GE CYNC Smart Thermostat",58.77,"GE CYNC Smart Thermostat for Home, Energy Star Certified, Smart Home Programmable Wi-Fi Thermostat",/images/thermostats/thermostat2.jpg,thermostats,SmartHomes,32,1,0
+25,"Sensi Lite Smart Thermostat",75.00,"Sensi Lite Smart Thermostat, Data Privacy, Programmable, Wi-Fi, Easy DIY, Works With Alexa",/images/thermostats/thermostat3.jpg,thermostats,Smarthomes,14,0,1
+26,"Google Nest Thermostat",144.99,"Google Nest Thermostat - Smart Thermostat for Home - Programmable Wifi Thermostat",/images/thermostats/thermostat4.jpg,thermostats,SmartHomes,47,1,0
+27,"Honeywell Home RTH8800WF2022",85.00,"Honeywell Home RTH8800WF2022, T5 WiFi Smart Thermostat, 7 Day-Programmable Touchscreen",/images/thermostats/thermostat5.jpg,thermostats,SmartHomes,33,1,1
+28,"Vine Thermostat",69.99,"Vine Thermostat for Home with Touchscreen Color Display, WiFi Smart Thermostat",/images/thermostats/thermostat6.jpg,thermostats,SmartHomes,28,0,1

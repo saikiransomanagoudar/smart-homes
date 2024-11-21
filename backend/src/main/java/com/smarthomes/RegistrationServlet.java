@@ -14,8 +14,7 @@ public class RegistrationServlet extends HttpServlet {
 
     public void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
-        // Set response content type to application/json
+                enableCORS(request, response);
         response.setContentType("application/json");
         PrintWriter out = response.getWriter();
 
@@ -75,9 +74,9 @@ public class RegistrationServlet extends HttpServlet {
                     String customerInsertQuery = "INSERT INTO customers (user_id, customer_name, street, city, state, zip_code) VALUES (?, ?, ?, ?, ?, ?)";
                     PreparedStatement psCustomers = conn.prepareStatement(customerInsertQuery);
                     psCustomers.setInt(1, userId);
-                    psCustomers.setString(2, name);  // Use the user's name as customer name
-                    psCustomers.setString(3, "Default Street");  // You can replace with actual input for street
-                    psCustomers.setString(4, "Default City");    // Same for city, state, zip code
+                    psCustomers.setString(2, name);
+                    psCustomers.setString(3, "Default Street");
+                    psCustomers.setString(4, "Default City");
                     psCustomers.setString(5, "Default State");
                     psCustomers.setString(6, "12345");
                     psCustomers.executeUpdate();
@@ -103,5 +102,11 @@ public class RegistrationServlet extends HttpServlet {
         }
 
         out.flush();
+    }
+    private void enableCORS(HttpServletRequest request, HttpServletResponse response) {
+        response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+        response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        response.setHeader("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization");
+        response.setHeader("Access-Control-Allow-Credentials", "true");
     }
 }
