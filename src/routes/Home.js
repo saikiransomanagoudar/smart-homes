@@ -21,7 +21,7 @@ export default function Home() {
   const [reviewQuery, setReviewQuery] = useState("");
   const [reviewResults, setReviewResults] = useState([]);
   const [productQuery, setProductQuery] = useState("");
-  const [recommendedProduct, setRecommendedProduct] = useState(null);
+  const [recommendedProducts, setRecommendedProducts] = useState([]);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const searchRef = useRef(null);
   const [showCustomerServiceMenu, setShowCustomerServiceMenu] = useState(false);
@@ -91,24 +91,32 @@ export default function Home() {
       return;
     }
 
-    // Mock fetching recommended product (replace with actual API call)
     fetch(
-      `http://localhost:8080/smarthomes/recommend-product?query=${productQuery}`,
+      `http://localhost:5000/recommend-product?query=${encodeURIComponent(
+        productQuery
+      )}`,
       {
         credentials: "include",
+      },
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
       }
     )
       .then((response) => {
         if (!response.ok) {
-          throw new Error("Failed to fetch product recommendation");
+          throw new Error("Failed to fetch product recommendations");
         }
         return response.json();
       })
       .then((data) => {
-        setRecommendedProduct(data);
+        const products = data.map((hit) => hit._source);
+        setRecommendedProducts(products); // Set the array of products
       })
       .catch((error) => {
-        console.error("Error fetching product recommendation:", error);
+        console.error("Error fetching product recommendations:", error);
       });
   };
 
@@ -489,16 +497,22 @@ export default function Home() {
             onClick={handleProductRecommendation}
             className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full font-medium"
           >
-            {" "}
             Recommend Product
           </button>
         </div>
-        {recommendedProduct && (
-          <div className="mt-4 p-4 rounded-lg bg-gray-100 border border-gray-200">
-            <h4 className="text-md font-bold">{recommendedProduct.name}</h4>
-            <p>Category: {recommendedProduct.category}</p>
-            <p>Description: {recommendedProduct.description}</p>
-            <p>Price: ${recommendedProduct.price}</p>
+        {recommendedProducts.length > 0 && (
+          <div className="mt-4">
+            {recommendedProducts.map((product, index) => (
+              <div
+                key={index}
+                className="p-4 rounded-lg bg-gray-100 border border-gray-200 mb-4"
+              >
+                <h4 className="text-md font-bold">{product.name}</h4>
+                <p>Category: {product.category}</p>
+                <p>Description: {product.description}</p>
+                <p>Price: ${product.price}</p>
+              </div>
+            ))}
           </div>
         )}
       </div>
