@@ -51,8 +51,8 @@ Ensure you have the following installed:
 
 ### Clone the Repository
 ```bash
-git clone https://github.com/YourUsername/SmartHomes.git
-cd SmartHomes
+git clone https://github.com/YourUsername/smart-homes.git
+cd smart-homes
 ```
 
 ### Backend (Java Servlets)
