@@ -5,7 +5,7 @@
 ## Project Description
 SmartHomes is a full-stack e-commerce web application developed using Java Servlets (backend), React.js (frontend), and Python services for integrating Gen AI tools and Elasticsearch. The platform supports various functionalities for customers, salesmen, and store managers. Features include product management, order placement, reviews, analytics, ticket handling, and advanced search and recommendations using AI-powered tools.
 
-The application integrates Docker for containerization and provides comprehensive user management and order processing capabilities.
+The application provides comprehensive user management and order processing capabilities.
 
 ## Features
 
@@ -105,7 +105,7 @@ cd SmartHomes
 1. **MySQL**:
    - Import the provided `smarthomes.sql` file to set up tables
    ```bash
-   mysql -u root -p < backend/src/main/database/smarthomes.sql
+   mysql -u root -p < backend/src/main/db/database/smarthomes.sql
    ```
 
 2. **MongoDB**:
@@ -122,7 +122,7 @@ Set up the following environment variables in your system:
 
 - **MySQL**: `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`
 - **MongoDB**: `MONGO_URI`
-- **JavaMail**: `MAIL_USERNAME`, `MAIL_PASSWORD`
+
 
 ### Database Configuration
 - Update database connection settings in `MySQLDataStoreUtilities.java` and `MongoDBDataStoreUtilities.java`
